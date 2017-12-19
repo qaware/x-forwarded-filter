@@ -19,7 +19,7 @@ package org.springframework.http.server;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
-import org.springframework.util.Assert;
+import org.springframework.util.AssertM;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.util.StringUtils;
 
@@ -52,7 +52,7 @@ public class ServletServerHttpRequest implements ServerHttpRequest {
 	 * @param servletRequest the servlet request
 	 */
 	public ServletServerHttpRequest(HttpServletRequest servletRequest) {
-		Assert.notNull(servletRequest, "HttpServletRequest must not be null");
+		AssertM.notNull(servletRequest, "HttpServletRequest must not be null");
 		this.servletRequest = servletRequest;
 	}
 

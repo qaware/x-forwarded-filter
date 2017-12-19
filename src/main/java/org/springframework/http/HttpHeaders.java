@@ -16,7 +16,7 @@
 
 package org.springframework.http;
 
-import org.springframework.util.Assert;
+import org.springframework.util.AssertM;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -83,7 +83,7 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 	 * Private constructor that can create read-only {@code HttpHeader} instances.
 	 */
 	private HttpHeaders(Map<String, List<String>> headers, boolean readOnly) {
-		Assert.notNull(headers, "'headers' must not be null");
+		AssertM.notNull(headers, "'headers' must not be null");
 		if (readOnly) {
 			Map<String, List<String>> map =
 					new LinkedCaseInsensitiveMap<>(headers.size(), Locale.ENGLISH);
@@ -122,8 +122,8 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 	 */
 	public void setContentType(/*@Nullable*/ MediaType mediaType) {
 		if (mediaType != null) {
-			Assert.isTrue(!mediaType.isWildcardType(), "'Content-Type' cannot contain wildcard type '*'");
-			Assert.isTrue(!mediaType.isWildcardSubtype(), "'Content-Type' cannot contain wildcard subtype '*'");
+			AssertM.isTrue(!mediaType.isWildcardType(), "'Content-Type' cannot contain wildcard type '*'");
+			AssertM.isTrue(!mediaType.isWildcardSubtype(), "'Content-Type' cannot contain wildcard subtype '*'");
 			set(CONTENT_TYPE, mediaType.toString());
 		} else {
 			set(CONTENT_TYPE, null);

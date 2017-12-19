@@ -315,7 +315,7 @@ public class MimeTypeUtils {
 	 * and Content, section 5.3.2</a>
 	 */
 	public static void sortBySpecificity(List<MimeType> mimeTypes) {
-		Assert.notNull(mimeTypes, "'mimeTypes' must not be null");
+		AssertM.notNull(mimeTypes, "'mimeTypes' must not be null");
 		if (mimeTypes.size() > 1) {
 			mimeTypes.sort(SPECIFICITY_COMPARATOR);
 		}

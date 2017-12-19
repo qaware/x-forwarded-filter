@@ -206,8 +206,8 @@ final class HierarchicalUriComponents extends UriComponents {
 		if (!StringUtils.hasLength(source)) {
 			return source;
 		}
-		Assert.notNull(charset, "Charset must not be null");
-		Assert.notNull(type, "Type must not be null");
+		AssertM.notNull(charset, "Charset must not be null");
+		AssertM.notNull(type, "Type must not be null");
 
 		byte[] bytes = source.getBytes(charset);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(bytes.length);
@@ -563,7 +563,7 @@ final class HierarchicalUriComponents extends UriComponents {
 		private final List<String> pathSegments;
 
 		public PathSegmentComponent(List<String> pathSegments) {
-			Assert.notNull(pathSegments, "List must not be null");
+			AssertM.notNull(pathSegments, "List must not be null");
 			this.pathSegments = Collections.unmodifiableList(new ArrayList<>(pathSegments));
 		}
 
@@ -624,7 +624,7 @@ final class HierarchicalUriComponents extends UriComponents {
 		private final List<PathComponent> pathComponents;
 
 		public PathComponentComposite(List<PathComponent> pathComponents) {
-			Assert.notNull(pathComponents, "PathComponent List must not be null");
+			AssertM.notNull(pathComponents, "PathComponent List must not be null");
 			this.pathComponents = pathComponents;
 		}
 

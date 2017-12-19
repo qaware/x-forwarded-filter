@@ -163,7 +163,7 @@ public class UriComponentsBuilder {
 	 */
 	@SuppressWarnings("squid:S3776")//spring original
 	public static UriComponentsBuilder fromUriString(String uri) {
-		Assert.notNull(uri, "URI must not be null");
+		AssertM.notNull(uri, "URI must not be null");
 		Matcher matcher = URI_PATTERN.matcher(uri);
 		if (matcher.matches()) {
 			UriComponentsBuilder builder = new UriComponentsBuilder();
@@ -273,7 +273,7 @@ public class UriComponentsBuilder {
 	 * @return this UriComponentsBuilder
 	 */
 	public UriComponentsBuilder uri(URI uri) {
-		Assert.notNull(uri, "URI must not be null");
+		AssertM.notNull(uri, "URI must not be null");
 		this.scheme = uri.getScheme();
 		if (uri.isOpaque()) {
 			this.ssp = uri.getRawSchemeSpecificPart();
@@ -364,7 +364,7 @@ public class UriComponentsBuilder {
 	 * @return this UriComponentsBuilder
 	 */
 	public UriComponentsBuilder port(int port) {
-		Assert.isTrue(port >= -1, "Port must be >= -1");
+		AssertM.isTrue(port >= -1, "Port must be >= -1");
 		this.port = String.valueOf(port);
 		resetSchemeSpecificPart();
 		return this;
@@ -459,7 +459,7 @@ public class UriComponentsBuilder {
 	 * @return this UriComponentsBuilder
 	 */
 	public UriComponentsBuilder queryParam(String name, Object... values) {
-		Assert.notNull(name, "Name must not be null");
+		AssertM.notNull(name, "Name must not be null");
 		if (!ObjectUtils.isEmpty(values)) {
 			for (Object value : values) {
 				String valueAsString = (value != null ? value.toString() : null);
@@ -481,7 +481,7 @@ public class UriComponentsBuilder {
 	 */
 	public UriComponentsBuilder fragment(/*@Nullable*/ String fragment) {
 		if (fragment != null) {
-			Assert.hasLength(fragment, "Fragment must not be empty");
+			AssertM.hasLength(fragment, "Fragment must not be empty");
 			this.fragment = fragment;
 		} else {
 			this.fragment = null;

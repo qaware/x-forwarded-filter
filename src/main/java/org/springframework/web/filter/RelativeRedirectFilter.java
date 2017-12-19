@@ -17,7 +17,7 @@
 package org.springframework.web.filter;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.util.Assert;
+import org.springframework.util.AssertM;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -51,8 +51,8 @@ public class RelativeRedirectFilter extends OncePerRequestFilter {
 	 * @param status the 3xx redirect status to use
 	 */
 	public void setRedirectStatus(HttpStatus status) {
-		Assert.notNull(status, "Property 'redirectStatus' is required");
-		Assert.isTrue(status.is3xxRedirection(), "Not a redirect status code");
+		AssertM.notNull(status, "Property 'redirectStatus' is required");
+		AssertM.isTrue(status.is3xxRedirection(), "Not a redirect status code");
 		this.redirectStatus = status;
 	}
 

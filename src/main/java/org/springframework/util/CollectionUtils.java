@@ -77,7 +77,7 @@ public class CollectionUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <K, V> MultiValueMap<K, V> unmodifiableMultiValueMap(MultiValueMap<? extends K, ? extends V> map) {
-		Assert.notNull(map, "'map' must not be null");
+		AssertM.notNull(map, "'map' must not be null");
 		Map<K, List<V>> result = new LinkedHashMap<>(map.size());
 		map.forEach((key, value) -> {
 			List<? extends V> values = Collections.unmodifiableList(value);
@@ -98,7 +98,7 @@ public class CollectionUtils {
 		private final Map<K, List<V>> map;
 
 		public MultiValueMapAdapter(Map<K, List<V>> map) {
-			Assert.notNull(map, "'map' must not be null");
+			AssertM.notNull(map, "'map' must not be null");
 			this.map = map;
 		}
 

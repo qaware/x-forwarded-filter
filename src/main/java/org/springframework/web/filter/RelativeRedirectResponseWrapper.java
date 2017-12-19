@@ -17,7 +17,7 @@ package org.springframework.web.filter;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.Assert;
+import org.springframework.util.AssertM;
 
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
@@ -38,7 +38,7 @@ class RelativeRedirectResponseWrapper extends HttpServletResponseWrapper {
 
 	private RelativeRedirectResponseWrapper(HttpServletResponse response, HttpStatus redirectStatus) {
 		super(response);
-		Assert.notNull(redirectStatus, "'redirectStatus' is required");
+		AssertM.notNull(redirectStatus, "'redirectStatus' is required");
 		this.redirectStatus = redirectStatus;
 	}
 

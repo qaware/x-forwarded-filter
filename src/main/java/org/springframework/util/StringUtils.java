@@ -275,7 +275,7 @@ public class StringUtils {
 		if (length == 0) {
 			return source;
 		}
-		Assert.notNull(charset, "Charset must not be null");
+		AssertM.notNull(charset, "Charset must not be null");
 
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(length);
 		boolean changed = false;

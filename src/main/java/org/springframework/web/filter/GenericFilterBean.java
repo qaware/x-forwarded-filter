@@ -18,7 +18,7 @@ package org.springframework.web.filter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
+import org.springframework.util.AssertM;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterConfig;
@@ -78,7 +78,7 @@ public abstract class GenericFilterBean implements Filter {
 	 */
 	@Override
 	public final void init(FilterConfig filterConfig) throws ServletException {
-		Assert.notNull(filterConfig, "FilterConfig must not be null");
+		AssertM.notNull(filterConfig, "FilterConfig must not be null");
 		if (logger.isDebugEnabled()) {
 			logger.debug("Initializing filter '" + filterConfig.getFilterName() + "'");
 		}
