@@ -16,22 +16,12 @@
 
 package org.springframework.web.util;
 
+import org.springframework.util.*;
+
 import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-
-import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+import java.util.*;
 
 /**
  * Extension of {@link UriComponents} for hierarchical URIs.
@@ -40,8 +30,8 @@ import org.springframework.util.StringUtils;
  * @author Juergen Hoeller
  * @author Rossen Stoyanchev
  * @author Phillip Webb
- * @since 3.1.3
  * @see <a href="http://tools.ietf.org/html/rfc3986#section-1.2.3">Hierarchical URIs</a>
+ * @since 3.1.3
  */
 @SuppressWarnings("serial")
 final class HierarchicalUriComponents extends UriComponents {
@@ -67,23 +57,26 @@ final class HierarchicalUriComponents extends UriComponents {
 
 	/**
 	 * Package-private constructor. All arguments are optional, and can be {@code null}.
-	 * @param scheme the scheme
-	 * @param userInfo the user info
-	 * @param host the host
-	 * @param port the port
-	 * @param path the path
+	 *
+	 * @param scheme      the scheme
+	 * @param userInfo    the user info
+	 * @param host        the host
+	 * @param port        the port
+	 * @param path        the path
 	 * @param queryParams the query parameters
-	 * @param fragment the fragment
-	 * @param encoded whether the components are already encoded
-	 * @param verify whether the components need to be checked for illegal characters
+	 * @param fragment    the fragment
+	 * @param encoded     whether the components are already encoded
+	 * @param verify      whether the components need to be checked for illegal characters
 	 */
+	@SuppressWarnings("squid:S00107")
+	//copy and builder constructor
 	HierarchicalUriComponents(/*@Nullable*/ String scheme, /*@Nullable*/ String fragment, /*@Nullable*/ String userInfo,
 			/*@Nullable*/ String host, /*@Nullable*/ String port, /*@Nullable*/ PathComponent path,
 			/*@Nullable*/ MultiValueMap<String, String> queryParams, boolean encoded, boolean verify) {
 
 		super(scheme, fragment);
 
-			this.userInfo = userInfo;
+		this.userInfo = userInfo;
 		this.host = host;
 		this.port = port;
 		this.path = (path != null ? path : NULL_PATH_COMPONENT);
@@ -114,8 +107,7 @@ final class HierarchicalUriComponents extends UriComponents {
 	public int getPort() {
 		if (this.port == null) {
 			return -1;
-		}
-		else if (this.port.contains("{")) {
+		} else if (this.port.contains("{")) {
 			throw new IllegalStateException(
 					"The port contains a URI variable but has not been expanded yet: " + this.port);
 		}
@@ -129,36 +121,34 @@ final class HierarchicalUriComponents extends UriComponents {
 
 	/*@Nullable*/
 	public String getQuery() {
-		if (!this.queryParams.isEmpty()) {
-			StringBuilder queryBuilder = new StringBuilder();
-			for (Map.Entry<String, List<String>> entry : this.queryParams.entrySet()) {
-				String name = entry.getKey();
-				List<String> values = entry.getValue();
-				if (CollectionUtils.isEmpty(values)) {
-					if (queryBuilder.length() != 0) {
-						queryBuilder.append('&');
-					}
-					queryBuilder.append(name);
-				}
-				else {
-					for (Object value : values) {
-						if (queryBuilder.length() != 0) {
-							queryBuilder.append('&');
-						}
-						queryBuilder.append(name);
+		if (this.queryParams.isEmpty()) {
+			return null;
+		}
+		StringBuilder queryBuilder = new StringBuilder();
+		for (Map.Entry<String, List<String>> entry : this.queryParams.entrySet()) {
+			String name = entry.getKey();
+			List<String> values = entry.getValue();
+			if (CollectionUtils.isEmpty(values)) {
+				appendQueryParamName(queryBuilder, name);
+			} else {
+				for (Object value : values) {
+					appendQueryParamName(queryBuilder, name);
 
-						if (value != null) {
-							queryBuilder.append('=');
-							queryBuilder.append(value.toString());
-						}
+					if (value != null) {
+						queryBuilder.append('=');
+						queryBuilder.append(value.toString());
 					}
 				}
 			}
-			return queryBuilder.toString();
 		}
-		else {
-			return null;
+		return queryBuilder.toString();
+	}
+
+	private void appendQueryParamName(StringBuilder queryBuilder, String name) {
+		if (queryBuilder.length() != 0) {
+			queryBuilder.append('&');
 		}
+		queryBuilder.append(name);
 	}
 
 
@@ -167,6 +157,7 @@ final class HierarchicalUriComponents extends UriComponents {
 	/**
 	 * Encode all URI components using their specific encoding rules and return
 	 * the result as a new {@code UriComponents} instance.
+	 *
 	 * @param charset the encoding of the values
 	 * @return the encoded URI components
 	 */
@@ -204,9 +195,10 @@ final class HierarchicalUriComponents extends UriComponents {
 	/**
 	 * Encode the given source into an encoded String using the rules specified
 	 * by the given component and with the given options.
-	 * @param source the source String
+	 *
+	 * @param source  the source String
 	 * @param charset the encoding of the source String
-	 * @param type the URI component for the source
+	 * @param type    the URI component for the source
 	 * @return the encoded URI
 	 * @throws IllegalArgumentException when the given value is not a valid URI component
 	 */
@@ -226,8 +218,7 @@ final class HierarchicalUriComponents extends UriComponents {
 			}
 			if (type.isAllowed(b)) {
 				bos.write(b);
-			}
-			else {
+			} else {
 				bos.write('%');
 				char hex1 = Character.toUpperCase(Character.forDigit((b >> 4) & 0xF, 16));
 				char hex2 = Character.toUpperCase(Character.forDigit(b & 0xF, 16));
@@ -249,6 +240,7 @@ final class HierarchicalUriComponents extends UriComponents {
 	/**
 	 * Verifies all URI components to determine whether they contain any illegal
 	 * characters, throwing an {@code IllegalArgumentException} if so.
+	 *
 	 * @throws IllegalArgumentException if any component has illegal characters
 	 */
 	private void verify() {
@@ -273,26 +265,25 @@ final class HierarchicalUriComponents extends UriComponents {
 			return;
 		}
 		int length = source.length();
-		for (int i = 0; i < length; i++) {
-			char ch = source.charAt(i);
+		int pos = -1;
+		while (++pos < length) {
+			char ch = source.charAt(pos);
 			if (ch == '%') {
-				if ((i + 2) < length) {
-					char hex1 = source.charAt(i + 1);
-					char hex2 = source.charAt(i + 2);
+				if ((pos + 2) < length) {
+					char hex1 = source.charAt(pos + 1);
+					char hex2 = source.charAt(pos + 2);
 					int u = Character.digit(hex1, 16);
 					int l = Character.digit(hex2, 16);
 					if (u == -1 || l == -1) {
 						throw new IllegalArgumentException("Invalid encoded sequence \"" +
-								source.substring(i) + "\"");
+								source.substring(pos) + "\"");
 					}
-					i += 2;
-				}
-				else {
+					pos += 2;
+				} else {
 					throw new IllegalArgumentException("Invalid encoded sequence \"" +
-							source.substring(i) + "\"");
+							source.substring(pos) + "\"");
 				}
-			}
-			else if (!type.isAllowed(ch)) {
+			} else if (!type.isAllowed(ch)) {
 				throw new IllegalArgumentException("Invalid character '" + ch + "' for " +
 						type.name() + " in \"" + source + "\"");
 			}
@@ -304,6 +295,7 @@ final class HierarchicalUriComponents extends UriComponents {
 
 	/**
 	 * Normalize the path removing sequences like "path/..".
+	 *
 	 * @see StringUtils#cleanPath(String)
 	 */
 	@Override
@@ -340,12 +332,12 @@ final class HierarchicalUriComponents extends UriComponents {
 				uriBuilder.append(port);
 			}
 		}
-		String path = getPath();
-		if (StringUtils.hasLength(path)) {
-			if (uriBuilder.length() != 0 && path.charAt(0) != PATH_DELIMITER) {
+		String lpath = getPath();
+		if (StringUtils.hasLength(lpath)) {
+			if (uriBuilder.length() != 0 && lpath.charAt(0) != PATH_DELIMITER) {
 				uriBuilder.append(PATH_DELIMITER);
 			}
-			uriBuilder.append(path);
+			uriBuilder.append(lpath);
 		}
 		String query = getQuery();
 		if (query != null) {
@@ -396,6 +388,7 @@ final class HierarchicalUriComponents extends UriComponents {
 	/**
 	 * Enumeration used to identify the allowed characters per URI component.
 	 * <p>Contains methods to indicate whether a given character is valid in a specific URI component.
+	 *
 	 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986</a>
 	 */
 	enum Type {
@@ -441,8 +434,7 @@ final class HierarchicalUriComponents extends UriComponents {
 			public boolean isAllowed(int c) {
 				if ('=' == c || '&' == c) {
 					return false;
-				}
-				else {
+				} else {
 					return isPchar(c) || '/' == c || '?' == c;
 				}
 			}
@@ -456,12 +448,14 @@ final class HierarchicalUriComponents extends UriComponents {
 
 		/**
 		 * Indicates whether the given character is allowed in this URI component.
+		 *
 		 * @return {@code true} if the character is allowed; {@code false} otherwise
 		 */
 		public abstract boolean isAllowed(int c);
 
 		/**
 		 * Indicates whether the given character is in the {@code ALPHA} set.
+		 *
 		 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
 		 */
 		protected boolean isAlpha(int c) {
@@ -470,6 +464,7 @@ final class HierarchicalUriComponents extends UriComponents {
 
 		/**
 		 * Indicates whether the given character is in the {@code DIGIT} set.
+		 *
 		 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
 		 */
 		protected boolean isDigit(int c) {
@@ -478,6 +473,7 @@ final class HierarchicalUriComponents extends UriComponents {
 
 		/**
 		 * Indicates whether the given character is in the {@code sub-delims} set.
+		 *
 		 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
 		 */
 		protected boolean isSubDelimiter(int c) {
@@ -487,6 +483,7 @@ final class HierarchicalUriComponents extends UriComponents {
 
 		/**
 		 * Indicates whether the given character is in the {@code unreserved} set.
+		 *
 		 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
 		 */
 		protected boolean isUnreserved(int c) {
@@ -495,6 +492,7 @@ final class HierarchicalUriComponents extends UriComponents {
 
 		/**
 		 * Indicates whether the given character is in the {@code pchar} set.
+		 *
 		 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
 		 */
 		protected boolean isPchar(int c) {
@@ -589,9 +587,9 @@ final class HierarchicalUriComponents extends UriComponents {
 
 		@Override
 		public PathComponent encode(Charset charset) {
-			List<String> pathSegments = getPathSegments();
-			List<String> encodedPathSegments = new ArrayList<>(pathSegments.size());
-			for (String pathSegment : pathSegments) {
+			List<String> lpathSegments = getPathSegments();
+			List<String> encodedPathSegments = new ArrayList<>(lpathSegments.size());
+			for (String pathSegment : lpathSegments) {
 				String encodedPathSegment = encodeUriComponent(pathSegment, charset, Type.PATH_SEGMENT);
 				encodedPathSegments.add(encodedPathSegment);
 			}
@@ -671,14 +669,17 @@ final class HierarchicalUriComponents extends UriComponents {
 		public PathComponent encode(Charset charset) {
 			return this;
 		}
+
 		@Override
 		public void verify() {
+			//NULL_PATH_COMPONENT has noting to verify
 		}
 
 		@Override
 		public boolean equals(Object obj) {
 			return (this == obj);
 		}
+
 		@Override
 		public int hashCode() {
 			return getClass().hashCode();

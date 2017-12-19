@@ -20,7 +20,6 @@ import java.io.Serializable;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.regex.Pattern;
 
 /**
  * Represents an immutable collection of URI components, mapping component type to
@@ -31,8 +30,8 @@ import java.util.regex.Pattern;
  * @author Arjen Poutsma
  * @author Juergen Hoeller
  * @author Rossen Stoyanchev
- * @since 3.1
  * @see UriComponentsBuilder
+ * @since 3.1
  */
 @SuppressWarnings("serial")
 public abstract class UriComponents implements Serializable {
@@ -84,6 +83,7 @@ public abstract class UriComponents implements Serializable {
 	/**
 	 * Encode all URI components using their specific encoding rules, and returns the
 	 * result as a new {@code UriComponents} instance. This method uses UTF-8 to encode.
+	 *
 	 * @return the encoded URI components
 	 */
 	public final UriComponents encode() {
@@ -93,15 +93,17 @@ public abstract class UriComponents implements Serializable {
 	/**
 	 * Encode all URI components using their specific encoding rules, and
 	 * returns the result as a new {@code UriComponents} instance.
+	 *
 	 * @param charset the encoding of the values contained in this map
 	 * @return the encoded URI components
 	 */
-	public abstract UriComponents encode(Charset charset) ;
+	public abstract UriComponents encode(Charset charset);
 
 	/**
 	 * Normalize the path removing sequences like "path/..". Note that calling this method will
 	 * combine all path segments into a full path before doing the actual normalisation, i.e.
 	 * individual path segments will not be normalized individually.
+	 *
 	 * @see org.springframework.util.StringUtils#cleanPath(String)
 	 */
 	public abstract UriComponents normalize();
@@ -115,9 +117,6 @@ public abstract class UriComponents implements Serializable {
 	public final String toString() {
 		return toUriString();
 	}
-
-
-	// Static expansion helpers
 
 
 }

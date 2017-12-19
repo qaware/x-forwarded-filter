@@ -16,30 +16,19 @@
 
 package org.springframework.http.server;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.util.StringUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.util.Enumeration;
+import java.util.Map;
 
 /**
  * {@link ServerHttpRequest} implementation that is based on a {@link HttpServletRequest}.
@@ -59,6 +48,7 @@ public class ServletServerHttpRequest implements ServerHttpRequest {
 
 	/**
 	 * Construct a new instance of the ServletServerHttpRequest based on the given {@link HttpServletRequest}.
+	 *
 	 * @param servletRequest the servlet request
 	 */
 	public ServletServerHttpRequest(HttpServletRequest servletRequest) {
@@ -76,8 +66,7 @@ public class ServletServerHttpRequest implements ServerHttpRequest {
 				url.append('?').append(query);
 			}
 			return new URI(url.toString());
-		}
-		catch (URISyntaxException ex) {
+		} catch (URISyntaxException ex) {
 			throw new IllegalStateException("Could not get HttpServletRequest URI: " + ex.getMessage(), ex);
 		}
 	}
@@ -85,52 +74,66 @@ public class ServletServerHttpRequest implements ServerHttpRequest {
 	@Override
 	public HttpHeaders getHeaders() {
 		if (this.headers == null) {
-			this.headers = new HttpHeaders();
+			this.headers = getHeadersFromServletRequest(servletRequest);
+		}
+		return this.headers;
+	}
 
-			for (Enumeration<?> headerNames = this.servletRequest.getHeaderNames(); headerNames.hasMoreElements();) {
-				String headerName = (String) headerNames.nextElement();
-				for (Enumeration<?> headerValues = this.servletRequest.getHeaders(headerName);
-						headerValues.hasMoreElements();) {
-					String headerValue = (String) headerValues.nextElement();
-					this.headers.add(headerName, headerValue);
-				}
-			}
+	private static HttpHeaders getHeadersFromServletRequest(HttpServletRequest servletRequest) {
+		HttpHeaders headers = new HttpHeaders();
+		setHeaderNames(headers, servletRequest);
+		setContentType(headers, servletRequest);
+		setContentLength(headers, servletRequest);
+		return headers;
+	}
 
-			// HttpServletRequest exposes some headers as properties: we should include those if not already present
-			try {
-				MediaType contentType = this.headers.getContentType();
-				if (contentType == null) {
-					String requestContentType = this.servletRequest.getContentType();
-					if (StringUtils.hasLength(requestContentType)) {
-						contentType = MediaType.parseMediaType(requestContentType);
-						this.headers.setContentType(contentType);
-					}
-				}
-				if (contentType != null && contentType.getCharset() == null) {
-					String requestEncoding = this.servletRequest.getCharacterEncoding();
-					if (StringUtils.hasLength(requestEncoding)) {
-						Charset charSet = Charset.forName(requestEncoding);
-						Map<String, String> params = new LinkedCaseInsensitiveMap<>();
-						params.putAll(contentType.getParameters());
-						params.put("charset", charSet.toString());
-						MediaType newContentType = new MediaType(contentType.getType(), contentType.getSubtype(), params);
-						this.headers.setContentType(newContentType);
-					}
-				}
-			}
-			catch (InvalidMediaTypeException ex) {
-				// Ignore: simply not exposing an invalid content type in HttpHeaders...
-			}
-
-			if (this.headers.getContentLength() < 0) {
-				int requestContentLength = this.servletRequest.getContentLength();
-				if (requestContentLength != -1) {
-					this.headers.setContentLength(requestContentLength);
-				}
+	private static void setHeaderNames(HttpHeaders headers, HttpServletRequest servletRequest) {
+		for (Enumeration<?> headerNames = servletRequest.getHeaderNames(); headerNames.hasMoreElements(); ) {
+			String headerName = (String) headerNames.nextElement();
+			for (Enumeration<?> headerValues = servletRequest.getHeaders(headerName);
+			     headerValues.hasMoreElements(); ) {
+				String headerValue = (String) headerValues.nextElement();
+				headers.add(headerName, headerValue);
 			}
 		}
+	}
 
-		return this.headers;
+	private static void setContentLength(HttpHeaders headers, HttpServletRequest servletRequest) {
+		if (headers.getContentLength() < 0) {
+			int requestContentLength = servletRequest.getContentLength();
+			if (requestContentLength != -1) {
+				headers.setContentLength(requestContentLength);
+			}
+		}
+	}
+
+	private static void setContentType(HttpHeaders headers, HttpServletRequest servletRequest) {
+		// HttpServletRequest exposes some headers as properties: we should include those if not already present
+		try {
+			MediaType contentType = headers.getContentType();
+			if (contentType == null) {
+				String requestContentType = servletRequest.getContentType();
+				if (StringUtils.hasLength(requestContentType)) {
+					contentType = MediaType.parseMediaType(requestContentType);
+
+					headers.setContentType(contentType);
+				}
+			}
+			if (contentType != null && contentType.getCharset() == null) {
+				String requestEncoding = servletRequest.getCharacterEncoding();
+				if (StringUtils.hasLength(requestEncoding)) {
+					Charset charSet = Charset.forName(requestEncoding);
+					Map<String, String> params = new LinkedCaseInsensitiveMap<>();
+					params.putAll(contentType.getParameters());
+					params.put("charset", charSet.toString());
+					MediaType newContentType = new MediaType(contentType.getType(), contentType.getSubtype(), params);
+
+					headers.setContentType(newContentType);
+				}
+			}
+		} catch (InvalidMediaTypeException ex) {
+			// Ignore: simply not exposing an invalid content type in HttpHeaders...
+		}
 	}
 
 

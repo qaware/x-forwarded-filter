@@ -21,9 +21,9 @@ import java.util.Arrays;
 
 /**
  * Miscellaneous object utility methods.
- *
+ * <p>
  * <p>Mainly for internal use within the framework.
- *
+ * <p>
  * <p>Thanks to Alex Ruiz for contributing several enhancements to this class!
  *
  * @author Juergen Hoeller
@@ -32,22 +32,25 @@ import java.util.Arrays;
  * @author Rob Harrop
  * @author Chris Beams
  * @author Sam Brannen
- * @since 19.03.2004
  * @see ClassUtils
  * @see CollectionUtils
  * @see StringUtils
+ * @since 19.03.2004
  */
-public abstract class ObjectUtils {
+public class ObjectUtils {
 
 	private static final int INITIAL_HASH = 7;
 	private static final int MULTIPLIER = 31;
 
+	private ObjectUtils() {
+		//utility class
+	}
 
 	/**
 	 * Determine whether the given array is empty:
 	 * i.e. {@code null} or of zero length.
+	 *
 	 * @param array the array to check
-	 * @see #isEmpty(Object)
 	 */
 	public static boolean isEmpty(/*@Nullable*/ Object[] array) {
 		return (array == null || array.length == 0);
@@ -56,16 +59,16 @@ public abstract class ObjectUtils {
 	/**
 	 * Append the given object to the given array, returning a new array
 	 * consisting of the input array contents plus the given object.
+	 *
 	 * @param array the array to append to (can be {@code null})
-	 * @param obj the object to append
+	 * @param obj   the object to append
 	 * @return the new array (of the same component type; never {@code null})
 	 */
-	public static <A, O extends A>  A[] addObjectToArray(/*@Nullable*/ A[] array, /*@Nullable*/ O obj) {
+	public static <A, O extends A> A[] addObjectToArray(/*@Nullable*/ A[] array, /*@Nullable*/ O obj) {
 		Class<?> compType = Object.class;
 		if (array != null) {
 			compType = array.getClass().getComponentType();
-		}
-		else if (obj != null) {
+		} else if (obj != null) {
 			compType = obj.getClass();
 		}
 		int newArrLength = (array != null ? array.length + 1 : 1);
@@ -78,38 +81,6 @@ public abstract class ObjectUtils {
 		return newArr;
 	}
 
-	/**
-	 * Convert the given array (which may be a primitive array) to an
-	 * object array (if necessary of primitive wrapper objects).
-	 * <p>A {@code null} source value will be converted to an
-	 * empty Object array.
-	 * @param source the (potentially primitive) array
-	 * @return the corresponding object array (never {@code null})
-	 * @throws IllegalArgumentException if the parameter is not an array
-	 */
-	public static Object[] toObjectArray(/*@Nullable*/ Object source) {
-		if (source instanceof Object[]) {
-			return (Object[]) source;
-		}
-		if (source == null) {
-			return new Object[0];
-		}
-		if (!source.getClass().isArray()) {
-			throw new IllegalArgumentException("Source is not an array: " + source);
-		}
-		int length = Array.getLength(source);
-		if (length == 0) {
-			return new Object[0];
-		}
-		Class<?> wrapperType = Array.get(source, 0).getClass();
-		Object[] newArray = (Object[]) Array.newInstance(wrapperType, length);
-		for (int i = 0; i < length; i++) {
-			newArray[i] = Array.get(source, i);
-		}
-		return newArray;
-	}
-
-
 	//---------------------------------------------------------------------
 	// Convenience methods for content-based equality/hash-code handling
 	//---------------------------------------------------------------------
@@ -119,6 +90,7 @@ public abstract class ObjectUtils {
 	 * both are {@code null} or {@code false} if only one is {@code null}.
 	 * <p>Compares arrays with {@code Arrays.equals}, performing an equality
 	 * check based on the array elements rather than the array reference.
+	 *
 	 * @param o1 first Object to compare
 	 * @param o2 second Object to compare
 	 * @return whether the given objects are equal
@@ -144,12 +116,14 @@ public abstract class ObjectUtils {
 	/**
 	 * Compare the given arrays with {@code Arrays.equals}, performing an equality
 	 * check based on the array elements rather than the array reference.
+	 *
 	 * @param o1 first array to compare
 	 * @param o2 second array to compare
 	 * @return whether the given objects are equal
 	 * @see #nullSafeEquals(Object, Object)
 	 * @see Arrays#equals
 	 */
+	@SuppressWarnings("squid:S3776")
 	private static boolean arrayEquals(Object o1, Object o2) {
 		if (o1 instanceof Object[] && o2 instanceof Object[]) {
 			return Arrays.equals((Object[]) o1, (Object[]) o2);
@@ -187,6 +161,7 @@ public abstract class ObjectUtils {
 	 * this method will delegate to any of the {@code nullSafeHashCode}
 	 * methods for arrays in this class. If the object is {@code null},
 	 * this method returns 0.
+	 *
 	 * @see Object#hashCode()
 	 * @see #nullSafeHashCode(Object[])
 	 * @see #nullSafeHashCode(boolean[])
@@ -198,6 +173,7 @@ public abstract class ObjectUtils {
 	 * @see #nullSafeHashCode(long[])
 	 * @see #nullSafeHashCode(short[])
 	 */
+	@SuppressWarnings("squid:S3776")
 	public static int nullSafeHashCode(/*@Nullable*/ Object obj) {
 		if (obj == null) {
 			return 0;

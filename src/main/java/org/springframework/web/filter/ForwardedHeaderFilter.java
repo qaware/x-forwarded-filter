@@ -14,20 +14,6 @@ package org.springframework.web.filter;/*
  * limitations under the License.
  */
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
-
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServletServerHttpRequest;
@@ -37,6 +23,15 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UrlPathHelper;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Extract values from "Forwarded" and "X-Forwarded-*" headers in order to wrap
@@ -48,7 +43,7 @@ import org.springframework.web.util.UrlPathHelper;
  * {@link HttpServletResponse#sendRedirect(String) sendRedirect(String)}.
  * In effect the wrapped request and response reflect the client-originated
  * protocol and address.
- *
+ * <p>
  * <p><strong>Note:</strong> This filter can also be used in a
  * {@link #setRemoveOnly removeOnly} mode where "Forwarded" and "X-Forwarded-*"
  * headers are only eliminated without being used.
@@ -56,8 +51,8 @@ import org.springframework.web.util.UrlPathHelper;
  * @author Rossen Stoyanchev
  * @author Eddú Meléndez
  * @author Rob Winch
- * @since 4.3
  * @see <a href="https://tools.ietf.org/html/rfc7239">https://tools.ietf.org/html/rfc7239</a>
+ * @since 4.3
  */
 public class ForwardedHeaderFilter extends OncePerRequestFilter {
 
@@ -90,6 +85,7 @@ public class ForwardedHeaderFilter extends OncePerRequestFilter {
 	/**
 	 * Enables mode in which any "Forwarded" or "X-Forwarded-*" headers are
 	 * removed only and the information in them ignored.
+	 *
 	 * @param removeOnly whether to discard and ignore forwarded headers
 	 * @since 4.3.9
 	 */
@@ -105,6 +101,7 @@ public class ForwardedHeaderFilter extends OncePerRequestFilter {
 	 * {@link HttpServletResponse#sendRedirect(String)} are overridden in order
 	 * to turn relative into absolute URLs since (which Servlet containers are
 	 * also required to do) also taking forwarded headers into consideration.
+	 *
 	 * @param relativeRedirects whether to use relative redirects
 	 * @since 4.3.10
 	 */
@@ -132,13 +129,12 @@ public class ForwardedHeaderFilter extends OncePerRequestFilter {
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-			FilterChain filterChain) throws ServletException, IOException {
+	                                FilterChain filterChain) throws ServletException, IOException {
 
 		if (this.removeOnly) {
 			ForwardedHeaderRemovingRequest theRequest = new ForwardedHeaderRemovingRequest(request);
 			filterChain.doFilter(theRequest, response);
-		}
-		else {
+		} else {
 			HttpServletRequest theRequest = new ForwardedHeaderExtractingRequest(request, this.pathHelper);
 			HttpServletResponse theResponse = (this.relativeRedirects ?
 					RelativeRedirectResponseWrapper.wrapIfNecessary(response, HttpStatus.SEE_OTHER) :
@@ -215,22 +211,23 @@ public class ForwardedHeaderFilter extends OncePerRequestFilter {
 
 		private final String requestUrl;
 
+		@SuppressWarnings("squid:S3358")//nested ternary op is more readable in this case
 		public ForwardedHeaderExtractingRequest(HttpServletRequest request, UrlPathHelper pathHelper) {
 			super(request);
 
 			HttpRequest httpRequest = new ServletServerHttpRequest(request);
 			UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(httpRequest).build();
-			int port = uriComponents.getPort();
+			int portFromUri = uriComponents.getPort();
 
 			this.scheme = uriComponents.getScheme();
 			this.secure = "https".equals(scheme);
 			this.host = uriComponents.getHost();
-			this.port = (port == -1 ? (this.secure ? 443 : 80) : port);
+			this.port = (portFromUri == -1 ? (this.secure ? 443 : 80) : portFromUri);
 
 			String prefix = getForwardedPrefix(request);
 			this.contextPath = (prefix != null ? prefix : request.getContextPath());
 			this.requestUri = this.contextPath + pathHelper.getPathWithinApplication(request);
-			this.requestUrl = this.scheme + "://" + this.host + (port == -1 ? "" : ":" + port) + this.requestUri;
+			this.requestUrl = this.scheme + "://" + this.host + (portFromUri == -1 ? "" : ":" + portFromUri) + this.requestUri;
 		}
 
 		/*@Nullable*/

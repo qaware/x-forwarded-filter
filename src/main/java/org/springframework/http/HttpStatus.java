@@ -18,16 +18,16 @@ package org.springframework.http;
 
 /**
  * Enumeration of HTTP status codes.
- *
+ * <p>
  * <p>The HTTP status code series can be retrieved via {@link #series()}.
  *
  * @author Arjen Poutsma
  * @author Sebastien Deleuze
  * @author Brian Clozel
- * @since 3.0
  * @see Series
  * @see <a href="http://www.iana.org/assignments/http-status-codes">HTTP Status Code Registry</a>
  * @see <a href="http://en.wikipedia.org/wiki/List_of_HTTP_status_codes">List of HTTP status codes - Wikipedia</a>
+ * @since 3.0
  */
 public enum HttpStatus {
 
@@ -37,6 +37,7 @@ public enum HttpStatus {
 
 	/**
 	 * {@code 200 OK}.
+	 *
 	 * @see <a href="http://tools.ietf.org/html/rfc7231#section-6.3.1">HTTP/1.1: Semantics and Content, section 6.3.1</a>
 	 */
 	OK(200),
@@ -45,23 +46,27 @@ public enum HttpStatus {
 
 	/**
 	 * {@code 301 Moved Permanently}.
+	 *
 	 * @see <a href="http://tools.ietf.org/html/rfc7231#section-6.4.2">HTTP/1.1: Semantics and Content, section 6.4.2</a>
 	 */
 	MOVED_PERMANENTLY(301),
 	/**
 	 * {@code 302 Moved Temporarily}.
+	 *
 	 * @see <a href="http://tools.ietf.org/html/rfc1945#section-9.3">HTTP/1.0, section 9.3</a>
-	 * @deprecated in favor of {@link #FOUND} which will be returned from {@code HttpStatus.valueOf(302)}
+	 * @deprecated in favor of  which will be returned from {@code HttpStatus.valueOf(302)}
 	 */
 	@Deprecated
 	MOVED_TEMPORARILY(302),
 	/**
 	 * {@code 303 See Other}.
+	 *
 	 * @see <a href="http://tools.ietf.org/html/rfc7231#section-6.4.4">HTTP/1.1: Semantics and Content, section 6.4.4</a>
 	 */
 	SEE_OTHER(303),
 	/**
 	 * {@code 305 Use Proxy}.
+	 *
 	 * @see <a href="http://tools.ietf.org/html/rfc7231#section-6.4.5">HTTP/1.1: Semantics and Content, section 6.4.5</a>
 	 * @deprecated due to security concerns regarding in-band configuration of a proxy
 	 */
@@ -72,37 +77,38 @@ public enum HttpStatus {
 
 	/**
 	 * {@code 413 Request Entity Too Large}.
+	 *
 	 * @see <a href="http://tools.ietf.org/html/rfc2616#section-10.4.14">HTTP/1.1, section 10.4.14</a>
-	 * @deprecated in favor of {@link #PAYLOAD_TOO_LARGE} which will be
+	 * @deprecated in favor of  which will be
 	 * returned from {@code HttpStatus.valueOf(413)}
 	 */
 	@Deprecated
 	REQUEST_ENTITY_TOO_LARGE(413),
 	/**
 	 * {@code 414 Request-URI Too Long}.
+	 *
 	 * @see <a href="http://tools.ietf.org/html/rfc2616#section-10.4.15">HTTP/1.1, section 10.4.15</a>
-	 * @deprecated in favor of {@link #URI_TOO_LONG} which will be returned from {@code HttpStatus.valueOf(414)}
+	 * @deprecated in favor of  which will be returned from {@code HttpStatus.valueOf(414)}
 	 */
 	@Deprecated
 	REQUEST_URI_TOO_LONG(414),
 	/**
 	 * @deprecated See
 	 * <a href="http://tools.ietf.org/rfcdiff?difftype=--hwdiff&url2=draft-ietf-webdav-protocol-06.txt">
-	 *     WebDAV Draft Changes</a>
+	 * WebDAV Draft Changes</a>
 	 */
 	@Deprecated
 	INSUFFICIENT_SPACE_ON_RESOURCE(419),
 	/**
 	 * @deprecated See
 	 * <a href="http://tools.ietf.org/rfcdiff?difftype=--hwdiff&url2=draft-ietf-webdav-protocol-06.txt">
-	 *     WebDAV Draft Changes</a>
+	 * WebDAV Draft Changes</a>
 	 */
 	@Deprecated
 	METHOD_FAILURE(420),
 	/**
-	 * @deprecated
-	 * See <a href="http://tools.ietf.org/rfcdiff?difftype=--hwdiff&url2=draft-ietf-webdav-protocol-06.txt">
-	 *     WebDAV Draft Changes</a>
+	 * @deprecated See <a href="http://tools.ietf.org/rfcdiff?difftype=--hwdiff&url2=draft-ietf-webdav-protocol-06.txt">
+	 * WebDAV Draft Changes</a>
 	 */
 	@Deprecated
 	DESTINATION_LOCKED(421)
@@ -139,6 +145,7 @@ public enum HttpStatus {
 
 	/**
 	 * Returns the HTTP status series of this status code.
+	 *
 	 * @see Series
 	 */
 	public Series series() {

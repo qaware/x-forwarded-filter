@@ -15,14 +15,14 @@
  */
 package org.springframework.web.filter;
 
-import java.io.IOException;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.Assert;
+
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
+import java.io.IOException;
 
 /**
  * A response wrapper used for the implementation of
@@ -51,11 +51,12 @@ class RelativeRedirectResponseWrapper extends HttpServletResponseWrapper {
 
 
 	public static HttpServletResponse wrapIfNecessary(HttpServletResponse response,
-			HttpStatus redirectStatus) {
+	                                                  HttpStatus redirectStatus) {
 
 		return (hasWrapper(response) ? response : new RelativeRedirectResponseWrapper(response, redirectStatus));
 	}
 
+	@SuppressWarnings("squid:S1226")
 	private static boolean hasWrapper(ServletResponse response) {
 		if (response instanceof RelativeRedirectResponseWrapper) {
 			return true;

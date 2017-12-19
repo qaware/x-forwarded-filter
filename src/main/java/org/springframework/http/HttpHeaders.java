@@ -16,25 +16,18 @@
 
 package org.springframework.http;
 
-import java.io.Serializable;
-import java.time.ZoneId;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
+import java.io.Serializable;
+import java.util.*;
+
 
 /**
  * Represents HTTP request and response headers, mapping string header names to a list of string values.
- *
+ * <p>
  * <p>In addition to the normal methods defined by {@link Map}, this class offers the following
  * convenience methods:
  * <ul>
@@ -42,7 +35,7 @@ import org.springframework.util.StringUtils;
  * <li>{@link #add(String, String)} adds a header value to the list of values for a header name</li>
  * <li>{@link #set(String, String)} sets the header value to a single string value</li>
  * </ul>
- *
+ * <p>
  * <p>Inspired by {@code com.sun.net.httpserver.Headers}.
  *
  * @author Arjen Poutsma
@@ -58,16 +51,19 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 
 	/**
 	 * The HTTP {@code Content-Length} header field name.
+	 *
 	 * @see <a href="http://tools.ietf.org/html/rfc7230#section-3.3.2">Section 3.3.2 of RFC 7230</a>
 	 */
 	public static final String CONTENT_LENGTH = "Content-Length";
 	/**
 	 * The HTTP {@code Content-Type} header field name.
+	 *
 	 * @see <a href="http://tools.ietf.org/html/rfc7231#section-3.1.1.5">Section 3.1.1.5 of RFC 7231</a>
 	 */
 	public static final String CONTENT_TYPE = "Content-Type";
 	/**
 	 * The HTTP {@code Location} header field name.
+	 *
 	 * @see <a href="http://tools.ietf.org/html/rfc7231#section-7.1.2">Section 7.1.2 of RFC 7231</a>
 	 */
 	public static final String LOCATION = "Location";
@@ -96,8 +92,7 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 				map.put(entry.getKey(), values);
 			}
 			this.headers = Collections.unmodifiableMap(map);
-		}
-		else {
+		} else {
 			this.headers = headers;
 		}
 	}
@@ -130,8 +125,7 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 			Assert.isTrue(!mediaType.isWildcardType(), "'Content-Type' cannot contain wildcard type '*'");
 			Assert.isTrue(!mediaType.isWildcardSubtype(), "'Content-Type' cannot contain wildcard subtype '*'");
 			set(CONTENT_TYPE, mediaType.toString());
-		}
-		else {
+		} else {
 			set(CONTENT_TYPE, null);
 		}
 	}
@@ -152,6 +146,7 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 
 	/**
 	 * Return the first header value for the given header name, if any.
+	 *
 	 * @param headerName the header name
 	 * @return the first header value, or {@code null} if none
 	 */
@@ -163,7 +158,8 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 
 	/**
 	 * Add the given, single header value under the given name.
-	 * @param headerName the header name
+	 *
+	 * @param headerName  the header name
 	 * @param headerValue the header value
 	 * @throws UnsupportedOperationException if adding headers is not supported
 	 * @see #put(String, List)
@@ -177,7 +173,8 @@ public class HttpHeaders implements MultiValueMap<String, String>, Serializable 
 
 	/**
 	 * Set the given, single header value under the given name.
-	 * @param headerName the header name
+	 *
+	 * @param headerName  the header name
 	 * @param headerValue the header value
 	 * @throws UnsupportedOperationException if adding headers is not supported
 	 * @see #put(String, List)

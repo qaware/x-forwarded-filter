@@ -20,7 +20,7 @@ import java.net.URI;
 
 /**
  * Represents an HTTP request message, consisting of
- * {@linkplain #getMethod() method} and {@linkplain #getURI() uri}.
+ * and {@linkplain #getURI() uri}.
  *
  * @author Arjen Poutsma
  * @since 3.1
@@ -29,6 +29,7 @@ public interface HttpRequest extends HttpMessage {
 
 	/**
 	 * Return the URI of the request.
+	 *
 	 * @return the URI of the request (never {@code null})
 	 */
 	URI getURI();

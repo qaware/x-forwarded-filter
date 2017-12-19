@@ -16,17 +16,17 @@
 
 package org.springframework.web.util;
 
-import java.nio.charset.Charset;
-
 import org.springframework.util.ObjectUtils;
+
+import java.nio.charset.Charset;
 
 /**
  * Extension of {@link UriComponents} for opaque URIs.
  *
  * @author Arjen Poutsma
  * @author Phillip Webb
- * @since 3.2
  * @see <a href="http://tools.ietf.org/html/rfc3986#section-1.2.3">Hierarchical vs Opaque URIs</a>
+ * @since 3.2
  */
 @SuppressWarnings("serial")
 final class OpaqueUriComponents extends UriComponents {

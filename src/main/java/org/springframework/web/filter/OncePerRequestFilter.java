@@ -16,41 +16,40 @@
 
 package org.springframework.web.filter;
 
-import java.io.IOException;
+import org.springframework.web.util.WebUtils;
+
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
-//import org.springframework.web.context.request.async.WebAsyncManager;
-//import org.springframework.web.context.request.async.WebAsyncUtils;
-import org.springframework.web.util.WebUtils;
 
 /**
  * Filter base class that aims to guarantee a single execution per request
  * dispatch, on any servlet container. It provides a {@link #doFilterInternal}
  * method with HttpServletRequest and HttpServletResponse arguments.
- *
+ * <p>
  * <p>As of Servlet 3.0, a filter may be invoked as part of a
  * {@link javax.servlet.DispatcherType#REQUEST REQUEST} or
  * {@link javax.servlet.DispatcherType#ASYNC ASYNC} dispatches that occur in
  * separate threads. A filter can be configured in {@code web.xml} whether it
  * should be involved in async dispatches. However, in some cases servlet
  * containers assume different default configuration. Therefore sub-classes can
- * override the method {@link #shouldNotFilterAsyncDispatch()} to declare
+ * override the method  to declare
  * statically if they should indeed be invoked, <em>once</em>, during both types
  * of dispatches in order to provide thread initialization, logging, security,
  * and so on. This mechanism complements and does not replace the need to
  * configure a filter in {@code web.xml} with dispatcher types.
- *
- *
+ * <p>
+ * <p>
  * <p>Yet another dispatch type that also occurs in its own thread is
  * {@link javax.servlet.DispatcherType#ERROR ERROR}. Subclasses can override
  * {@link #shouldNotFilterErrorDispatch()} if they wish to declare statically
  * if they should be invoked <em>once</em> during error dispatches.
- *
+ * <p>
  * <p>The {@link #getAlreadyFilteredAttributeName} method determines how to
  * identify that a request is already filtered. The default implementation is
  * based on the configured name of the concrete filter instance.
@@ -64,6 +63,7 @@ public abstract class OncePerRequestFilter extends GenericFilterBean {
 	/**
 	 * Suffix that gets appended to the filter name for the
 	 * "already filtered" request attribute.
+	 *
 	 * @see #getAlreadyFilteredAttributeName
 	 */
 	public static final String ALREADY_FILTERED_SUFFIX = ".FILTERED";
@@ -73,6 +73,7 @@ public abstract class OncePerRequestFilter extends GenericFilterBean {
 	 * This {@code doFilter} implementation stores a request attribute for
 	 * "already filtered", proceeding without filtering again if the
 	 * attribute is already there.
+	 *
 	 * @see #getAlreadyFilteredAttributeName
 	 * @see #shouldNotFilter
 	 * @see #doFilterInternal
@@ -94,14 +95,12 @@ public abstract class OncePerRequestFilter extends GenericFilterBean {
 
 			// Proceed without invoking this filter...
 			filterChain.doFilter(request, response);
-		}
-		else {
+		} else {
 			// Do invoke this filter...
 			request.setAttribute(alreadyFilteredAttributeName, Boolean.TRUE);
 			try {
 				doFilterInternal(httpRequest, httpResponse, filterChain);
-			}
-			finally {
+			} finally {
 				// Remove the "already filtered" request attribute for this request.
 				request.removeAttribute(alreadyFilteredAttributeName);
 			}
@@ -120,6 +119,7 @@ public abstract class OncePerRequestFilter extends GenericFilterBean {
 	 * <p>The default implementation takes the configured name of the concrete filter
 	 * instance and appends ".FILTERED". If the filter is not fully initialized,
 	 * it falls back to its class name.
+	 *
 	 * @see #getFilterName
 	 * @see #ALREADY_FILTERED_SUFFIX
 	 */
@@ -135,10 +135,12 @@ public abstract class OncePerRequestFilter extends GenericFilterBean {
 	 * Can be overridden in subclasses for custom filtering control,
 	 * returning {@code true} to avoid filtering of the given request.
 	 * <p>The default implementation always returns {@code false}.
+	 *
 	 * @param request current HTTP request
 	 * @return whether the given request should <i>not</i> be filtered
 	 * @throws ServletException in case of errors
 	 */
+	@SuppressWarnings("squid:S1172")//default implementation for subclasses
 	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
 		return false;
 	}
@@ -148,6 +150,7 @@ public abstract class OncePerRequestFilter extends GenericFilterBean {
 	 * processes and error mapped in {@code web.xml}. The default return value
 	 * is "true", which means the filter will not be invoked in case of an error
 	 * dispatch.
+	 *
 	 * @since 3.2
 	 */
 	protected boolean shouldNotFilterErrorDispatch() {
@@ -158,7 +161,7 @@ public abstract class OncePerRequestFilter extends GenericFilterBean {
 	/**
 	 * Same contract as for {@code doFilter}, but guaranteed to be
 	 * just invoked once per request within a single request thread.
-	 * See {@link #shouldNotFilterAsyncDispatch()} for details.
+	 * See  for details.
 	 * <p>Provides HttpServletRequest and HttpServletResponse arguments instead of the
 	 * default ServletRequest and ServletResponse ones.
 	 */

@@ -26,7 +26,11 @@ import javax.servlet.ServletRequest;
  * @author Juergen Hoeller
  * @author Sebastien Deleuze
  */
-public abstract class WebUtils {
+public class WebUtils {
+
+	private WebUtils() {
+		//utility class
+	}
 
 	/**
 	 * Standard Servlet 2.3+ spec request attributes for include URI and paths.
@@ -42,6 +46,7 @@ public abstract class WebUtils {
 	/**
 	 * Default character encoding to use when {@code request.getCharacterEncoding}
 	 * returns {@code null}, according to the Servlet spec.
+	 *
 	 * @see ServletRequest#getCharacterEncoding
 	 */
 	public static final String DEFAULT_CHARACTER_ENCODING = "ISO-8859-1";

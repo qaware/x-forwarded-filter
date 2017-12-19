@@ -17,15 +17,7 @@
 package org.springframework.util;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Miscellaneous collection utility methods.
@@ -36,11 +28,16 @@ import java.util.Set;
  * @author Arjen Poutsma
  * @since 1.1.3
  */
-public abstract class CollectionUtils {
+public class CollectionUtils {
+
+	private CollectionUtils() {
+		//utility class
+	}
 
 	/**
 	 * Return {@code true} if the supplied Collection is {@code null} or empty.
 	 * Otherwise, return {@code false}.
+	 *
 	 * @param collection the Collection to check
 	 * @return whether the given Collection is empty
 	 */
@@ -51,6 +48,7 @@ public abstract class CollectionUtils {
 	/**
 	 * Return {@code true} if the supplied Map is {@code null} or empty.
 	 * Otherwise, return {@code false}.
+	 *
 	 * @param map the Map to check
 	 * @return whether the given Map is empty
 	 */
@@ -61,6 +59,7 @@ public abstract class CollectionUtils {
 
 	/**
 	 * Adapt a {@code Map<K, List<V>>} to an {@code MultiValueMap<K, V>}.
+	 *
 	 * @param map the original map
 	 * @return the multi-value map
 	 * @since 3.1
@@ -71,7 +70,8 @@ public abstract class CollectionUtils {
 
 	/**
 	 * Return an unmodifiable view of the specified multi-value map.
-	 * @param  map the map for which an unmodifiable view is to be returned.
+	 *
+	 * @param map the map for which an unmodifiable view is to be returned.
 	 * @return an unmodifiable view of the specified multi-value map.
 	 * @since 3.1
 	 */
@@ -91,8 +91,9 @@ public abstract class CollectionUtils {
 	/**
 	 * Adapts a Map to the MultiValueMap contract.
 	 */
-	@SuppressWarnings("serial")
-	private static class MultiValueMapAdapter<K, V> implements MultiValueMap<K, V>, Serializable {
+	@SuppressWarnings({"serial", "squid:S1948"})
+	public static class MultiValueMapAdapter<K, V> implements MultiValueMap<K, V>, Serializable {
+
 
 		private final Map<K, List<V>> map;
 
@@ -169,10 +170,7 @@ public abstract class CollectionUtils {
 
 		@Override
 		public boolean equals(Object other) {
-			if (this == other) {
-				return true;
-			}
-			return map.equals(other);
+			return this == other || map.equals(other);
 		}
 
 		@Override

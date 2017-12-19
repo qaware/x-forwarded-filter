@@ -16,21 +16,18 @@
 
 package org.springframework.web.util;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import javax.servlet.http.HttpServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
+import javax.servlet.http.HttpServletRequest;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
+
 /**
  * Helper class for URL path matching. Provides support for URL paths in
  * RequestDispatcher includes and support for consistent URL decoding.
- *
- * <p>Used by {@link org.springframework.web.servlet.handler.AbstractUrlHandlerMapping}
- * and {@link org.springframework.web.servlet.support.RequestContext} for path matching
- * and/or URI determination.
+ * <p>
  *
  * @author Juergen Hoeller
  * @author Rob Harrop
@@ -60,7 +57,7 @@ public class UrlPathHelper {
 	 * compared to encoded paths. Therefore use of {@code urlDecode=false} is
 	 * not compatible with a prefix-based Servlet mappping and likewise implies
 	 * also setting {@code alwaysUseFullPath=true}.
-	 * @see #getServletPath
+	 *
 	 * @see #getContextPath
 	 * @see #getRequestUri
 	 * @see WebUtils#DEFAULT_CHARACTER_ENCODING
@@ -90,6 +87,7 @@ public class UrlPathHelper {
 	/**
 	 * Return the path within the web application for the given request.
 	 * <p>Detects include request URL if called within a RequestDispatcher include.
+	 *
 	 * @param request current HTTP request
 	 * @return the path within the web application
 	 */
@@ -100,8 +98,7 @@ public class UrlPathHelper {
 		if (path != null) {
 			// Normal case: URI contains context path.
 			return (StringUtils.hasText(path) ? path : "/");
-		}
-		else {
+		} else {
 			return requestUri;
 		}
 	}
@@ -126,21 +123,18 @@ public class UrlPathHelper {
 				}
 				c1 = requestUri.charAt(index1);
 			}
-			if (c1 == c2) {
+			if (c1 == c2
+					|| (ignoreCase && (Character.toLowerCase(c1) == Character.toLowerCase(c2)))) {
 				continue;
 			}
-			else if (ignoreCase && (Character.toLowerCase(c1) == Character.toLowerCase(c2))) {
-				continue;
-			}
+
 			return null;
 		}
 		if (index2 != mapping.length()) {
 			return null;
-		}
-		else if (index1 == requestUri.length()) {
+		} else if (index1 == requestUri.length()) {
 			return "";
-		}
-		else if (requestUri.charAt(index1) == ';') {
+		} else if (requestUri.charAt(index1) == ';') {
 			index1 = requestUri.indexOf('/', index1);
 		}
 		return (index1 != -1 ? requestUri.substring(index1) : "");
@@ -149,7 +143,7 @@ public class UrlPathHelper {
 	/**
 	 * Sanitize the given path with the following rules:
 	 * <ul>
-	 *     <li>replace all "//" by "/"</li>
+	 * <li>replace all "//" by "/"</li>
 	 * </ul>
 	 */
 	private String getSanitizedPath(final String path) {
@@ -158,8 +152,7 @@ public class UrlPathHelper {
 			int index = sanitized.indexOf("//");
 			if (index < 0) {
 				break;
-			}
-			else {
+			} else {
 				sanitized = sanitized.substring(0, index) + sanitized.substring(index + 1);
 			}
 		}
@@ -174,6 +167,7 @@ public class UrlPathHelper {
 	 * <p>The URI that the web container resolves <i>should</i> be correct, but some
 	 * containers like JBoss/Jetty incorrectly include ";" strings like ";jsessionid"
 	 * in the URI. This method cuts off such incorrect appendices.
+	 *
 	 * @param request current HTTP request
 	 * @return the request URI
 	 */
@@ -190,6 +184,7 @@ public class UrlPathHelper {
 	 * URL if called within a RequestDispatcher include.
 	 * <p>As the value returned by {@code request.getContextPath()} is <i>not</i>
 	 * decoded by the servlet container, this method will decode it.
+	 *
 	 * @param request current HTTP request
 	 * @return the context path
 	 */
@@ -210,18 +205,19 @@ public class UrlPathHelper {
 	 * Decode the supplied URI string and strips any extraneous portion after a ';'.
 	 */
 	private String decodeAndCleanUriString(HttpServletRequest request, String uri) {
-		uri = removeSemicolonContent(uri);
-		uri = decodeRequestString(request, uri);
-		uri = getSanitizedPath(uri);
-		return uri;
+		String cleanedUri = removeSemicolonContent(uri);
+		cleanedUri = decodeRequestString(request, cleanedUri);
+		cleanedUri = getSanitizedPath(cleanedUri);
+		return cleanedUri;
 	}
 
 	/**
 	 * Decode the given source string with a URLDecoder. The encoding will be taken
 	 * from the request, falling back to the default "ISO-8859-1".
 	 * <p>The default implementation uses {@code URLDecoder.decode(input, enc)}.
+	 *
 	 * @param request current HTTP request
-	 * @param source the String to decode
+	 * @param source  the String to decode
 	 * @return the decoded String
 	 * @see WebUtils#DEFAULT_CHARACTER_ENCODING
 	 * @see javax.servlet.ServletRequest#getCharacterEncoding
@@ -235,13 +231,12 @@ public class UrlPathHelper {
 		return source;
 	}
 
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings({"squid:CallToDeprecatedMethod", "deprecation"})
 	private String decodeInternal(HttpServletRequest request, String source) {
 		String enc = determineEncoding(request);
 		try {
-			return UriUtils.decode(source, enc);
-		}
-		catch (UnsupportedEncodingException ex) {
+			return StringUtils.uriDecode(source, Charset.forName(enc));
+		} catch (IllegalArgumentException ex) {
 			if (LOGGER.isWarnEnabled()) {
 				LOGGER.warn("Could not decode request string [" + source + "] with encoding '" + enc +
 						"': falling back to platform default encoding; exception message: " + ex.getMessage());
@@ -250,15 +245,16 @@ public class UrlPathHelper {
 		}
 	}
 
+
 	/**
 	 * Determine the encoding for the given request.
 	 * Can be overridden in subclasses.
 	 * <p>The default implementation checks the request encoding,
 	 * falling back to the default encoding specified for this resolver.
+	 *
 	 * @param request current HTTP request
 	 * @return the encoding for the request (never {@code null})
 	 * @see javax.servlet.ServletRequest#getCharacterEncoding()
-	 * @see #setDefaultEncoding
 	 */
 	protected String determineEncoding(HttpServletRequest request) {
 		String enc = request.getCharacterEncoding();
@@ -272,6 +268,7 @@ public class UrlPathHelper {
 	 * Remove ";" (semicolon) content from the given request URI if the
 	 * {@linkplain #setRemoveSemicolonContent(boolean) removeSemicolonContent}
 	 * property is set to "true". Note that "jssessionid" is always removed.
+	 *
 	 * @param requestUri the request URI string to remove ";" content from
 	 * @return the updated URI string
 	 */
@@ -280,25 +277,27 @@ public class UrlPathHelper {
 				removeSemicolonContentInternal(requestUri) : removeJsessionid(requestUri));
 	}
 
-	private String removeSemicolonContentInternal(String requestUri) {
-		int semicolonIndex = requestUri.indexOf(';');
+	private String removeSemicolonContentInternal(final String requestUri) {
+		String cleanedUri = requestUri;
+		int semicolonIndex = cleanedUri.indexOf(';');
 		while (semicolonIndex != -1) {
-			int slashIndex = requestUri.indexOf('/', semicolonIndex);
-			String start = requestUri.substring(0, semicolonIndex);
-			requestUri = (slashIndex != -1) ? start + requestUri.substring(slashIndex) : start;
-			semicolonIndex = requestUri.indexOf(';', semicolonIndex);
+			int slashIndex = cleanedUri.indexOf('/', semicolonIndex);
+			String start = cleanedUri.substring(0, semicolonIndex);
+			cleanedUri = (slashIndex != -1) ? start + cleanedUri.substring(slashIndex) : start;
+			semicolonIndex = cleanedUri.indexOf(';', semicolonIndex);
 		}
-		return requestUri;
+		return cleanedUri;
 	}
 
-	private String removeJsessionid(String requestUri) {
-		int startIndex = requestUri.toLowerCase().indexOf(";jsessionid=");
+	private String removeJsessionid(final String uri) {
+		String cleanedUri = uri;
+		int startIndex = cleanedUri.toLowerCase().indexOf(";jsessionid=");
 		if (startIndex != -1) {
-			int endIndex = requestUri.indexOf(';', startIndex + 12);
-			String start = requestUri.substring(0, startIndex);
-			requestUri = (endIndex != -1) ? start + requestUri.substring(endIndex) : start;
+			int endIndex = cleanedUri.indexOf(';', startIndex + 12);
+			String start = cleanedUri.substring(0, startIndex);
+			cleanedUri = (endIndex != -1) ? start + cleanedUri.substring(endIndex) : start;
 		}
-		return requestUri;
+		return cleanedUri;
 	}
 
 }

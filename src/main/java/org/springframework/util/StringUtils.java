@@ -18,20 +18,15 @@ package org.springframework.util;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
 /**
  * Miscellaneous {@link String} utility methods.
- *
+ * <p>
  * <p>Mainly for internal use within the framework; consider
  * <a href="http://commons.apache.org/proper/commons-lang/">Apache's Commons Lang</a>
  * for a more comprehensive suite of {@code String} utilities.
- *
+ * <p>
  * <p>This class delivers some simple functionality that should really be
  * provided by the core Java {@link String} and {@link StringBuilder}
  * classes. It also provides easy-to-use methods to convert between
@@ -47,7 +42,7 @@ import java.util.StringTokenizer;
  * @author Brian Clozel
  * @since 16 April 2001
  */
-public abstract class StringUtils {
+public class StringUtils {
 
 	private static final String FOLDER_SEPARATOR = "/";
 
@@ -58,6 +53,10 @@ public abstract class StringUtils {
 	private static final String CURRENT_PATH = ".";
 
 
+	private StringUtils() {
+		//utility class
+	}
+
 	//---------------------------------------------------------------------
 	// General convenience methods for working with Strings
 	//---------------------------------------------------------------------
@@ -66,9 +65,9 @@ public abstract class StringUtils {
 	 * Check that the given {@code String} is neither {@code null} nor of length 0.
 	 * <p>Note: this method returns {@code true} for a {@code String} that
 	 * purely consists of whitespace.
+	 *
 	 * @param str the {@code String} to check (may be {@code null})
 	 * @return {@code true} if the {@code String} is not {@code null} and has length
-	 * @see #hasLength(CharSequence)
 	 * @see #hasText(String)
 	 */
 	public static boolean hasLength(/*@Nullable*/ String str) {
@@ -80,10 +79,10 @@ public abstract class StringUtils {
 	 * <p>More specifically, this method returns {@code true} if the
 	 * {@code String} is not {@code null}, its length is greater than 0,
 	 * and it contains at least one non-whitespace character.
+	 *
 	 * @param str the {@code String} to check (may be {@code null})
 	 * @return {@code true} if the {@code String} is not {@code null}, its
 	 * length is greater than 0, and it does not contain whitespace only
-	 * @see #hasText(CharSequence)
 	 */
 	public static boolean hasText(/*@Nullable*/ String str) {
 		return (str != null && !str.isEmpty() && containsText(str));
@@ -101,7 +100,8 @@ public abstract class StringUtils {
 
 	/**
 	 * Replace all occurrences of a substring within a string with another string.
-	 * @param inString {@code String} to examine
+	 *
+	 * @param inString   {@code String} to examine
 	 * @param oldPattern {@code String} to replace
 	 * @param newPattern {@code String} to insert
 	 * @return a {@code String} with the replacements
@@ -138,9 +138,10 @@ public abstract class StringUtils {
 
 	/**
 	 * Delete any character in a given {@code String}.
-	 * @param inString the original {@code String}
+	 *
+	 * @param inString      the original {@code String}
 	 * @param charsToDelete a set of characters to delete.
-	 * E.g. "az\n" will delete 'a's, 'z's and new lines.
+	 *                      E.g. "az\n" will delete 'a's, 'z's and new lines.
 	 * @return the resulting {@code String}
 	 */
 	public static String deleteAny(String inString, /*@Nullable*/ String charsToDelete) {
@@ -166,9 +167,10 @@ public abstract class StringUtils {
 	/**
 	 * Apply the given relative path to the given Java resource path,
 	 * assuming standard Java folder separation (i.e. "/" separators).
-	 * @param path the path to start from (usually a full file path)
+	 *
+	 * @param path         the path to start from (usually a full file path)
 	 * @param relativePath the relative path to apply
-	 * (relative to the full file path above)
+	 *                     (relative to the full file path above)
 	 * @return the full file path that results from applying the relative path
 	 */
 	public static String applyRelativePath(String path, String relativePath) {
@@ -179,8 +181,7 @@ public abstract class StringUtils {
 				newPath += FOLDER_SEPARATOR;
 			}
 			return newPath + relativePath;
-		}
-		else {
+		} else {
 			return relativePath;
 		}
 	}
@@ -190,9 +191,11 @@ public abstract class StringUtils {
 	 * inner simple dots.
 	 * <p>The result is convenient for path comparison. For other uses,
 	 * notice that Windows separators ("\") are replaced by simple slashes.
+	 *
 	 * @param path the original path
 	 * @return the normalized path
 	 */
+	@SuppressWarnings("squid:S3776")
 	public static String cleanPath(String path) {
 		if (!hasLength(path)) {
 			return path;
@@ -203,14 +206,13 @@ public abstract class StringUtils {
 		// first path element. This is necessary to correctly parse paths like
 		// "file:core/../core/io/Resource.class", where the ".." should just
 		// strip the first "core" directory while keeping the "file:" prefix.
-		int prefixIndex = pathToUse.indexOf(":");
+		int prefixIndex = pathToUse.indexOf(':');
 		String prefix = "";
 		if (prefixIndex != -1) {
 			prefix = pathToUse.substring(0, prefixIndex + 1);
 			if (prefix.contains("/")) {
 				prefix = "";
-			}
-			else {
+			} else {
 				pathToUse = pathToUse.substring(prefixIndex + 1);
 			}
 		}
@@ -227,17 +229,17 @@ public abstract class StringUtils {
 			String element = pathArray[i];
 			if (CURRENT_PATH.equals(element)) {
 				// Points to current directory - drop it.
+				continue;
 			}
-			else if (TOP_PATH.equals(element)) {
+
+			if (TOP_PATH.equals(element)) {
 				// Registering top path found.
 				tops++;
-			}
-			else {
+			} else {
 				if (tops > 0) {
 					// Merging path element with element corresponding to top path.
 					tops--;
-				}
-				else {
+				} else {
 					// Normal path element found.
 					pathElements.add(0, element);
 				}
@@ -260,12 +262,13 @@ public abstract class StringUtils {
 	 * <li>Special characters {@code "-"}, {@code "_"}, {@code "."}, and {@code "*"} stay the same.</li>
 	 * <li>A sequence "{@code %<i>xy</i>}" is interpreted as a hexadecimal representation of the character.</li>
 	 * </ul>
-	 * @param source the encoded String
+	 *
+	 * @param source  the encoded String
 	 * @param charset the character set
 	 * @return the decoded value
 	 * @throws IllegalArgumentException when the given source contains invalid encoded sequences
-	 * @since 5.0
 	 * @see java.net.URLDecoder#decode(String, String)
+	 * @since 5.0
 	 */
 	public static String uriDecode(String source, Charset charset) {
 		int length = source.length();
@@ -276,26 +279,25 @@ public abstract class StringUtils {
 
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(length);
 		boolean changed = false;
-		for (int i = 0; i < length; i++) {
-			int ch = source.charAt(i);
+		int pos = -1;
+		while (++pos < length) {
+			int ch = source.charAt(pos);
 			if (ch == '%') {
-				if (i + 2 < length) {
-					char hex1 = source.charAt(i + 1);
-					char hex2 = source.charAt(i + 2);
+				if (pos + 2 < length) {
+					char hex1 = source.charAt(pos + 1);
+					char hex2 = source.charAt(pos + 2);
 					int u = Character.digit(hex1, 16);
 					int l = Character.digit(hex2, 16);
 					if (u == -1 || l == -1) {
-						throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(i) + "\"");
+						throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(pos) + "\"");
 					}
 					bos.write((char) ((u << 4) + l));
-					i += 2;
+					pos += 2;
 					changed = true;
+				} else {
+					throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(pos) + "\"");
 				}
-				else {
-					throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(i) + "\"");
-				}
-			}
-			else {
+			} else {
 				bos.write(ch);
 			}
 		}
@@ -310,6 +312,7 @@ public abstract class StringUtils {
 	/**
 	 * Copy the given {@code Collection} into a {@code String} array.
 	 * <p>The {@code Collection} must contain {@code String} elements only.
+	 *
 	 * @param collection the {@code Collection} to copy
 	 * @return the {@code String} array
 	 */
@@ -325,9 +328,10 @@ public abstract class StringUtils {
 	 * delimiter characters. Each of those characters can be used to separate
 	 * tokens. A delimiter is always a single character; for multi-character
 	 * delimiters, consider using {@link #delimitedListToStringArray}.
-	 * @param str the {@code String} to tokenize
+	 *
+	 * @param str        the {@code String} to tokenize
 	 * @param delimiters the delimiter characters, assembled as a {@code String}
-	 * (each of the characters is individually considered as a delimiter)
+	 *                   (each of the characters is individually considered as a delimiter)
 	 * @return an array of the tokens
 	 * @see StringTokenizer
 	 * @see String#trim()
@@ -344,13 +348,14 @@ public abstract class StringUtils {
 	 * delimiter characters. Each of those characters can be used to separate
 	 * tokens. A delimiter is always a single character; for multi-character
 	 * delimiters, consider using {@link #delimitedListToStringArray}.
-	 * @param str the {@code String} to tokenize
-	 * @param delimiters the delimiter characters, assembled as a {@code String}
-	 * (each of the characters is individually considered as a delimiter)
-	 * @param trimTokens trim the tokens via {@link String#trim()}
+	 *
+	 * @param str               the {@code String} to tokenize
+	 * @param delimiters        the delimiter characters, assembled as a {@code String}
+	 *                          (each of the characters is individually considered as a delimiter)
+	 * @param trimTokens        trim the tokens via {@link String#trim()}
 	 * @param ignoreEmptyTokens omit empty tokens from the result array
-	 * (only applies to tokens that are empty after trimming; StringTokenizer
-	 * will not consider subsequent delimiters as token in the first place).
+	 *                          (only applies to tokens that are empty after trimming; StringTokenizer
+	 *                          will not consider subsequent delimiters as token in the first place).
 	 * @return an array of the tokens
 	 * @see StringTokenizer
 	 * @see String#trim()
@@ -384,9 +389,10 @@ public abstract class StringUtils {
 	 * but it will still be considered as a single delimiter string, rather
 	 * than as bunch of potential delimiter characters, in contrast to
 	 * {@link #tokenizeToStringArray}.
-	 * @param str the input {@code String}
+	 *
+	 * @param str       the input {@code String}
 	 * @param delimiter the delimiter between elements (this is a single delimiter,
-	 * rather than a bunch individual delimiter characters)
+	 *                  rather than a bunch individual delimiter characters)
 	 * @return an array of the tokens in the list
 	 * @see #tokenizeToStringArray
 	 */
@@ -401,11 +407,12 @@ public abstract class StringUtils {
 	 * but it will still be considered as a single delimiter string, rather
 	 * than as bunch of potential delimiter characters, in contrast to
 	 * {@link #tokenizeToStringArray}.
-	 * @param str the input {@code String}
-	 * @param delimiter the delimiter between elements (this is a single delimiter,
-	 * rather than a bunch individual delimiter characters)
+	 *
+	 * @param str           the input {@code String}
+	 * @param delimiter     the delimiter between elements (this is a single delimiter,
+	 *                      rather than a bunch individual delimiter characters)
 	 * @param charsToDelete a set of characters to delete; useful for deleting unwanted
-	 * line breaks: e.g. "\r\n\f" will delete all new lines and line feeds in a {@code String}
+	 *                      line breaks: e.g. "\r\n\f" will delete all new lines and line feeds in a {@code String}
 	 * @return an array of the tokens in the list
 	 * @see #tokenizeToStringArray
 	 */
@@ -416,7 +423,7 @@ public abstract class StringUtils {
 			return new String[0];
 		}
 		if (delimiter == null) {
-			return new String[] {str};
+			return new String[]{str};
 		}
 
 		List<String> result = new ArrayList<>();
@@ -424,8 +431,7 @@ public abstract class StringUtils {
 			for (int i = 0; i < str.length(); i++) {
 				result.add(deleteAny(str.substring(i, i + 1), charsToDelete));
 			}
-		}
-		else {
+		} else {
 			int pos = 0;
 			int delPos;
 			while ((delPos = str.indexOf(delimiter, pos)) != -1) {
@@ -443,8 +449,9 @@ public abstract class StringUtils {
 	/**
 	 * Convert a {@link Collection} to a delimited {@code String} (e.g. CSV).
 	 * <p>Useful for {@code toString()} implementations.
-	 * @param coll the {@code Collection} to convert
-	 * @param delim the delimiter to use (typically a ",")
+	 *
+	 * @param coll   the {@code Collection} to convert
+	 * @param delim  the delimiter to use (typically a ",")
 	 * @param prefix the {@code String} to start each element with
 	 * @param suffix the {@code String} to end each element with
 	 * @return the delimited {@code String}
@@ -470,7 +477,8 @@ public abstract class StringUtils {
 	/**
 	 * Convert a {@code Collection} into a delimited {@code String} (e.g. CSV).
 	 * <p>Useful for {@code toString()} implementations.
-	 * @param coll the {@code Collection} to convert
+	 *
+	 * @param coll  the {@code Collection} to convert
 	 * @param delim the delimiter to use (typically a ",")
 	 * @return the delimited {@code String}
 	 */
