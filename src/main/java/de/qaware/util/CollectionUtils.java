@@ -103,9 +103,36 @@ public class CollectionUtils {
 		}
 
 		@Override
+		public V getFirst(K key) {
+			List<V> values = this.map.get(key);
+			return (values != null ? values.get(0) : null);
+		}
+
+		@Override
 		public void add(K key, /*@Nullable*/ V value) {
 			List<V> values = this.map.computeIfAbsent(key, k -> new LinkedList<>());
 			values.add(value);
+		}
+
+
+		@Override
+		public void addAll(K key, List<? extends V> values) {
+			List<V> currentValues = this.map.computeIfAbsent(key, k -> new LinkedList<>());
+			currentValues.addAll(values);
+		}
+
+		@Override
+		public void addAll(MultiValueMap<K, V> values) {
+			for (Entry<K, List<V>> entry : values.entrySet()) {
+				addAll(entry.getKey(), entry.getValue());
+			}
+		}
+
+		@Override
+		public void set(K key, V value) {
+			List<V> values = new LinkedList<>();
+			values.add(value);
+			this.map.put(key, values);
 		}
 
 		@Override

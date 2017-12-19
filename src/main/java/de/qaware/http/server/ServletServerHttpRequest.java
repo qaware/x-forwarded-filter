@@ -135,6 +135,8 @@ public class ServletServerHttpRequest implements ServerHttpRequest {
 			// Ignore: simply not exposing an invalid content type in HttpHeaders...
 		}
 	}
-
+	public String getMethodValue() {
+		return this.servletRequest.getMethod();
+	}
 
 }

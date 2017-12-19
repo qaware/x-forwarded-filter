@@ -16,6 +16,7 @@
 
 package de.qaware.util;
 
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -77,7 +78,21 @@ public class LinkedMultiValueMap<K, V> implements MultiValueMap<K, V>, Serializa
 		values.add(value);
 	}
 
+	public void addAll(K key, List<? extends V> values) {
+		List<V> currentValues = this.targetMap.computeIfAbsent(key, k -> new LinkedList<>());
+		currentValues.addAll(values);
+	}
 
+	public void addAll(MultiValueMap<K, V> values) {
+		for (Entry<K, List<V>> entry : values.entrySet()) {
+			addAll(entry.getKey(), entry.getValue());
+		}
+	}
+
+	public V getFirst(K key) {
+		List<V> values = this.targetMap.get(key);
+		return (values != null ? values.get(0) : null);
+	}
 	// Map implementation
 
 	@Override
@@ -143,6 +158,11 @@ public class LinkedMultiValueMap<K, V> implements MultiValueMap<K, V>, Serializa
 		return this.targetMap.entrySet();
 	}
 
+	public void set(K key, V value) {
+		List<V> values = new LinkedList<>();
+		values.add(value);
+		this.targetMap.put(key, values);
+	}
 
 	@Override
 	public boolean equals(Object obj) {

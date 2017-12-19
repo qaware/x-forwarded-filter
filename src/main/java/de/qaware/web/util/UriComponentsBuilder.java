@@ -16,9 +16,9 @@
 
 package de.qaware.web.util;
 
-import de.qaware.util.*;
 import de.qaware.http.HttpHeaders;
 import de.qaware.http.HttpRequest;
+import de.qaware.util.*;
 import de.qaware.web.util.HierarchicalUriComponents.PathComponent;
 
 import java.net.URI;
