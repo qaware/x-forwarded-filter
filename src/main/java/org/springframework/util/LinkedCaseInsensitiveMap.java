@@ -68,17 +68,6 @@ public class LinkedCaseInsensitiveMap<V> implements Map<String, V>, Serializable
 	/**
 	 * Create a new LinkedCaseInsensitiveMap that wraps a {@link LinkedHashMap}
 	 * with the given initial capacity and stores case-insensitive keys
-	 * according to the default Locale (by default in lower case).
-	 * @param initialCapacity the initial capacity
-	 * @see #convertKey(String)
-	 */
-	public LinkedCaseInsensitiveMap(int initialCapacity) {
-		this(initialCapacity, null);
-	}
-
-	/**
-	 * Create a new LinkedCaseInsensitiveMap that wraps a {@link LinkedHashMap}
-	 * with the given initial capacity and stores case-insensitive keys
 	 * according to the given Locale (by default in lower case).
 	 * @param initialCapacity the initial capacity
 	 * @param locale the Locale to use for case-insensitive key conversion

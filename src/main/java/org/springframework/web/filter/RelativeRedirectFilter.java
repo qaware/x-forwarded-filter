@@ -55,13 +55,6 @@ public class RelativeRedirectFilter extends OncePerRequestFilter {
 		this.redirectStatus = status;
 	}
 
-	/**
-	 * Return the configured redirect status.
-	 */
-	public HttpStatus getRedirectStatus() {
-		return this.redirectStatus;
-	}
-
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,

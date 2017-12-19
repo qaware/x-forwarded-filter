@@ -16,14 +16,8 @@
 
 package org.springframework.web.util;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.List;
 
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -37,8 +31,6 @@ import org.springframework.util.ObjectUtils;
 @SuppressWarnings("serial")
 final class OpaqueUriComponents extends UriComponents {
 
-	private static final MultiValueMap<String, String> QUERY_PARAMS_NONE = new LinkedMultiValueMap<>(0);
-
 	/*@Nullable*/
 	private final String ssp;
 
@@ -48,18 +40,6 @@ final class OpaqueUriComponents extends UriComponents {
 		this.ssp = schemeSpecificPart;
 	}
 
-
-	@Override
-	/*@Nullable*/
-	public String getSchemeSpecificPart() {
-		return this.ssp;
-	}
-
-	@Override
-	/*@Nullable*/
-	public String getUserInfo() {
-		return null;
-	}
 
 	@Override
 	/*@Nullable*/
@@ -73,38 +53,8 @@ final class OpaqueUriComponents extends UriComponents {
 	}
 
 	@Override
-	/*@Nullable*/
-	public String getPath() {
-		return null;
-	}
-
-	@Override
-	public List<String> getPathSegments() {
-		return Collections.emptyList();
-	}
-
-	@Override
-	/*@Nullable*/
-	public String getQuery() {
-		return null;
-	}
-
-	@Override
-	public MultiValueMap<String, String> getQueryParams() {
-		return QUERY_PARAMS_NONE;
-	}
-
-	@Override
 	public UriComponents encode(Charset charset) {
 		return this;
-	}
-
-	@Override
-	protected UriComponents expandInternal(UriTemplateVariables uriVariables) {
-		String expandedScheme = expandUriComponent(getScheme(), uriVariables);
-		String expandedSsp = expandUriComponent(getSchemeSpecificPart(), uriVariables);
-		String expandedFragment = expandUriComponent(getFragment(), uriVariables);
-		return new OpaqueUriComponents(expandedScheme, expandedSsp, expandedFragment);
 	}
 
 	@Override
@@ -129,29 +79,6 @@ final class OpaqueUriComponents extends UriComponents {
 		}
 
 		return uriBuilder.toString();
-	}
-
-	@Override
-	public URI toUri() {
-		try {
-			return new URI(getScheme(), this.ssp, getFragment());
-		}
-		catch (URISyntaxException ex) {
-			throw new IllegalStateException("Could not create URI object: " + ex.getMessage(), ex);
-		}
-	}
-
-	@Override
-	protected void copyToUriComponentsBuilder(UriComponentsBuilder builder) {
-		if (getScheme() != null) {
-			builder.scheme(getScheme());
-		}
-		if (getSchemeSpecificPart() != null) {
-			builder.schemeSpecificPart(getSchemeSpecificPart());
-		}
-		if (getFragment() != null) {
-			builder.fragment(getFragment());
-		}
 	}
 
 

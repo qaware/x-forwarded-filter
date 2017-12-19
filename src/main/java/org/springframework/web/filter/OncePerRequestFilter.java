@@ -110,10 +110,7 @@ public abstract class OncePerRequestFilter extends GenericFilterBean {
 
 
 	private boolean skipDispatch(HttpServletRequest request) {
-		if (request.getAttribute(WebUtils.ERROR_REQUEST_URI_ATTRIBUTE) != null && shouldNotFilterErrorDispatch()) {
-			return true;
-		}
-		return false;
+		return request.getAttribute(WebUtils.ERROR_REQUEST_URI_ATTRIBUTE) != null && shouldNotFilterErrorDispatch();
 	}
 
 
@@ -144,27 +141,6 @@ public abstract class OncePerRequestFilter extends GenericFilterBean {
 	 */
 	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
 		return false;
-	}
-
-	/**
-	 * The dispatcher type {@code javax.servlet.DispatcherType.ASYNC} introduced
-	 * in Servlet 3.0 means a filter can be invoked in more than one thread
-	 * over the course of a single request. Some filters only need to filter
-	 * the initial thread (e.g. request wrapping) while others may need
-	 * to be invoked at least once in each additional thread for example for
-	 * setting up thread locals or to perform final processing at the very end.
-	 * <p>Note that although a filter can be mapped to handle specific dispatcher
-	 * types via {@code web.xml} or in Java through the {@code ServletContext},
-	 * servlet containers may enforce different defaults with regards to
-	 * dispatcher types. This flag enforces the design intent of the filter.
-	 * <p>The default return value is "true", which means the filter will not be
-	 * invoked during subsequent async dispatches. If "false", the filter will
-	 * be invoked during async dispatches with the same guarantees of being
-	 * invoked only once during a request within a single thread.
-	 * @since 3.2
-	 */
-	protected boolean shouldNotFilterAsyncDispatch() {
-		return true;
 	}
 
 	/**

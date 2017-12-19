@@ -28,22 +28,6 @@ import java.net.URI;
 public interface HttpRequest extends HttpMessage {
 
 	/**
-	 * Return the HTTP method of the request.
-	 * @return the HTTP method as an HttpMethod enum value, or {@code null}
-	 * if not resolvable (e.g. in case of a non-standard HTTP method)
-	 */
-	/*@Nullable*/
-	default HttpMethod getMethod() {
-		return HttpMethod.resolve(getMethodValue());
-	}
-
-	/**
-	 * Return the HTTP method of the request as a String
-	 * @return the HTTP method as a String
-	 */
-	String getMethodValue();
-
-	/**
 	 * Return the URI of the request.
 	 * @return the URI of the request (never {@code null})
 	 */

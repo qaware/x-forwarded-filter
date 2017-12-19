@@ -83,19 +83,8 @@ public abstract class GenericFilterBean implements Filter/*, BeanNameAware, Envi
 	/** Logger available to subclasses */
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-	/*@Nullable*/
-	private String beanName;
-
-//	/*@Nullable*/
+	//	/*@Nullable*/
 //	private Environment environment;
-
-	/*@Nullable*/
-	private ServletContext servletContext;
-
-	/*@Nullable*/
-	private FilterConfig filterConfig;
-
-	private final Set<String> requiredProperties = new HashSet<>(4);
 
 
 //	/**
@@ -273,19 +262,6 @@ public abstract class GenericFilterBean implements Filter/*, BeanNameAware, Envi
 //	}
 
 	/**
-	 * Make the FilterConfig of this filter available, if any.
-	 * Analogous to GenericServlet's {@code getServletConfig()}.
-	 * <p>Public to resemble the {@code getFilterConfig()} method
-	 * of the Servlet Filter version that shipped with WebLogic 6.1.
-	 * @return the FilterConfig instance, or {@code null} if none available
-	 * @see javax.servlet.GenericServlet#getServletConfig()
-	 */
-	/*@Nullable*/
-	public FilterConfig getFilterConfig() {
-		return this.filterConfig;
-	}
-
-	/**
 	 * Make the name of this filter available to subclasses.
 	 * Analogous to GenericServlet's {@code getServletName()}.
 	 * <p>Takes the FilterConfig's filter name by default.
@@ -298,31 +274,8 @@ public abstract class GenericFilterBean implements Filter/*, BeanNameAware, Envi
 	 */
 	/*@Nullable*/
 	protected String getFilterName() {
-		return (this.filterConfig != null ? this.filterConfig.getFilterName() : this.beanName);
-	}
-
-	/**
-	 * Make the ServletContext of this filter available to subclasses.
-	 * Analogous to GenericServlet's {@code getServletContext()}.
-	 * <p>Takes the FilterConfig's ServletContext by default.
-	 * If initialized as bean in a Spring application context,
-	 * it falls back to the ServletContext that the bean factory runs in.
-	 * @return the ServletContext instance
-	 * @throws IllegalStateException if no ServletContext is available
-	 * @see javax.servlet.GenericServlet#getServletContext()
-	 * @see javax.servlet.FilterConfig#getServletContext()
-	 * @see #setServletContext
-	 */
-	protected ServletContext getServletContext() {
-		if (this.filterConfig != null) {
-			return this.filterConfig.getServletContext();
-		}
-		else if (this.servletContext != null) {
-			return this.servletContext;
-		}
-		else {
-			throw new IllegalStateException("No ServletContext");
-		}
+		return null;
+		//return (this.filterConfig != null ? this.filterConfig.getFilterName() : this.beanName);
 	}
 
 

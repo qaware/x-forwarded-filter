@@ -22,13 +22,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.security.Principal;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -37,7 +35,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.util.Assert;
@@ -53,18 +50,11 @@ import org.springframework.util.StringUtils;
  */
 public class ServletServerHttpRequest implements ServerHttpRequest {
 
-	protected static final String FORM_CONTENT_TYPE = "application/x-www-form-urlencoded";
-
-	protected static final Charset FORM_CHARSET = StandardCharsets.UTF_8;
-
 
 	private final HttpServletRequest servletRequest;
 
 	/*@Nullable*/
 	private HttpHeaders headers;
-
-	/*@Nullable*/
-	private ServerHttpAsyncRequestControl asyncRequestControl;
 
 
 	/**
@@ -76,18 +66,6 @@ public class ServletServerHttpRequest implements ServerHttpRequest {
 		this.servletRequest = servletRequest;
 	}
 
-
-	/**
-	 * Returns the {@code HttpServletRequest} this object is based on.
-	 */
-	public HttpServletRequest getServletRequest() {
-		return this.servletRequest;
-	}
-
-	@Override
-	public String getMethodValue() {
-		return this.servletRequest.getMethod();
-	}
 
 	@Override
 	public URI getURI() {
@@ -155,82 +133,5 @@ public class ServletServerHttpRequest implements ServerHttpRequest {
 		return this.headers;
 	}
 
-	@Override
-	public Principal getPrincipal() {
-		return this.servletRequest.getUserPrincipal();
-	}
-
-	@Override
-	public InetSocketAddress getLocalAddress() {
-		return new InetSocketAddress(this.servletRequest.getLocalName(), this.servletRequest.getLocalPort());
-	}
-
-	@Override
-	public InetSocketAddress getRemoteAddress() {
-		return new InetSocketAddress(this.servletRequest.getRemoteHost(), this.servletRequest.getRemotePort());
-	}
-
-	@Override
-	public InputStream getBody() throws IOException {
-		if (isFormPost(this.servletRequest)) {
-			return getBodyFromServletRequestParameters(this.servletRequest);
-		}
-		else {
-			return this.servletRequest.getInputStream();
-		}
-	}
-
-	@Override
-	public ServerHttpAsyncRequestControl getAsyncRequestControl(ServerHttpResponse response) {
-		if (this.asyncRequestControl == null) {
-			if (!ServletServerHttpResponse.class.isInstance(response)) {
-				throw new IllegalArgumentException("Response must be a ServletServerHttpResponse: " + response.getClass());
-			}
-			ServletServerHttpResponse servletServerResponse = (ServletServerHttpResponse) response;
-			this.asyncRequestControl = new ServletServerHttpAsyncRequestControl(this, servletServerResponse);
-		}
-		return this.asyncRequestControl;
-	}
-
-
-	private static boolean isFormPost(HttpServletRequest request) {
-		String contentType = request.getContentType();
-		return (contentType != null && contentType.contains(FORM_CONTENT_TYPE) &&
-				HttpMethod.POST.matches(request.getMethod()));
-	}
-
-	/**
-	 * Use {@link javax.servlet.ServletRequest#getParameterMap()} to reconstruct the
-	 * body of a form 'POST' providing a predictable outcome as opposed to reading
-	 * from the body, which can fail if any other code has used the ServletRequest
-	 * to access a parameter, thus causing the input stream to be "consumed".
-	 */
-	private static InputStream getBodyFromServletRequestParameters(HttpServletRequest request) throws IOException {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
-		Writer writer = new OutputStreamWriter(bos, FORM_CHARSET);
-
-		Map<String, String[]> form = request.getParameterMap();
-		for (Iterator<String> nameIterator = form.keySet().iterator(); nameIterator.hasNext();) {
-			String name = nameIterator.next();
-			List<String> values = Arrays.asList(form.get(name));
-			for (Iterator<String> valueIterator = values.iterator(); valueIterator.hasNext();) {
-				String value = valueIterator.next();
-				writer.write(URLEncoder.encode(name, FORM_CHARSET.name()));
-				if (value != null) {
-					writer.write('=');
-					writer.write(URLEncoder.encode(value, FORM_CHARSET.name()));
-					if (valueIterator.hasNext()) {
-						writer.write('&');
-					}
-				}
-			}
-			if (nameIterator.hasNext()) {
-				writer.append('&');
-			}
-		}
-		writer.flush();
-
-		return new ByteArrayInputStream(bos.toByteArray());
-	}
 
 }
