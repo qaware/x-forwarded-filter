@@ -478,40 +478,4 @@ public abstract class StringUtils {
 		return collectionToDelimitedString(coll, delim, "", "");
 	}
 
-	/**
-	 * Convert a {@code String} array into a delimited {@code String} (e.g. CSV).
-	 * <p>Useful for {@code toString()} implementations.
-	 * @param arr the array to display
-	 * @param delim the delimiter to use (typically a ",")
-	 * @return the delimited {@code String}
-	 */
-	public static String arrayToDelimitedString(/*@Nullable*/ Object[] arr, String delim) {
-		if (ObjectUtils.isEmpty(arr)) {
-			return "";
-		}
-		if (arr.length == 1) {
-			return ObjectUtils.nullSafeToString(arr[0]);
-		}
-
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < arr.length; i++) {
-			if (i > 0) {
-				sb.append(delim);
-			}
-			sb.append(arr[i]);
-		}
-		return sb.toString();
-	}
-
-	/**
-	 * Convert a {@code String} array into a comma delimited {@code String}
-	 * (i.e., CSV).
-	 * <p>Useful for {@code toString()} implementations.
-	 * @param arr the array to display
-	 * @return the delimited {@code String}
-	 */
-	public static String arrayToCommaDelimitedString(/*@Nullable*/ Object[] arr) {
-		return arrayToDelimitedString(arr, ",");
-	}
-
 }

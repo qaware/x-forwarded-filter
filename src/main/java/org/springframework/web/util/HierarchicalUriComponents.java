@@ -686,22 +686,4 @@ final class HierarchicalUriComponents extends UriComponents {
 	};
 
 
-	private static class QueryUriTemplateVariables implements UriTemplateVariables {
-
-		private final UriTemplateVariables delegate;
-
-		public QueryUriTemplateVariables(UriTemplateVariables delegate) {
-			this.delegate = delegate;
-		}
-
-		@Override
-		public Object getValue(/*@Nullable*/ String name) {
-			Object value = this.delegate.getValue(name);
-			if (ObjectUtils.isArray(value)) {
-				value = StringUtils.arrayToCommaDelimitedString(ObjectUtils.toObjectArray(value));
-			}
-			return value;
-		}
-	}
-
 }

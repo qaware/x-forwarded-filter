@@ -27,9 +27,6 @@ package org.springframework.util;
 @SuppressWarnings("serial")
 public class InvalidMimeTypeException extends IllegalArgumentException {
 
-	private final String mimeType;
-
-
 	/**
 	 * Create a new InvalidContentTypeException for the given content type.
 	 * @param mimeType the offending media type
@@ -37,15 +34,6 @@ public class InvalidMimeTypeException extends IllegalArgumentException {
 	 */
 	public InvalidMimeTypeException(String mimeType, String message) {
 		super("Invalid mime type \"" + mimeType + "\": " + message);
-		this.mimeType = mimeType;
-	}
-
-
-	/**
-	 * Return the offending content type.
-	 */
-	public String getMimeType() {
-		return this.mimeType;
 	}
 
 }

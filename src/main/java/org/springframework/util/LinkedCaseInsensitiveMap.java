@@ -37,7 +37,7 @@ import java.util.Set;
  * @since 3.0
  */
 @SuppressWarnings("serial")
-public class LinkedCaseInsensitiveMap<V> implements Map<String, V>, Serializable, Cloneable {
+public class LinkedCaseInsensitiveMap<V> implements Map<String, V>, Serializable {
 
 	private final LinkedHashMap<String, V> targetMap;
 
@@ -96,7 +96,7 @@ public class LinkedCaseInsensitiveMap<V> implements Map<String, V>, Serializable
 	 * Copy constructor.
 	 */
 	@SuppressWarnings("unchecked")
-	private LinkedCaseInsensitiveMap(LinkedCaseInsensitiveMap<V> other) {
+	public LinkedCaseInsensitiveMap(LinkedCaseInsensitiveMap<V> other) {
 		this.targetMap = (LinkedHashMap<String, V>) other.targetMap.clone();
 		this.caseInsensitiveKeys = (HashMap<String, String>) other.caseInsensitiveKeys.clone();
 		this.locale = other.locale;
@@ -196,11 +196,6 @@ public class LinkedCaseInsensitiveMap<V> implements Map<String, V>, Serializable
 	@Override
 	public Set<Entry<String, V>> entrySet() {
 		return this.targetMap.entrySet();
-	}
-
-	@Override
-	public LinkedCaseInsensitiveMap<V> clone() {
-		return new LinkedCaseInsensitiveMap<>(this);
 	}
 
 	@Override

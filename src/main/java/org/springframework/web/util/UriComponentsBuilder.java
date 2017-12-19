@@ -666,13 +666,6 @@ public class UriComponentsBuilder implements UriBuilder, Cloneable {
 			return new HierarchicalUriComponents.FullPathComponent(path);
 		}
 
-		public void removeTrailingSlash() {
-			int index = this.path.length() - 1;
-			if (this.path.charAt(index) == '/') {
-				this.path.deleteCharAt(index);
-			}
-		}
-
 		@Override
 		public FullPathComponentBuilder cloneBuilder() {
 			FullPathComponentBuilder builder = new FullPathComponentBuilder();
@@ -685,14 +678,6 @@ public class UriComponentsBuilder implements UriBuilder, Cloneable {
 	private static class PathSegmentComponentBuilder implements PathComponentBuilder {
 
 		private final List<String> pathSegments = new LinkedList<>();
-
-		public void append(String... pathSegments) {
-			for (String pathSegment : pathSegments) {
-				if (StringUtils.hasText(pathSegment)) {
-					this.pathSegments.add(pathSegment);
-				}
-			}
-		}
 
 		@Override
 		public PathComponent build() {
