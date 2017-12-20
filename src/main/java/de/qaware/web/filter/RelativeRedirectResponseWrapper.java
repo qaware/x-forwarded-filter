@@ -15,7 +15,7 @@
  */
 package de.qaware.web.filter;
 
-import de.qaware.http.HttpHeaders;
+import de.qaware.web.util.HttpHeaders;
 import org.apache.commons.lang3.Validate;
 
 import javax.servlet.ServletResponse;

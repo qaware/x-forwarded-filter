@@ -1,6 +1,4 @@
-package de.qaware.util;
-
-import de.qaware.http.HttpHeaders;
+package de.qaware.web.util;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
@@ -49,7 +47,6 @@ public class HttpServletRequestUtil {
 	public static HttpHeaders getHeaders(HttpServletRequest servletRequest) {
 		HttpHeaders headers = new HttpHeaders();
 		setHeaderNames(headers, servletRequest);
-		//setContentType(headers, servletRequest);
 		setContentLength(headers, servletRequest);
 		return headers;
 	}
@@ -74,32 +71,5 @@ public class HttpServletRequestUtil {
 		}
 	}
 
-//	private static void setContentType(HttpHeaders headers, HttpServletRequest servletRequest) {
-//		// HttpServletRequest exposes some headers as properties: we should include those if not already present
-//		try {
-//			MediaType contentType = headers.getContentType();
-//			if (contentType == null) {
-//				String requestContentType = servletRequest.getContentType();
-//				if (!StringUtils.isBlank(requestContentType)) {
-//					contentType = MediaType.parseMediaType(requestContentType);
-//
-//					headers.setContentType(contentType);
-//				}
-//			}
-//			if (contentType != null && contentType.getCharset() == null) {
-//				String requestEncoding = servletRequest.getCharacterEncoding();
-//				if (!StringUtils.isBlank(requestEncoding)) {
-//					Charset charSet = Charset.forName(requestEncoding);
-//					Map<String, String> params = new CaseInsensitiveMap<>();
-//					params.putAll(contentType.getParameters());
-//					params.put("charset", charSet.toString());
-//					MediaType newContentType = new MediaType(contentType.getType(), contentType.getSubtype(), params);
-//
-//					headers.setContentType(newContentType);
-//				}
-//			}
-//		} catch (InvalidMediaTypeException ex) {
-//			// Ignore: simply not exposing an invalid content type in HttpHeaders...
-//		}
-//	}
+
 }

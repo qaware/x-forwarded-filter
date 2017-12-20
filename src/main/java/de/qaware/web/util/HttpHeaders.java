@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.qaware.http;
+package de.qaware.web.util;
 
 
 import org.apache.commons.collections4.map.CaseInsensitiveMap;

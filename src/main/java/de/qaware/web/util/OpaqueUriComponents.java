@@ -17,6 +17,8 @@
 package de.qaware.web.util;
 
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.Objects;
 
@@ -53,6 +55,15 @@ final class OpaqueUriComponents extends UriComponents {
 	}
 
 	@Override
+	public String getPath() {
+		return null;
+	}
+
+
+	public String getQuery() {
+		return null;
+	}
+	@Override
 	public UriComponents encode(Charset charset) {
 		return this;
 	}
@@ -81,6 +92,15 @@ final class OpaqueUriComponents extends UriComponents {
 		return uriBuilder.toString();
 	}
 
+	@Override
+	public URI toUri() {
+		try {
+			return new URI(getScheme(), this.ssp, getFragment());
+		}
+		catch (URISyntaxException ex) {
+			throw new IllegalStateException("Could not create URI object: " + ex.getMessage(), ex);
+		}
+	}
 
 	@Override
 	public boolean equals(Object obj) {

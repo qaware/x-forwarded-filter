@@ -16,6 +16,7 @@
 
 package de.qaware.web.util;
 
+
 import java.io.Serializable;
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -79,6 +80,15 @@ public abstract class UriComponents implements Serializable {
 	 */
 	public abstract int getPort();
 
+	/**
+	 * Return the path. Can be {@code null}.
+	 */
+	public abstract String getPath();
+
+	/**
+	 * Return the query. Can be {@code null}.
+	 */
+	public abstract String getQuery();
 
 	/**
 	 * Encode all URI components using their specific encoding rules, and returns the
@@ -113,10 +123,15 @@ public abstract class UriComponents implements Serializable {
 	 */
 	public abstract String toUriString();
 
+	/**
+	 * Return a {@code URI} from this {@code UriComponents} instance.
+	 */
+	public abstract URI toUri();
+
+
 	@Override
 	public final String toString() {
 		return toUriString();
 	}
-
 
 }

@@ -16,7 +16,7 @@
 
 package de.qaware.web.filter;
 
-import de.qaware.http.HttpHeaders;
+import de.qaware.web.util.HttpHeaders;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;

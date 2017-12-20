@@ -16,8 +16,6 @@
 
 package de.qaware.web.util;
 
-import de.qaware.http.HttpHeaders;
-import de.qaware.util.HttpServletRequestUtil;
 import de.qaware.web.util.HierarchicalUriComponents.PathComponent;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
@@ -136,8 +134,19 @@ public class UriComponentsBuilder {
 		this.fragment = other.fragment;
 	}
 
-
 	// Factory methods
+
+	/**
+	 * Create a builder that is initialized with the given path.
+	 * @param path the path to initialize with
+	 * @return the new {@code UriComponentsBuilder}
+	 */
+	public static UriComponentsBuilder fromPath(String path) {
+		UriComponentsBuilder builder = new UriComponentsBuilder();
+		builder.path(path);
+		return builder;
+	}
+
 
 	/**
 	 * Create a builder that is initialized with the given {@code URI}.

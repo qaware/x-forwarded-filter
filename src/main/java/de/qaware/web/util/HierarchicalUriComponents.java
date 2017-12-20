@@ -25,6 +25,8 @@ import org.apache.commons.lang3.Validate;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -119,10 +121,12 @@ final class HierarchicalUriComponents extends UriComponents {
 	}
 
 	//@NonNull
+	@Override
 	public String getPath() {
 		return this.path.getPath();
 	}
 
+	@Override
 	/*@Nullable*/
 	public String getQuery() {
 		if (this.queryParams.isEmpty()) {
@@ -431,7 +435,31 @@ final class HierarchicalUriComponents extends UriComponents {
 		return uriBuilder.toString();
 	}
 
-
+	/**
+	 * Returns a {@code URI} from this {@code UriComponents} instance.
+	 */
+	@Override
+	public URI toUri() {
+		try {
+			if (this.encoded) {
+				return new URI(toString());
+			}
+			else {
+				String path = getPath();
+				if (StringUtils.isNotEmpty(path) && path.charAt(0) != PATH_DELIMITER) {
+					// Only prefix the path delimiter if something exists before it
+					if (getScheme() != null || getUserInfo() != null || getHost() != null || getPort() != -1) {
+						path = PATH_DELIMITER + path;
+					}
+				}
+				return new URI(getScheme(), getUserInfo(), getHost(), getPort(), path, getQuery(),
+						getFragment());
+			}
+		}
+		catch (URISyntaxException ex) {
+			throw new IllegalStateException("Could not create URI object: " + ex.getMessage(), ex);
+		}
+	}
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {

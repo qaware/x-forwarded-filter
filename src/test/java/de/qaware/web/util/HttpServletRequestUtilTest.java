@@ -16,9 +16,9 @@
 //
 //package de.quaware.util;
 //
-//import de.qaware.http.HttpHeaders;
+//import de.qaware.web.util.HttpHeaders;
 //import de.qaware.http.MediaType;
-//import de.qaware.util.HttpServletRequestUtil;
+//import de.qaware.web.util.HttpServletRequestUtil;
 //import org.junit.Before;
 //import org.junit.Test;
 //import org.springframework.mock.web.MockHttpServletRequest;
