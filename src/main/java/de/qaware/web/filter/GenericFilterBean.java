@@ -87,20 +87,4 @@ public abstract class GenericFilterBean implements Filter {
 		}
 	}
 
-	/**
-	 * Make the name of this filter available to subclasses.
-	 * Analogous to GenericServlet's {@code getServletName()}.
-	 * <p>Takes the FilterConfig's filter name by default.
-	 * If initialized as bean in a Spring application context,
-	 * it falls back to the bean name as defined in the bean factory.
-	 *
-	 * @return the filter name, or {@code null} if none available
-	 * @see javax.servlet.GenericServlet#getServletName()
-	 * @see javax.servlet.FilterConfig#getFilterName()
-	 */
-	/*@Nullable*/
-	protected String getFilterName() {
-		return null;
-	}
-
 }

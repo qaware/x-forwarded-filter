@@ -11,7 +11,7 @@ import java.util.Set;
  */
 public class ForwardedHeaderConstants {
 
-	private ForwardedHeaderConstants(){
+	private ForwardedHeaderConstants() {
 		//utility class
 	}
 

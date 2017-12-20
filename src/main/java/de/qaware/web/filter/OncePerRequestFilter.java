@@ -16,7 +16,7 @@
 
 package de.qaware.web.filter;
 
-import de.qaware.web.util.WebUtils;
+import de.qaware.web.util.WebUtilsConstants;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -115,7 +115,7 @@ public abstract class OncePerRequestFilter implements Filter {
 
 
 	private boolean skipDispatch(HttpServletRequest request) {
-		return request.getAttribute(WebUtils.ERROR_REQUEST_URI_ATTRIBUTE) != null && shouldNotFilterErrorDispatch();
+		return request.getAttribute(WebUtilsConstants.ERROR_REQUEST_URI_ATTRIBUTE) != null && shouldNotFilterErrorDispatch();
 	}
 
 
@@ -126,16 +126,12 @@ public abstract class OncePerRequestFilter implements Filter {
 	 * instance and appends ".FILTERED". If the filter is not fully initialized,
 	 * it falls back to its class name.
 	 *
-	 * @see #getFilterName
 	 * @see #ALREADY_FILTERED_SUFFIX
 	 */
 	protected String getAlreadyFilteredAttributeName() {
 		return alreadyFilteredAttributeName;
 	}
 
-	protected String getFilterName() {
-		return filterName;
-	}
 
 	/**
 	 * Can be overridden in subclasses for custom filtering control,

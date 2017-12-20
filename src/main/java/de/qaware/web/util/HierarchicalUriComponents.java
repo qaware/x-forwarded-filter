@@ -38,7 +38,7 @@ import java.util.*;
  * @see <a href="http://tools.ietf.org/html/rfc3986#section-1.2.3">Hierarchical URIs</a>
  * @since 3.1.3
  */
-@SuppressWarnings({"serial","squid:S1948"})
+@SuppressWarnings({"serial", "squid:S1948"})
 final class HierarchicalUriComponents extends UriComponents {
 
 	private static final char PATH_DELIMITER = '/';
@@ -85,7 +85,7 @@ final class HierarchicalUriComponents extends UriComponents {
 		this.host = host;
 		this.port = port;
 		this.path = (path != null ? path : NULL_PATH_COMPONENT);
-		this.queryParams = (queryParams != null ? MultiMapUtils.unmodifiableMultiValuedMap(queryParams) :  MultiMapUtils.EMPTY_MULTI_VALUED_MAP);
+		this.queryParams = (queryParams != null ? MultiMapUtils.unmodifiableMultiValuedMap(queryParams) : MultiMapUtils.EMPTY_MULTI_VALUED_MAP);
 		this.encoded = encoded;
 
 		if (verify) {
@@ -130,7 +130,7 @@ final class HierarchicalUriComponents extends UriComponents {
 		}
 		StringBuilder queryBuilder = new StringBuilder();
 
-		for (Map.Entry<String ,Collection<String>> entry : this.queryParams.asMap().entrySet()) {
+		for (Map.Entry<String, Collection<String>> entry : this.queryParams.asMap().entrySet()) {
 			String name = entry.getKey();
 			Collection<String> values = entry.getValue();
 			if (CollectionUtils.isEmpty(values)) {
@@ -185,7 +185,7 @@ final class HierarchicalUriComponents extends UriComponents {
 
 	private MultiValuedMap<String, String> encodeQueryParams(Charset charset) {
 		int size = this.queryParams.size();
-		ArrayListValuedHashMap<String, String> result = new ArrayListValuedHashMap<>(size,1);
+		ArrayListValuedHashMap<String, String> result = new ArrayListValuedHashMap<>(size, 1);
 		for (Map.Entry<String, Collection<String>> entry : this.queryParams.asMap().entrySet()) {
 			String name = encodeUriComponent(entry.getKey(), charset, Type.QUERY_PARAM);
 			List<String> values = new ArrayList<>(entry.getValue().size());
@@ -300,7 +300,6 @@ final class HierarchicalUriComponents extends UriComponents {
 
 	/**
 	 * Normalize the path removing sequences like "path/..".
-	 *
 	 */
 	@Override
 	public UriComponents normalize() {
@@ -383,10 +382,8 @@ final class HierarchicalUriComponents extends UriComponents {
 			pathElements.add(0, TOP_PATH);
 		}
 
-		return prefix +String.join(FOLDER_SEPARATOR,pathElements);
+		return prefix + String.join(FOLDER_SEPARATOR, pathElements);
 	}
-
-
 
 
 	// Other functionality

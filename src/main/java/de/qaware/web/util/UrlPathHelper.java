@@ -43,7 +43,7 @@ public class UrlPathHelper {
 
 	private boolean removeSemicolonContent = true;
 
-	private String defaultEncoding = WebUtils.DEFAULT_CHARACTER_ENCODING;
+	private String defaultEncoding = WebUtilsConstants.DEFAULT_CHARACTER_ENCODING;
 
 
 	/**
@@ -60,7 +60,7 @@ public class UrlPathHelper {
 	 *
 	 * @see #getContextPath
 	 * @see #getRequestUri
-	 * @see WebUtils#DEFAULT_CHARACTER_ENCODING
+	 * @see WebUtilsConstants#DEFAULT_CHARACTER_ENCODING
 	 * @see javax.servlet.ServletRequest#getCharacterEncoding()
 	 * @see java.net.URLDecoder#decode(String, String)
 	 */
@@ -172,7 +172,7 @@ public class UrlPathHelper {
 	 * @return the request URI
 	 */
 	public String getRequestUri(HttpServletRequest request) {
-		String uri = (String) request.getAttribute(WebUtils.INCLUDE_REQUEST_URI_ATTRIBUTE);
+		String uri = (String) request.getAttribute(WebUtilsConstants.INCLUDE_REQUEST_URI_ATTRIBUTE);
 		if (uri == null) {
 			uri = request.getRequestURI();
 		}
@@ -189,7 +189,7 @@ public class UrlPathHelper {
 	 * @return the context path
 	 */
 	public String getContextPath(HttpServletRequest request) {
-		String contextPath = (String) request.getAttribute(WebUtils.INCLUDE_CONTEXT_PATH_ATTRIBUTE);
+		String contextPath = (String) request.getAttribute(WebUtilsConstants.INCLUDE_CONTEXT_PATH_ATTRIBUTE);
 		if (contextPath == null) {
 			contextPath = request.getContextPath();
 		}
@@ -219,7 +219,7 @@ public class UrlPathHelper {
 	 * @param request current HTTP request
 	 * @param source  the String to decode
 	 * @return the decoded String
-	 * @see WebUtils#DEFAULT_CHARACTER_ENCODING
+	 * @see WebUtilsConstants#DEFAULT_CHARACTER_ENCODING
 	 * @see javax.servlet.ServletRequest#getCharacterEncoding
 	 * @see java.net.URLDecoder#decode(String, String)
 	 * @see java.net.URLDecoder#decode(String)
@@ -236,7 +236,7 @@ public class UrlPathHelper {
 		String enc = determineEncoding(request);
 		try {
 			return URLDecoder.decode(source, enc);
-		} catch (IllegalArgumentException|UnsupportedEncodingException ex) {
+		} catch (IllegalArgumentException | UnsupportedEncodingException ex) {
 			if (LOGGER.isWarnEnabled()) {
 				LOGGER.warn("Could not decode request string [" + source + "] with encoding '" + enc +
 						"': falling back to platform default encoding; exception message: " + ex.getMessage());

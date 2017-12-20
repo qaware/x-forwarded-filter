@@ -26,11 +26,18 @@ import javax.servlet.ServletRequest;
  * @author Juergen Hoeller
  * @author Sebastien Deleuze
  */
-public class WebUtils {
+public class WebUtilsConstants {
 
-	private WebUtils() {
+	private WebUtilsConstants() {
 		//utility class
 	}
+
+	/**
+	 * {@code 303 See Other}.
+	 *
+	 * @see <a href="http://tools.ietf.org/html/rfc7231#section-6.4.4">HTTP/1.1: Semantics and Content, section 6.4.4</a>
+	 */
+	public static final int SEE_OTHER = 303;
 
 	/**
 	 * Standard Servlet 2.3+ spec request attributes for include URI and paths.

@@ -17,10 +17,10 @@
 package de.qaware.web.filter;
 
 import de.qaware.http.HttpHeaders;
-import de.qaware.http.HttpStatus;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -44,14 +44,9 @@ public class RelativeRedirectFilterTests {
 	private HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
 
 
-	@Test(expected = NullPointerException.class)
-	public void sendRedirectHttpStatusWhenNullThenIllegalArgumentException() {
-		this.filter.setRedirectStatus(null);
-	}
-
 	@Test(expected = IllegalArgumentException.class)
 	public void sendRedirectHttpStatusWhenNot3xxThenIllegalArgumentException() {
-		this.filter.setRedirectStatus(HttpStatus.OK);
+		this.filter.setRedirectStatus(HttpStatus.OK.value());
 	}
 
 	@Test
@@ -68,7 +63,7 @@ public class RelativeRedirectFilterTests {
 	public void doFilterSendRedirectWhenCustomSendRedirectHttpStatusThenLocationAnd301() throws Exception {
 		String location = "/foo";
 		HttpStatus status = HttpStatus.MOVED_PERMANENTLY;
-		this.filter.setRedirectStatus(status);
+		this.filter.setRedirectStatus(status.value());
 		sendRedirect(location);
 
 		InOrder inOrder = Mockito.inOrder(this.response);

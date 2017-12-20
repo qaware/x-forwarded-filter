@@ -1,17 +1,11 @@
 package de.qaware.util;
 
 import de.qaware.http.HttpHeaders;
-import de.qaware.http.InvalidMediaTypeException;
-import de.qaware.http.MediaType;
-import org.apache.commons.collections4.map.CaseInsensitiveMap;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.util.Enumeration;
-import java.util.Map;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -20,7 +14,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  */
 public class HttpServletRequestUtil {
 
-	private HttpServletRequestUtil(){
+	private HttpServletRequestUtil() {
 		//utility class
 	}
 
@@ -31,7 +25,7 @@ public class HttpServletRequestUtil {
 	 * request.getQueryString() = param1=value1&param2=value2
 	 * request.getRequestURL() + "?" + request.getQueryString();
 	 * </pre>
-	 *
+	 * <p>
 	 * Difference of this method to {@link HttpServletRequest#getRequestURI()} <br/>
 	 * {@link HttpServletRequest#getRequestURI()} returns: /foo/bar;xxx=yyy?param1=value1&param2=value2
 	 *
@@ -55,7 +49,7 @@ public class HttpServletRequestUtil {
 	public static HttpHeaders getHeaders(HttpServletRequest servletRequest) {
 		HttpHeaders headers = new HttpHeaders();
 		setHeaderNames(headers, servletRequest);
-		setContentType(headers, servletRequest);
+		//setContentType(headers, servletRequest);
 		setContentLength(headers, servletRequest);
 		return headers;
 	}
@@ -80,32 +74,32 @@ public class HttpServletRequestUtil {
 		}
 	}
 
-	private static void setContentType(HttpHeaders headers, HttpServletRequest servletRequest) {
-		// HttpServletRequest exposes some headers as properties: we should include those if not already present
-		try {
-			MediaType contentType = headers.getContentType();
-			if (contentType == null) {
-				String requestContentType = servletRequest.getContentType();
-				if (!StringUtils.isBlank(requestContentType)) {
-					contentType = MediaType.parseMediaType(requestContentType);
-
-					headers.setContentType(contentType);
-				}
-			}
-			if (contentType != null && contentType.getCharset() == null) {
-				String requestEncoding = servletRequest.getCharacterEncoding();
-				if (!StringUtils.isBlank(requestEncoding)) {
-					Charset charSet = Charset.forName(requestEncoding);
-					Map<String, String> params = new CaseInsensitiveMap<>();
-					params.putAll(contentType.getParameters());
-					params.put("charset", charSet.toString());
-					MediaType newContentType = new MediaType(contentType.getType(), contentType.getSubtype(), params);
-
-					headers.setContentType(newContentType);
-				}
-			}
-		} catch (InvalidMediaTypeException ex) {
-			// Ignore: simply not exposing an invalid content type in HttpHeaders...
-		}
-	}
+//	private static void setContentType(HttpHeaders headers, HttpServletRequest servletRequest) {
+//		// HttpServletRequest exposes some headers as properties: we should include those if not already present
+//		try {
+//			MediaType contentType = headers.getContentType();
+//			if (contentType == null) {
+//				String requestContentType = servletRequest.getContentType();
+//				if (!StringUtils.isBlank(requestContentType)) {
+//					contentType = MediaType.parseMediaType(requestContentType);
+//
+//					headers.setContentType(contentType);
+//				}
+//			}
+//			if (contentType != null && contentType.getCharset() == null) {
+//				String requestEncoding = servletRequest.getCharacterEncoding();
+//				if (!StringUtils.isBlank(requestEncoding)) {
+//					Charset charSet = Charset.forName(requestEncoding);
+//					Map<String, String> params = new CaseInsensitiveMap<>();
+//					params.putAll(contentType.getParameters());
+//					params.put("charset", charSet.toString());
+//					MediaType newContentType = new MediaType(contentType.getType(), contentType.getSubtype(), params);
+//
+//					headers.setContentType(newContentType);
+//				}
+//			}
+//		} catch (InvalidMediaTypeException ex) {
+//			// Ignore: simply not exposing an invalid content type in HttpHeaders...
+//		}
+//	}
 }

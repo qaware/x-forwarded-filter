@@ -16,7 +16,7 @@
 
 package de.qaware.web.filter;
 
-import de.qaware.http.HttpStatus;
+import de.qaware.web.util.WebUtilsConstants;
 import org.apache.commons.lang3.Validate;
 
 import javax.servlet.FilterChain;
@@ -41,18 +41,17 @@ import java.io.IOException;
  */
 public class RelativeRedirectFilter extends OncePerRequestFilter {
 
-	private HttpStatus redirectStatus = HttpStatus.SEE_OTHER;
+	private int redirectStatus = WebUtilsConstants.SEE_OTHER;
 
 
 	/**
 	 * Set the default HTTP Status to use for redirects.
-	 * <p>By default this is {@link HttpStatus#SEE_OTHER}.
+	 * <p>By default this is {@link WebUtilsConstants#SEE_OTHER}.
 	 *
 	 * @param status the 3xx redirect status to use
 	 */
-	public void setRedirectStatus(HttpStatus status) {
-		Validate.notNull(status, "Property 'redirectStatus' is required");
-		Validate.isTrue(status.is3xxRedirection(), "Not a redirect status code: %s",status);
+	public void setRedirectStatus(int status) {
+		Validate.isTrue((status / 100) == 3, "Not a redirect status code: %s", status);
 		this.redirectStatus = status;
 	}
 

@@ -16,7 +16,6 @@
 package de.qaware.web.filter;
 
 import de.qaware.http.HttpHeaders;
-import de.qaware.http.HttpStatus;
 import org.apache.commons.lang3.Validate;
 
 import javax.servlet.ServletResponse;
@@ -36,10 +35,10 @@ class RelativeRedirectResponseWrapper extends HttpServletResponseWrapper {
 	private final int redirectStatus;
 
 
-	private RelativeRedirectResponseWrapper(HttpServletResponse response, HttpStatus redirectStatus) {
+	private RelativeRedirectResponseWrapper(HttpServletResponse response, int redirectStatus) {
 		super(response);
 		Validate.notNull(redirectStatus, "'redirectStatus' is required");
-		this.redirectStatus = redirectStatus.value();
+		this.redirectStatus = redirectStatus;
 	}
 
 
@@ -51,7 +50,7 @@ class RelativeRedirectResponseWrapper extends HttpServletResponseWrapper {
 
 
 	public static HttpServletResponse wrapIfNecessary(HttpServletResponse response,
-	                                                  HttpStatus redirectStatus) {
+	                                                  int redirectStatus) {
 
 		return (hasWrapper(response) ? response : new RelativeRedirectResponseWrapper(response, redirectStatus));
 	}

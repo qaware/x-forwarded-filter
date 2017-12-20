@@ -223,7 +223,7 @@ public class UriComponentsBuilder {
 	 * @since 4.1.5
 	 */
 	public static UriComponentsBuilder fromHttpRequest(HttpServletRequest request) {
-		URI uri =HttpServletRequestUtil.getURI(request);
+		URI uri = HttpServletRequestUtil.getURI(request);
 		HttpHeaders headers = HttpServletRequestUtil.getHeaders(request);
 		return fromUri(uri).adaptFromForwardedHeaders(headers);
 	}
@@ -511,7 +511,7 @@ public class UriComponentsBuilder {
 	UriComponentsBuilder adaptFromForwardedHeaders(HttpHeaders headers) {
 		String forwardedHeader = headers.getFirst("Forwarded");
 		if (StringUtils.isNotBlank(forwardedHeader)) {
-			String forwardedToUse = getFirstValueToken(forwardedHeader,",");
+			String forwardedToUse = getFirstValueToken(forwardedHeader, ",");
 			Matcher matcher = FORWARDED_HOST_PATTERN.matcher(forwardedToUse);
 			if (matcher.find()) {
 				adaptForwardedHost(matcher.group(1).trim());
@@ -523,17 +523,17 @@ public class UriComponentsBuilder {
 		} else {
 			String hostHeader = headers.getFirst("X-Forwarded-Host");
 			if (StringUtils.isNotBlank(hostHeader)) {
-				adaptForwardedHost(getFirstValueToken(hostHeader,","));
+				adaptForwardedHost(getFirstValueToken(hostHeader, ","));
 			}
 
 			String portHeader = headers.getFirst("X-Forwarded-Port");
 			if (StringUtils.isNotBlank(portHeader)) {
-				port(Integer.parseInt(getFirstValueToken(portHeader,",")));
+				port(Integer.parseInt(getFirstValueToken(portHeader, ",")));
 			}
 
 			String protocolHeader = headers.getFirst("X-Forwarded-Proto");
 			if (StringUtils.isNotBlank(protocolHeader)) {
-				scheme(getFirstValueToken(protocolHeader,","));
+				scheme(getFirstValueToken(protocolHeader, ","));
 			}
 		}
 
@@ -545,10 +545,17 @@ public class UriComponentsBuilder {
 		return this;
 	}
 
-
-	private static String getFirstValueToken(String value, String delim){
+	/**
+	 * Returns first token only. e.g: value="123, 345, 678"  with delim="," will return "123"
+	 * or more formally: return value.substring(0,value.indexOf(delim));
+	 *
+	 * @param value
+	 * @param delim
+	 * @return
+	 */
+	private static String getFirstValueToken(String value, String delim) {
 		int pos = value.indexOf(delim);
-		return (pos==-1)?value:value.substring(0,pos);
+		return (pos == -1) ? value : value.substring(0, pos);
 	}
 
 	private void adaptForwardedHost(String hostToUse) {

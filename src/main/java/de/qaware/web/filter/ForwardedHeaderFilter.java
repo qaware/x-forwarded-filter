@@ -14,7 +14,7 @@ package de.qaware.web.filter;/*
  * limitations under the License.
  */
 
-import de.qaware.http.HttpStatus;
+import de.qaware.web.util.WebUtilsConstants;
 
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -40,7 +40,7 @@ import static java.lang.Boolean.parseBoolean;
  * protocol and address.
  * <p>
  * <p><strong>Note:</strong> This filter can also be used in a
- * {@link #setRemoveOnly removeOnly} mode where "Forwarded" and "X-Forwarded-*"
+ * {@link ForwardedHeaderFilter#removeOnly } mode where "Forwarded" and "X-Forwarded-*"
  * headers are only eliminated without being used.
  *
  * @author Rossen Stoyanchev
@@ -81,7 +81,7 @@ public class ForwardedHeaderFilter extends OncePerRequestFilter {
 		} else {
 			HttpServletRequest theRequest = new ForwardedHeaderExtractingRequest(request);
 			HttpServletResponse theResponse = (this.relativeRedirects ?
-					RelativeRedirectResponseWrapper.wrapIfNecessary(response, HttpStatus.SEE_OTHER) :
+					RelativeRedirectResponseWrapper.wrapIfNecessary(response, WebUtilsConstants.SEE_OTHER) :
 					new ForwardedHeaderExtractingResponse(response, theRequest));
 			filterChain.doFilter(theRequest, theResponse);
 		}
