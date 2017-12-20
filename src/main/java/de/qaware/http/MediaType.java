@@ -16,7 +16,12 @@
 
 package de.qaware.http;
 
-import de.qaware.util.*;
+import de.qaware.util.InvalidMimeTypeException;
+import de.qaware.util.MimeType;
+import de.qaware.util.MimeTypeUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
 import java.io.Serializable;
 import java.nio.charset.Charset;
@@ -435,7 +440,7 @@ public class MediaType extends MimeType implements Serializable {
 		if (PARAM_QUALITY_FACTOR.equals(attribute)) {
 			String unquotedValue = unquote(value);
 			double d = Double.parseDouble(unquotedValue);
-			Assert.isTrue(d >= 0D && d <= 1D,
+			Validate.isTrue(d >= 0D && d <= 1D,
 					"Invalid quality value \"" + value + "\": should be between 0.0 and 1.0");
 		}
 	}
@@ -523,15 +528,11 @@ public class MediaType extends MimeType implements Serializable {
 	 * @throws InvalidMediaTypeException if the media type value cannot be parsed
 	 */
 	public static List<MediaType> parseMediaTypes(/*@Nullable*/ String mediaTypes) {
-		if (!StringUtils.hasLength(mediaTypes)) {
+		if (StringUtils.isEmpty(mediaTypes)) {
 			return Collections.emptyList();
 		}
-		String[] tokens = StringUtils.tokenizeToStringArray(mediaTypes, ",");
-		List<MediaType> result = new ArrayList<>(tokens.length);
-		for (String token : tokens) {
-			result.add(parseMediaType(token));
-		}
-		return result;
+
+		return MimeTypeUtils.tokenize(mediaTypes,",",MediaType::parseMediaType);
 	}
 
 	/**
@@ -619,7 +620,7 @@ public class MediaType extends MimeType implements Serializable {
 	 * and Content, section 5.3.2</a>
 	 */
 	public static void sortBySpecificity(List<MediaType> mediaTypes) {
-		Assert.notNull(mediaTypes, MEDIA_TYPES_MUST_NOT_BE_NULL);
+		Validate.notNull(mediaTypes, MEDIA_TYPES_MUST_NOT_BE_NULL);
 		if (mediaTypes.size() > 1) {
 			mediaTypes.sort(SPECIFICITY_COMPARATOR);
 		}
@@ -647,7 +648,7 @@ public class MediaType extends MimeType implements Serializable {
 	 * @see #getQualityValue()
 	 */
 	public static void sortByQualityValue(List<MediaType> mediaTypes) {
-		Assert.notNull(mediaTypes, MEDIA_TYPES_MUST_NOT_BE_NULL);
+		Validate.notNull(mediaTypes, MEDIA_TYPES_MUST_NOT_BE_NULL);
 		if (mediaTypes.size() > 1) {
 			mediaTypes.sort(QUALITY_VALUE_COMPARATOR);
 		}
@@ -661,7 +662,7 @@ public class MediaType extends MimeType implements Serializable {
 	 * @see MediaType#sortByQualityValue(List)
 	 */
 	public static void sortBySpecificityAndQuality(List<MediaType> mediaTypes) {
-		Assert.notNull(mediaTypes, MEDIA_TYPES_MUST_NOT_BE_NULL);
+		Validate.notNull(mediaTypes, MEDIA_TYPES_MUST_NOT_BE_NULL);
 		if (mediaTypes.size() > 1) {
 			mediaTypes.sort(MediaType.SPECIFICITY_COMPARATOR.thenComparing(MediaType.QUALITY_VALUE_COMPARATOR));
 		}

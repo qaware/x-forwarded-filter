@@ -16,7 +16,12 @@
 
 package de.qaware.web.util;
 
-import de.qaware.util.*;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MultiMapUtils;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
@@ -33,7 +38,7 @@ import java.util.*;
  * @see <a href="http://tools.ietf.org/html/rfc3986#section-1.2.3">Hierarchical URIs</a>
  * @since 3.1.3
  */
-@SuppressWarnings("serial")
+@SuppressWarnings({"serial","squid:S1948"})
 final class HierarchicalUriComponents extends UriComponents {
 
 	private static final char PATH_DELIMITER = '/';
@@ -50,7 +55,7 @@ final class HierarchicalUriComponents extends UriComponents {
 
 	private final PathComponent path;
 
-	private final MultiValueMap<String, String> queryParams;
+	private final MultiValuedMap<String, String> queryParams;
 
 	private final boolean encoded;
 
@@ -72,7 +77,7 @@ final class HierarchicalUriComponents extends UriComponents {
 	//copy and builder constructor
 	HierarchicalUriComponents(/*@Nullable*/ String scheme, /*@Nullable*/ String fragment, /*@Nullable*/ String userInfo,
 			/*@Nullable*/ String host, /*@Nullable*/ String port, /*@Nullable*/ PathComponent path,
-			/*@Nullable*/ MultiValueMap<String, String> queryParams, boolean encoded, boolean verify) {
+			/*@Nullable*/ MultiValuedMap<String, String> queryParams, boolean encoded, boolean verify) {
 
 		super(scheme, fragment);
 
@@ -80,8 +85,7 @@ final class HierarchicalUriComponents extends UriComponents {
 		this.host = host;
 		this.port = port;
 		this.path = (path != null ? path : NULL_PATH_COMPONENT);
-		this.queryParams = CollectionUtils.unmodifiableMultiValueMap(
-				queryParams != null ? queryParams : new LinkedMultiValueMap<>(0));
+		this.queryParams = (queryParams != null ? MultiMapUtils.unmodifiableMultiValuedMap(queryParams) :  MultiMapUtils.EMPTY_MULTI_VALUED_MAP);
 		this.encoded = encoded;
 
 		if (verify) {
@@ -125,9 +129,10 @@ final class HierarchicalUriComponents extends UriComponents {
 			return null;
 		}
 		StringBuilder queryBuilder = new StringBuilder();
-		for (Map.Entry<String, List<String>> entry : this.queryParams.entrySet()) {
+
+		for (Map.Entry<String ,Collection<String>> entry : this.queryParams.asMap().entrySet()) {
 			String name = entry.getKey();
-			List<String> values = entry.getValue();
+			Collection<String> values = entry.getValue();
 			if (CollectionUtils.isEmpty(values)) {
 				appendQueryParamName(queryBuilder, name);
 			} else {
@@ -173,21 +178,21 @@ final class HierarchicalUriComponents extends UriComponents {
 		String userInfoTo = (this.userInfo != null ? encodeUriComponent(this.userInfo, charset, Type.USER_INFO) : null);
 		String hostTo = (this.host != null ? encodeUriComponent(this.host, charset, getHostType()) : null);
 		PathComponent pathTo = this.path.encode(charset);
-		MultiValueMap<String, String> paramsTo = encodeQueryParams(charset);
+		MultiValuedMap<String, String> paramsTo = encodeQueryParams(charset);
 		return new HierarchicalUriComponents(schemeTo, fragmentTo, userInfoTo, hostTo, this.port,
 				pathTo, paramsTo, true, false);
 	}
 
-	private MultiValueMap<String, String> encodeQueryParams(Charset charset) {
+	private MultiValuedMap<String, String> encodeQueryParams(Charset charset) {
 		int size = this.queryParams.size();
-		MultiValueMap<String, String> result = new LinkedMultiValueMap<>(size);
-		for (Map.Entry<String, List<String>> entry : this.queryParams.entrySet()) {
+		ArrayListValuedHashMap<String, String> result = new ArrayListValuedHashMap<>(size,1);
+		for (Map.Entry<String, Collection<String>> entry : this.queryParams.asMap().entrySet()) {
 			String name = encodeUriComponent(entry.getKey(), charset, Type.QUERY_PARAM);
 			List<String> values = new ArrayList<>(entry.getValue().size());
 			for (String value : entry.getValue()) {
 				values.add(encodeUriComponent(value, charset, Type.QUERY_PARAM));
 			}
-			result.put(name, values);
+			result.putAll(name, values);
 		}
 		return result;
 	}
@@ -203,11 +208,11 @@ final class HierarchicalUriComponents extends UriComponents {
 	 * @throws IllegalArgumentException when the given value is not a valid URI component
 	 */
 	static String encodeUriComponent(String source, Charset charset, Type type) {
-		if (!StringUtils.hasLength(source)) {
+		if (!StringUtils.isNotBlank(source)) {
 			return source;
 		}
-		Assert.notNull(charset, "Charset must not be null");
-		Assert.notNull(type, "Type must not be null");
+		Validate.notNull(charset, "Charset must not be null");
+		Validate.notNull(type, "Type must not be null");
 
 		byte[] bytes = source.getBytes(charset);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(bytes.length);
@@ -251,7 +256,7 @@ final class HierarchicalUriComponents extends UriComponents {
 		verifyUriComponent(this.userInfo, Type.USER_INFO);
 		verifyUriComponent(this.host, getHostType());
 		this.path.verify();
-		for (Map.Entry<String, List<String>> entry : queryParams.entrySet()) {
+		for (Map.Entry<String, Collection<String>> entry : queryParams.asMap().entrySet()) {
 			verifyUriComponent(entry.getKey(), Type.QUERY_PARAM);
 			for (String value : entry.getValue()) {
 				verifyUriComponent(value, Type.QUERY_PARAM);
@@ -296,14 +301,92 @@ final class HierarchicalUriComponents extends UriComponents {
 	/**
 	 * Normalize the path removing sequences like "path/..".
 	 *
-	 * @see StringUtils#cleanPath(String)
 	 */
 	@Override
 	public UriComponents normalize() {
-		String normalizedPath = StringUtils.cleanPath(getPath());
+		String normalizedPath = cleanPath(getPath());
 		return new HierarchicalUriComponents(getScheme(), getFragment(), this.userInfo, this.host, this.port,
 				new FullPathComponent(normalizedPath), this.queryParams, this.encoded, false);
 	}
+
+
+	private static final String FOLDER_SEPARATOR = "/";
+
+	private static final String WINDOWS_FOLDER_SEPARATOR = "\\";
+
+	private static final String TOP_PATH = "..";
+
+	private static final String CURRENT_PATH = ".";
+
+	/**
+	 * Normalize the path by suppressing sequences like "path/.." and
+	 * inner simple dots.
+	 * <p>The result is convenient for path comparison. For other uses,
+	 * notice that Windows separators ("\") are replaced by simple slashes.
+	 *
+	 * @param path the original path
+	 * @return the normalized path
+	 */
+	@SuppressWarnings("squid:S3776")
+	public static String cleanPath(String path) {
+		if (StringUtils.isBlank(path)) {
+			return path;
+		}
+		String pathToUse = StringUtils.replace(path, WINDOWS_FOLDER_SEPARATOR, FOLDER_SEPARATOR);
+
+		// Strip prefix from path to analyze, to not treat it as part of the
+		// first path element. This is necessary to correctly parse paths like
+		// "file:core/../core/io/Resource.class", where the ".." should just
+		// strip the first "core" directory while keeping the "file:" prefix.
+		int prefixIndex = pathToUse.indexOf(':');
+		String prefix = "";
+		if (prefixIndex != -1) {
+			prefix = pathToUse.substring(0, prefixIndex + 1);
+			if (prefix.contains("/")) {
+				prefix = "";
+			} else {
+				pathToUse = pathToUse.substring(prefixIndex + 1);
+			}
+		}
+		if (pathToUse.startsWith(FOLDER_SEPARATOR)) {
+			prefix = prefix + FOLDER_SEPARATOR;
+			pathToUse = pathToUse.substring(1);
+		}
+
+		String[] pathArray = StringUtils.splitPreserveAllTokens(pathToUse, FOLDER_SEPARATOR);
+		List<String> pathElements = new LinkedList<>();
+		int tops = 0;
+
+		for (int i = pathArray.length - 1; i >= 0; i--) {
+			String element = pathArray[i];
+			if (CURRENT_PATH.equals(element)) {
+				// Points to current directory - drop it.
+				continue;
+			}
+
+			if (TOP_PATH.equals(element)) {
+				// Registering top path found.
+				tops++;
+			} else {
+				if (tops > 0) {
+					// Merging path element with element corresponding to top path.
+					tops--;
+				} else {
+					// Normal path element found.
+					pathElements.add(0, element);
+				}
+			}
+		}
+
+		// Remaining top paths need to be retained.
+		for (int i = 0; i < tops; i++) {
+			pathElements.add(0, TOP_PATH);
+		}
+
+		return prefix +String.join(FOLDER_SEPARATOR,pathElements);
+	}
+
+
 
 
 	// Other functionality
@@ -333,7 +416,7 @@ final class HierarchicalUriComponents extends UriComponents {
 			}
 		}
 		String lpath = getPath();
-		if (StringUtils.hasLength(lpath)) {
+		if (StringUtils.isNotBlank(lpath)) {
 			if (uriBuilder.length() != 0 && lpath.charAt(0) != PATH_DELIMITER) {
 				uriBuilder.append(PATH_DELIMITER);
 			}
@@ -361,24 +444,24 @@ final class HierarchicalUriComponents extends UriComponents {
 			return false;
 		}
 		HierarchicalUriComponents other = (HierarchicalUriComponents) obj;
-		return ObjectUtils.nullSafeEquals(getScheme(), other.getScheme()) &&
-				ObjectUtils.nullSafeEquals(getUserInfo(), other.getUserInfo()) &&
-				ObjectUtils.nullSafeEquals(getHost(), other.getHost()) &&
+		return Objects.deepEquals(getScheme(), other.getScheme()) &&
+				Objects.deepEquals(getUserInfo(), other.getUserInfo()) &&
+				Objects.deepEquals(getHost(), other.getHost()) &&
 				getPort() == other.getPort() &&
 				this.path.equals(other.path) &&
 				this.queryParams.equals(other.queryParams) &&
-				ObjectUtils.nullSafeEquals(getFragment(), other.getFragment());
+				Objects.deepEquals(getFragment(), other.getFragment());
 	}
 
 	@Override
 	public int hashCode() {
-		int result = ObjectUtils.nullSafeHashCode(getScheme());
-		result = 31 * result + ObjectUtils.nullSafeHashCode(this.userInfo);
-		result = 31 * result + ObjectUtils.nullSafeHashCode(this.host);
-		result = 31 * result + ObjectUtils.nullSafeHashCode(this.port);
+		int result = Objects.hashCode(getScheme());
+		result = 31 * result + Objects.hashCode(this.userInfo);
+		result = 31 * result + Objects.hashCode(this.host);
+		result = 31 * result + Objects.hashCode(this.port);
 		result = 31 * result + this.path.hashCode();
 		result = 31 * result + this.queryParams.hashCode();
-		result = 31 * result + ObjectUtils.nullSafeHashCode(getFragment());
+		result = 31 * result + Objects.hashCode(getFragment());
 		return result;
 	}
 
@@ -563,7 +646,7 @@ final class HierarchicalUriComponents extends UriComponents {
 		private final List<String> pathSegments;
 
 		public PathSegmentComponent(List<String> pathSegments) {
-			Assert.notNull(pathSegments, "List must not be null");
+			Validate.notNull(pathSegments, "List must not be null");
 			this.pathSegments = Collections.unmodifiableList(new ArrayList<>(pathSegments));
 		}
 
@@ -624,7 +707,7 @@ final class HierarchicalUriComponents extends UriComponents {
 		private final List<PathComponent> pathComponents;
 
 		public PathComponentComposite(List<PathComponent> pathComponents) {
-			Assert.notNull(pathComponents, "PathComponent List must not be null");
+			Validate.notNull(pathComponents, "PathComponent List must not be null");
 			this.pathComponents = pathComponents;
 		}
 

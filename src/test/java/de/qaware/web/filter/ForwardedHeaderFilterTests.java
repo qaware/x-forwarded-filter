@@ -19,6 +19,7 @@ package de.qaware.web.filter;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockFilterChain;
+import org.springframework.mock.web.MockFilterConfig;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
@@ -29,8 +30,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Map;
 
+import static de.qaware.web.filter.ForwardedHeaderConstants.ENABLE_RELATIVE_REDIRECTS_INIT_PARAM;
+import static de.qaware.web.filter.ForwardedHeaderConstants.REMOVE_ONLY_INIT_PARAM;
 import static org.junit.Assert.*;
 
 /**
@@ -46,9 +51,10 @@ public class ForwardedHeaderFilterTests {
 	private static final String X_FORWARDED_HOST = "x-forwarded-host";
 	private static final String X_FORWARDED_PORT = "x-forwarded-port";
 	private static final String X_FORWARDED_PREFIX = "x-forwarded-prefix";
+	public static final String UNIT_TEST_FORWARED_FILTER = "unitTestForwaredFilter";
 
 
-	private final ForwardedHeaderFilter filter = new ForwardedHeaderFilter();
+	private ForwardedHeaderFilter filter;
 
 	private MockHttpServletRequest request;
 
@@ -58,6 +64,8 @@ public class ForwardedHeaderFilterTests {
 	@Before
 	@SuppressWarnings("serial")
 	public void setup() throws Exception {
+		this.filter= new ForwardedHeaderFilter();
+		initFilter(UNIT_TEST_FORWARED_FILTER,null);
 		this.request = new MockHttpServletRequest();
 		this.request.setScheme("http");
 		this.request.setServerName("localhost");
@@ -65,6 +73,15 @@ public class ForwardedHeaderFilterTests {
 		this.filterChain = new MockFilterChain(new HttpServlet() {});
 	}
 
+
+	private ForwardedHeaderFilter initFilter(String filterName, Map<String,String> params) throws ServletException {
+		MockFilterConfig config= new MockFilterConfig(filterName);
+		if(params!=null){
+			params.forEach(config::addInitParameter);
+		}
+		filter.init(config);
+		return filter;
+	}
 
 	@Test
 	public void contextPathEmpty() throws Exception {
@@ -246,7 +263,7 @@ public class ForwardedHeaderFilterTests {
 		this.request.addHeader(X_FORWARDED_PORT, "443");
 		this.request.addHeader("foo", "bar");
 
-		this.filter.setRemoveOnly(true);
+		this.filter =initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(REMOVE_ONLY_INIT_PARAM,"true"));
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
 
@@ -404,7 +421,9 @@ public class ForwardedHeaderFilterTests {
 		this.request.addHeader(X_FORWARDED_PROTO, "https");
 		this.request.addHeader(X_FORWARDED_HOST, "example.com");
 		this.request.addHeader(X_FORWARDED_PORT, "443");
-		this.filter.setRelativeRedirects(true);
+
+		initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(ENABLE_RELATIVE_REDIRECTS_INIT_PARAM,"true"));
+		filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 
 		String location = sendRedirect("/a");
 
@@ -413,7 +432,7 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void sendRedirectWhenRequestOnlyAndNoXForwardedThenUsesRelativeRedirects() throws Exception {
-		this.filter.setRelativeRedirects(true);
+		initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(ENABLE_RELATIVE_REDIRECTS_INIT_PARAM,"true"));
 
 		String location = sendRedirect("/a");
 
@@ -421,13 +440,16 @@ public class ForwardedHeaderFilterTests {
 	}
 
 	private String sendRedirect(final String location) throws ServletException, IOException {
-		MockHttpServletResponse response = doWithFiltersAndGetResponse(this.filter, new OncePerRequestFilter() {
+		Filter triggerRedirect= new OncePerRequestFilter() {
 			@Override
 			protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 					throws ServletException, IOException {
 				response.sendRedirect(location);
 			}
-		});
+		};
+		triggerRedirect.init(new MockFilterConfig("triggerRedirectFilter"));
+
+		MockHttpServletResponse response = doWithFiltersAndGetResponse(this.filter,triggerRedirect) ;
 		return response.getRedirectedUrl();
 	}
 

@@ -16,9 +16,9 @@
 
 package de.qaware.web.util;
 
-import de.qaware.util.ObjectUtils;
 
 import java.nio.charset.Charset;
+import java.util.Objects;
 
 /**
  * Extension of {@link UriComponents} for opaque URIs.
@@ -92,17 +92,17 @@ final class OpaqueUriComponents extends UriComponents {
 		}
 
 		OpaqueUriComponents other = (OpaqueUriComponents) obj;
-		return ObjectUtils.nullSafeEquals(getScheme(), other.getScheme()) &&
-				ObjectUtils.nullSafeEquals(this.ssp, other.ssp) &&
-				ObjectUtils.nullSafeEquals(getFragment(), other.getFragment());
+		return Objects.deepEquals(getScheme(), other.getScheme()) &&
+				Objects.deepEquals(this.ssp, other.ssp) &&
+				Objects.deepEquals(getFragment(), other.getFragment());
 
 	}
 
 	@Override
 	public int hashCode() {
-		int result = ObjectUtils.nullSafeHashCode(getScheme());
-		result = 31 * result + ObjectUtils.nullSafeHashCode(this.ssp);
-		result = 31 * result + ObjectUtils.nullSafeHashCode(getFragment());
+		int result = Objects.hashCode(getScheme());
+		result = 31 * result + Objects.hashCode(this.ssp);
+		result = 31 * result + Objects.hashCode(getFragment());
 		return result;
 	}
 

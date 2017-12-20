@@ -18,13 +18,11 @@ package de.qaware.web.filter;
 
 import de.qaware.web.util.WebUtils;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
 
 
 /**
@@ -58,7 +56,7 @@ import java.io.IOException;
  * @author Rossen Stoyanchev
  * @since 06.12.2003
  */
-public abstract class OncePerRequestFilter extends GenericFilterBean {
+public abstract class OncePerRequestFilter implements Filter {
 
 	/**
 	 * Suffix that gets appended to the filter name for the
@@ -68,6 +66,14 @@ public abstract class OncePerRequestFilter extends GenericFilterBean {
 	 */
 	public static final String ALREADY_FILTERED_SUFFIX = ".FILTERED";
 
+	private String filterName;
+	private String alreadyFilteredAttributeName;
+
+	@Override
+	public void init(FilterConfig filterConfig) throws ServletException {
+		filterName = filterConfig.getFilterName();
+		alreadyFilteredAttributeName = Optional.ofNullable(filterName).orElse(getClass().getName()) + ALREADY_FILTERED_SUFFIX;
+	}
 
 	/**
 	 * This {@code doFilter} implementation stores a request attribute for
@@ -88,8 +94,8 @@ public abstract class OncePerRequestFilter extends GenericFilterBean {
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-		String alreadyFilteredAttributeName = getAlreadyFilteredAttributeName();
-		boolean hasAlreadyFilteredAttribute = request.getAttribute(alreadyFilteredAttributeName) != null;
+		String alreadFilteredAttribute = getAlreadyFilteredAttributeName();
+		boolean hasAlreadyFilteredAttribute = request.getAttribute(alreadFilteredAttribute) != null;
 
 		if (hasAlreadyFilteredAttribute || skipDispatch(httpRequest) || shouldNotFilter(httpRequest)) {
 
@@ -97,12 +103,12 @@ public abstract class OncePerRequestFilter extends GenericFilterBean {
 			filterChain.doFilter(request, response);
 		} else {
 			// Do invoke this filter...
-			request.setAttribute(alreadyFilteredAttributeName, Boolean.TRUE);
+			request.setAttribute(alreadFilteredAttribute, Boolean.TRUE);
 			try {
 				doFilterInternal(httpRequest, httpResponse, filterChain);
 			} finally {
 				// Remove the "already filtered" request attribute for this request.
-				request.removeAttribute(alreadyFilteredAttributeName);
+				request.removeAttribute(alreadFilteredAttribute);
 			}
 		}
 	}
@@ -124,11 +130,11 @@ public abstract class OncePerRequestFilter extends GenericFilterBean {
 	 * @see #ALREADY_FILTERED_SUFFIX
 	 */
 	protected String getAlreadyFilteredAttributeName() {
-		String name = getFilterName();
-		if (name == null) {
-			name = getClass().getName();
-		}
-		return name + ALREADY_FILTERED_SUFFIX;
+		return alreadyFilteredAttributeName;
+	}
+
+	protected String getFilterName() {
+		return filterName;
 	}
 
 	/**
@@ -168,5 +174,16 @@ public abstract class OncePerRequestFilter extends GenericFilterBean {
 	protected abstract void doFilterInternal(
 			HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException;
+
+	/**
+	 * Subclasses may override this to perform custom filter shutdown.
+	 * <p>Note: This method will be called from standard filter destruction
+	 * as well as filter bean destruction in a Spring application context.
+	 * <p>This default implementation is empty.
+	 */
+	@Override
+	public void destroy() {
+		// No action
+	}
 
 }

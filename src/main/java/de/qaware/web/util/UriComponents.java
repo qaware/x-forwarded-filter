@@ -16,8 +16,6 @@
 
 package de.qaware.web.util;
 
-import de.qaware.util.StringUtils;
-
 import java.io.Serializable;
 import java.net.URI;
 import java.nio.charset.Charset;

@@ -16,13 +16,13 @@
 
 package de.qaware.web.util;
 
-import de.qaware.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.nio.charset.Charset;
 
 /**
  * Helper class for URL path matching. Provides support for URL paths in
@@ -97,7 +97,7 @@ public class UrlPathHelper {
 		String path = getRemainingPath(requestUri, contextPath, true);
 		if (path != null) {
 			// Normal case: URI contains context path.
-			return (StringUtils.hasText(path) ? path : "/");
+			return (StringUtils.isNotEmpty(path) ? path : "/");
 		} else {
 			return requestUri;
 		}
@@ -235,8 +235,8 @@ public class UrlPathHelper {
 	private String decodeInternal(HttpServletRequest request, String source) {
 		String enc = determineEncoding(request);
 		try {
-			return StringUtils.uriDecode(source, Charset.forName(enc));
-		} catch (IllegalArgumentException ex) {
+			return URLDecoder.decode(source, enc);
+		} catch (IllegalArgumentException|UnsupportedEncodingException ex) {
 			if (LOGGER.isWarnEnabled()) {
 				LOGGER.warn("Could not decode request string [" + source + "] with encoding '" + enc +
 						"': falling back to platform default encoding; exception message: " + ex.getMessage());

@@ -16,6 +16,10 @@
 
 package de.qaware.util;
 
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.collections4.map.CaseInsensitiveMap;
+import org.apache.commons.lang3.Validate;
+
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -164,14 +168,14 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	 * @throws IllegalArgumentException if any of the parameters contains illegal characters
 	 */
 	public MimeType(String type, String subtype, /*@Nullable*/ Map<String, String> parameters) {
-		Assert.hasLength(type, "'type' must not be empty");
-		Assert.hasLength(subtype, "'subtype' must not be empty");
+		Validate.notEmpty(type, "'type' must not be empty");
+		Validate.notEmpty(subtype, "'subtype' must not be empty");
 		checkToken(type);
 		checkToken(subtype);
 		this.type = type.toLowerCase(Locale.ENGLISH);
 		this.subtype = subtype.toLowerCase(Locale.ENGLISH);
-		if (!CollectionUtils.isEmpty(parameters)) {
-			Map<String, String> map = new LinkedCaseInsensitiveMap<>(parameters.size(), Locale.ENGLISH);
+		if (MapUtils.isNotEmpty(parameters)) {
+			Map<String, String> map = new CaseInsensitiveMap<>(parameters.size());
 			parameters.forEach((attribute, value) -> {
 				checkParameters(attribute, value);
 				map.put(attribute, value);
@@ -199,8 +203,8 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	}
 
 	protected void checkParameters(String attribute, String value) {
-		Assert.hasLength(attribute, "'attribute' must not be empty");
-		Assert.hasLength(value, "'value' must not be empty");
+		Validate.notEmpty(attribute, "'attribute' must not be empty");
+		Validate.notEmpty(value, "'value' must not be empty");
 		checkToken(attribute);
 		if (PARAM_CHARSET.equals(attribute)) {
 			String unquotedValue = unquote(value);
@@ -425,10 +429,10 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 			}
 
 			if (PARAM_CHARSET.equals(key)) {
-				if (!ObjectUtils.nullSafeEquals(getCharset(), other.getCharset())) {
+				if (!Objects.deepEquals(getCharset(), other.getCharset())) {
 					return false;
 				}
-			} else if (!ObjectUtils.nullSafeEquals(kv.getValue(), other.parameters.get(key))) {
+			} else if (!Objects.deepEquals(kv.getValue(), other.parameters.get(key))) {
 				return false;
 			}
 		}

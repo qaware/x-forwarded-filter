@@ -17,10 +17,13 @@
 package de.qaware.util;
 
 import de.qaware.util.MimeType.SpecificityComparator;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * Miscellaneous {@link MimeType} utility methods.
@@ -171,7 +174,7 @@ public class MimeTypeUtils {
 	 * @throws InvalidMimeTypeException if the string cannot be parsed
 	 */
 	public static MimeType parseMimeType(String mimeType) {
-		if (!StringUtils.hasLength(mimeType)) {
+		if (StringUtils.isEmpty(mimeType)) {
 			throw new InvalidMimeTypeException(mimeType, "'mimeType' must not be empty");
 		}
 
@@ -258,15 +261,22 @@ public class MimeTypeUtils {
 	 * @throws IllegalArgumentException if the string cannot be parsed
 	 */
 	public static List<MimeType> parseMimeTypes(String mimeTypes) {
-		if (!StringUtils.hasLength(mimeTypes)) {
+		if (StringUtils.isEmpty(mimeTypes)) {
 			return Collections.emptyList();
 		}
-		String[] tokens = StringUtils.tokenizeToStringArray(mimeTypes, ",");
-		List<MimeType> result = new ArrayList<>(tokens.length);
-		for (String token : tokens) {
-			result.add(parseMimeType(token));
+		return tokenize(mimeTypes,",",MimeTypeUtils::parseMimeType);
+	}
+
+
+	public static <T> List<T> tokenize(String input, String delim, Function<String,T> transformFunction){
+		ArrayList<T> list = new ArrayList<>();
+		for(String token : org.apache.commons.lang3.StringUtils.split(input,delim)){
+			token= org.apache.commons.lang3.StringUtils.trimToEmpty(token);
+			if(!token.isEmpty()){
+				list.add(transformFunction.apply(token));
+			}
 		}
-		return result;
+		return list;
 	}
 
 	/**
@@ -315,7 +325,7 @@ public class MimeTypeUtils {
 	 * and Content, section 5.3.2</a>
 	 */
 	public static void sortBySpecificity(List<MimeType> mimeTypes) {
-		Assert.notNull(mimeTypes, "'mimeTypes' must not be null");
+		Validate.notNull(mimeTypes, "'mimeTypes' must not be null");
 		if (mimeTypes.size() > 1) {
 			mimeTypes.sort(SPECIFICITY_COMPARATOR);
 		}

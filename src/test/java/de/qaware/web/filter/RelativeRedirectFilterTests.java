@@ -44,7 +44,7 @@ public class RelativeRedirectFilterTests {
 	private HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
 
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = NullPointerException.class)
 	public void sendRedirectHttpStatusWhenNullThenIllegalArgumentException() {
 		this.filter.setRedirectStatus(null);
 	}

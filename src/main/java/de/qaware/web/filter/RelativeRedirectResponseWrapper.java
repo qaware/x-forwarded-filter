@@ -17,7 +17,7 @@ package de.qaware.web.filter;
 
 import de.qaware.http.HttpHeaders;
 import de.qaware.http.HttpStatus;
-import de.qaware.util.Assert;
+import org.apache.commons.lang3.Validate;
 
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
@@ -33,19 +33,19 @@ import java.io.IOException;
  */
 class RelativeRedirectResponseWrapper extends HttpServletResponseWrapper {
 
-	private final HttpStatus redirectStatus;
+	private final int redirectStatus;
 
 
 	private RelativeRedirectResponseWrapper(HttpServletResponse response, HttpStatus redirectStatus) {
 		super(response);
-		Assert.notNull(redirectStatus, "'redirectStatus' is required");
-		this.redirectStatus = redirectStatus;
+		Validate.notNull(redirectStatus, "'redirectStatus' is required");
+		this.redirectStatus = redirectStatus.value();
 	}
 
 
 	@Override
 	public void sendRedirect(String location) throws IOException {
-		setStatus(this.redirectStatus.value());
+		setStatus(this.redirectStatus);
 		setHeader(HttpHeaders.LOCATION, location);
 	}
 

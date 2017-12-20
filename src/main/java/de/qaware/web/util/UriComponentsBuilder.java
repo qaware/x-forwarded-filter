@@ -17,10 +17,15 @@
 package de.qaware.web.util;
 
 import de.qaware.http.HttpHeaders;
-import de.qaware.http.HttpRequest;
-import de.qaware.util.*;
+import de.qaware.util.HttpServletRequestUtil;
 import de.qaware.web.util.HierarchicalUriComponents.PathComponent;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
+import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -99,7 +104,7 @@ public class UriComponentsBuilder {
 
 	private CompositePathComponentBuilder pathBuilder;
 
-	private final MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+	private final MultiValuedMap<String, String> queryParams = new ArrayListValuedHashMap<>();
 
 	/*@Nullable*/
 	private String fragment;
@@ -163,7 +168,7 @@ public class UriComponentsBuilder {
 	 */
 	@SuppressWarnings("squid:S3776")//spring original
 	public static UriComponentsBuilder fromUriString(String uri) {
-		Assert.notNull(uri, "URI must not be null");
+		Validate.notNull(uri, "URI must not be null");
 		Matcher matcher = URI_PATTERN.matcher(uri);
 		if (matcher.matches()) {
 			UriComponentsBuilder builder = new UriComponentsBuilder();
@@ -175,7 +180,7 @@ public class UriComponentsBuilder {
 			String query = matcher.group(11);
 			String fragment = matcher.group(13);
 			boolean opaque = false;
-			if (StringUtils.hasLength(scheme)) {
+			if (StringUtils.isNotBlank(scheme)) {
 				String rest = uri.substring(scheme.length());
 				if (!rest.startsWith(":/")) {
 					opaque = true;
@@ -184,20 +189,20 @@ public class UriComponentsBuilder {
 			builder.scheme(scheme);
 			if (opaque) {
 				String ssp = uri.substring(scheme.length()).substring(1);
-				if (StringUtils.hasLength(fragment)) {
+				if (StringUtils.isNotBlank(fragment)) {
 					ssp = ssp.substring(0, ssp.length() - (fragment.length() + 1));
 				}
 				builder.schemeSpecificPart(ssp);
 			} else {
 				builder.userInfo(userInfo);
 				builder.host(host);
-				if (StringUtils.hasLength(port)) {
+				if (StringUtils.isNotBlank(port)) {
 					builder.port(port);
 				}
 				builder.path(path);
 				builder.query(query);
 			}
-			if (StringUtils.hasText(fragment)) {
+			if (StringUtils.isNotBlank(fragment)) {
 				builder.fragment(fragment);
 			}
 			return builder;
@@ -217,8 +222,10 @@ public class UriComponentsBuilder {
 	 * @return the URI components of the URI
 	 * @since 4.1.5
 	 */
-	public static UriComponentsBuilder fromHttpRequest(HttpRequest request) {
-		return fromUri(request.getURI()).adaptFromForwardedHeaders(request.getHeaders());
+	public static UriComponentsBuilder fromHttpRequest(HttpServletRequest request) {
+		URI uri =HttpServletRequestUtil.getURI(request);
+		HttpHeaders headers = HttpServletRequestUtil.getHeaders(request);
+		return fromUri(uri).adaptFromForwardedHeaders(headers);
 	}
 
 
@@ -273,7 +280,7 @@ public class UriComponentsBuilder {
 	 * @return this UriComponentsBuilder
 	 */
 	public UriComponentsBuilder uri(URI uri) {
-		Assert.notNull(uri, "URI must not be null");
+		Validate.notNull(uri, "URI must not be null");
 		this.scheme = uri.getScheme();
 		if (uri.isOpaque()) {
 			this.ssp = uri.getRawSchemeSpecificPart();
@@ -288,11 +295,11 @@ public class UriComponentsBuilder {
 			if (uri.getPort() != -1) {
 				this.port = String.valueOf(uri.getPort());
 			}
-			if (StringUtils.hasLength(uri.getRawPath())) {
+			if (StringUtils.isNotBlank(uri.getRawPath())) {
 				this.pathBuilder = new CompositePathComponentBuilder();
 				this.pathBuilder.addPath(uri.getRawPath());
 			}
-			if (StringUtils.hasLength(uri.getRawQuery())) {
+			if (StringUtils.isNotBlank(uri.getRawQuery())) {
 				this.queryParams.clear();
 				query(uri.getRawQuery());
 			}
@@ -364,7 +371,7 @@ public class UriComponentsBuilder {
 	 * @return this UriComponentsBuilder
 	 */
 	public UriComponentsBuilder port(int port) {
-		Assert.isTrue(port >= -1, "Port must be >= -1");
+		Validate.isTrue(port >= -1, "Port must be >= -1");
 		this.port = String.valueOf(port);
 		resetSchemeSpecificPart();
 		return this;
@@ -437,7 +444,7 @@ public class UriComponentsBuilder {
 				String eq = matcher.group(2);
 				String value = matcher.group(3);
 				if (value == null) {
-					value = StringUtils.hasLength(eq) ? "" : null;
+					value = StringUtils.isNotBlank(eq) ? "" : null;
 				}
 				queryParam(name, value);
 			}
@@ -459,14 +466,14 @@ public class UriComponentsBuilder {
 	 * @return this UriComponentsBuilder
 	 */
 	public UriComponentsBuilder queryParam(String name, Object... values) {
-		Assert.notNull(name, "Name must not be null");
-		if (!ObjectUtils.isEmpty(values)) {
+		Validate.notNull(name, "Name must not be null");
+		if (!ArrayUtils.isNotEmpty(values)) {
 			for (Object value : values) {
 				String valueAsString = (value != null ? value.toString() : null);
-				this.queryParams.add(name, valueAsString);
+				this.queryParams.put(name, valueAsString);
 			}
 		} else {
-			this.queryParams.add(name, null);
+			this.queryParams.put(name, null);
 		}
 		resetSchemeSpecificPart();
 		return this;
@@ -481,7 +488,7 @@ public class UriComponentsBuilder {
 	 */
 	public UriComponentsBuilder fragment(/*@Nullable*/ String fragment) {
 		if (fragment != null) {
-			Assert.hasLength(fragment, "Fragment must not be empty");
+			Validate.notEmpty(fragment, "Fragment must not be empty");
 			this.fragment = fragment;
 		} else {
 			this.fragment = null;
@@ -503,8 +510,8 @@ public class UriComponentsBuilder {
 //spring original
 	UriComponentsBuilder adaptFromForwardedHeaders(HttpHeaders headers) {
 		String forwardedHeader = headers.getFirst("Forwarded");
-		if (StringUtils.hasText(forwardedHeader)) {
-			String forwardedToUse = StringUtils.tokenizeToStringArray(forwardedHeader, ",")[0];
+		if (StringUtils.isNotBlank(forwardedHeader)) {
+			String forwardedToUse = getFirstValueToken(forwardedHeader,",");
 			Matcher matcher = FORWARDED_HOST_PATTERN.matcher(forwardedToUse);
 			if (matcher.find()) {
 				adaptForwardedHost(matcher.group(1).trim());
@@ -515,18 +522,18 @@ public class UriComponentsBuilder {
 			}
 		} else {
 			String hostHeader = headers.getFirst("X-Forwarded-Host");
-			if (StringUtils.hasText(hostHeader)) {
-				adaptForwardedHost(StringUtils.tokenizeToStringArray(hostHeader, ",")[0]);
+			if (StringUtils.isNotBlank(hostHeader)) {
+				adaptForwardedHost(getFirstValueToken(hostHeader,","));
 			}
 
 			String portHeader = headers.getFirst("X-Forwarded-Port");
-			if (StringUtils.hasText(portHeader)) {
-				port(Integer.parseInt(StringUtils.tokenizeToStringArray(portHeader, ",")[0]));
+			if (StringUtils.isNotBlank(portHeader)) {
+				port(Integer.parseInt(getFirstValueToken(portHeader,",")));
 			}
 
 			String protocolHeader = headers.getFirst("X-Forwarded-Proto");
-			if (StringUtils.hasText(protocolHeader)) {
-				scheme(StringUtils.tokenizeToStringArray(protocolHeader, ",")[0]);
+			if (StringUtils.isNotBlank(protocolHeader)) {
+				scheme(getFirstValueToken(protocolHeader,","));
 			}
 		}
 
@@ -536,6 +543,12 @@ public class UriComponentsBuilder {
 		}
 
 		return this;
+	}
+
+
+	private static String getFirstValueToken(String value, String delim){
+		int pos = value.indexOf(delim);
+		return (pos==-1)?value:value.substring(0,pos);
 	}
 
 	private void adaptForwardedHost(String hostToUse) {
@@ -587,7 +600,7 @@ public class UriComponentsBuilder {
 		private final LinkedList<PathComponentBuilder> builders = new LinkedList<>();
 
 		public void addPath(String path) {
-			if (StringUtils.hasText(path)) {
+			if (StringUtils.isNotBlank(path)) {
 				PathSegmentComponentBuilder psBuilder = getLastBuilder(PathSegmentComponentBuilder.class);
 				FullPathComponentBuilder fpBuilder = getLastBuilder(FullPathComponentBuilder.class);
 

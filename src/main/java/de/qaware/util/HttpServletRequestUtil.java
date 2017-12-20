@@ -1,27 +1,10 @@
-/*
- * Copyright 2002-2017 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package de.qaware.http.server;
+package de.qaware.util;
 
 import de.qaware.http.HttpHeaders;
 import de.qaware.http.InvalidMediaTypeException;
 import de.qaware.http.MediaType;
-import de.qaware.util.Assert;
-import de.qaware.util.LinkedCaseInsensitiveMap;
-import de.qaware.util.StringUtils;
+import org.apache.commons.collections4.map.CaseInsensitiveMap;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
@@ -30,39 +13,36 @@ import java.nio.charset.Charset;
 import java.util.Enumeration;
 import java.util.Map;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 /**
- * {@link ServerHttpRequest} implementation that is based on a {@link HttpServletRequest}.
  *
- * @author Arjen Poutsma
- * @author Rossen Stoyanchev
- * @since 3.0
  */
-public class ServletServerHttpRequest implements ServerHttpRequest {
+public class HttpServletRequestUtil {
 
-
-	private final HttpServletRequest servletRequest;
-
-	/*@Nullable*/
-	private HttpHeaders headers;
-
-
-	/**
-	 * Construct a new instance of the ServletServerHttpRequest based on the given {@link HttpServletRequest}.
-	 *
-	 * @param servletRequest the servlet request
-	 */
-	public ServletServerHttpRequest(HttpServletRequest servletRequest) {
-		Assert.notNull(servletRequest, "HttpServletRequest must not be null");
-		this.servletRequest = servletRequest;
+	private HttpServletRequestUtil(){
+		//utility class
 	}
 
-
-	@Override
-	public URI getURI() {
+	/**
+	 * Reconstructs full url: e.g. http://server:port/foo/bar;xxx=yyy?param1=value1&param2=value2
+	 * <pre>
+	 * request.getRequestURL() = ttp://server:port/foo/bar;xxx=yyy
+	 * request.getQueryString() = param1=value1&param2=value2
+	 * request.getRequestURL() + "?" + request.getQueryString();
+	 * </pre>
+	 *
+	 * Difference of this method to {@link HttpServletRequest#getRequestURI()} <br/>
+	 * {@link HttpServletRequest#getRequestURI()} returns: /foo/bar;xxx=yyy?param1=value1&param2=value2
+	 *
+	 * @param request {@see HttpServletRequest}
+	 * @return request.getRequestURL() + "?" + request.getQueryString();
+	 */
+	public static URI getURI(HttpServletRequest request) {
 		try {
-			StringBuffer url = this.servletRequest.getRequestURL();
-			String query = this.servletRequest.getQueryString();
-			if (StringUtils.hasText(query)) {
+			StringBuffer url = request.getRequestURL();
+			String query = request.getQueryString();
+			if (!isBlank(query)) {
 				url.append('?').append(query);
 			}
 			return new URI(url.toString());
@@ -71,15 +51,8 @@ public class ServletServerHttpRequest implements ServerHttpRequest {
 		}
 	}
 
-	@Override
-	public HttpHeaders getHeaders() {
-		if (this.headers == null) {
-			this.headers = getHeadersFromServletRequest(servletRequest);
-		}
-		return this.headers;
-	}
 
-	private static HttpHeaders getHeadersFromServletRequest(HttpServletRequest servletRequest) {
+	public static HttpHeaders getHeaders(HttpServletRequest servletRequest) {
 		HttpHeaders headers = new HttpHeaders();
 		setHeaderNames(headers, servletRequest);
 		setContentType(headers, servletRequest);
@@ -113,7 +86,7 @@ public class ServletServerHttpRequest implements ServerHttpRequest {
 			MediaType contentType = headers.getContentType();
 			if (contentType == null) {
 				String requestContentType = servletRequest.getContentType();
-				if (StringUtils.hasLength(requestContentType)) {
+				if (!StringUtils.isBlank(requestContentType)) {
 					contentType = MediaType.parseMediaType(requestContentType);
 
 					headers.setContentType(contentType);
@@ -121,9 +94,9 @@ public class ServletServerHttpRequest implements ServerHttpRequest {
 			}
 			if (contentType != null && contentType.getCharset() == null) {
 				String requestEncoding = servletRequest.getCharacterEncoding();
-				if (StringUtils.hasLength(requestEncoding)) {
+				if (!StringUtils.isBlank(requestEncoding)) {
 					Charset charSet = Charset.forName(requestEncoding);
-					Map<String, String> params = new LinkedCaseInsensitiveMap<>();
+					Map<String, String> params = new CaseInsensitiveMap<>();
 					params.putAll(contentType.getParameters());
 					params.put("charset", charSet.toString());
 					MediaType newContentType = new MediaType(contentType.getType(), contentType.getSubtype(), params);
@@ -135,8 +108,4 @@ public class ServletServerHttpRequest implements ServerHttpRequest {
 			// Ignore: simply not exposing an invalid content type in HttpHeaders...
 		}
 	}
-	public String getMethodValue() {
-		return this.servletRequest.getMethod();
-	}
-
 }

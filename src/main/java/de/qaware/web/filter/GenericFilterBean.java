@@ -16,7 +16,7 @@
 
 package de.qaware.web.filter;
 
-import de.qaware.util.Assert;
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +78,7 @@ public abstract class GenericFilterBean implements Filter {
 	 */
 	@Override
 	public final void init(FilterConfig filterConfig) throws ServletException {
-		Assert.notNull(filterConfig, "FilterConfig must not be null");
+		Validate.notNull(filterConfig, "FilterConfig must not be null");
 		if (logger.isDebugEnabled()) {
 			logger.debug("Initializing filter '" + filterConfig.getFilterName() + "'");
 		}
