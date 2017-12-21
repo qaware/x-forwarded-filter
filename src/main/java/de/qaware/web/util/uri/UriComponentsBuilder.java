@@ -666,7 +666,7 @@ public class UriComponentsBuilder implements UriBuilder, Cloneable {
 	@Override
 	public UriComponentsBuilder queryParams(/*@Nullable*/ Map<String, List<String>> params) {
 		if (params != null) {
-			params.forEach((k,v)->this.queryParams.putAll(k,v));
+			params.forEach((k, v) -> this.queryParams.putAll(k, v));
 		}
 		return this;
 	}

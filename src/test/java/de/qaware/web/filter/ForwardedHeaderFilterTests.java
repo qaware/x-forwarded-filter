@@ -64,19 +64,20 @@ public class ForwardedHeaderFilterTests {
 	@Before
 	@SuppressWarnings("serial")
 	public void setup() throws Exception {
-		this.filter= new ForwardedHeaderFilter();
-		initFilter(UNIT_TEST_FORWARED_FILTER,null);
+		this.filter = new ForwardedHeaderFilter();
+		initFilter(UNIT_TEST_FORWARED_FILTER, null);
 		this.request = new MockHttpServletRequest();
 		this.request.setScheme("http");
 		this.request.setServerName("localhost");
 		this.request.setServerPort(80);
-		this.filterChain = new MockFilterChain(new HttpServlet() {});
+		this.filterChain = new MockFilterChain(new HttpServlet() {
+		});
 	}
 
 
-	private ForwardedHeaderFilter initFilter(String filterName, Map<String,String> params) throws ServletException {
-		MockFilterConfig config= new MockFilterConfig(filterName);
-		if(params!=null){
+	private ForwardedHeaderFilter initFilter(String filterName, Map<String, String> params) throws ServletException {
+		MockFilterConfig config = new MockFilterConfig(filterName);
+		if (params != null) {
 			params.forEach(config::addInitParameter);
 		}
 		filter.init(config);
@@ -263,7 +264,7 @@ public class ForwardedHeaderFilterTests {
 		this.request.addHeader(X_FORWARDED_PORT, "443");
 		this.request.addHeader("foo", "bar");
 
-		this.filter =initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(REMOVE_ONLY_INIT_PARAM,"true"));
+		this.filter = initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(REMOVE_ONLY_INIT_PARAM, "true"));
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
 
@@ -296,9 +297,9 @@ public class ForwardedHeaderFilterTests {
 		HttpServletRequest actual = filterAndGetWrappedRequest();
 		assertEquals("http://localhost/prefix/mvc-showcase", actual.getRequestURL().toString());
 	}
-	
+
 	@Test
-	public void requestURLNewStringBuffer() throws Exception { 
+	public void requestURLNewStringBuffer() throws Exception {
 		this.request.addHeader(X_FORWARDED_PREFIX, "/prefix/");
 		this.request.setRequestURI("/mvc-showcase");
 
@@ -422,7 +423,7 @@ public class ForwardedHeaderFilterTests {
 		this.request.addHeader(X_FORWARDED_HOST, "example.com");
 		this.request.addHeader(X_FORWARDED_PORT, "443");
 
-		initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(ENABLE_RELATIVE_REDIRECTS_INIT_PARAM,"true"));
+		initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(ENABLE_RELATIVE_REDIRECTS_INIT_PARAM, "true"));
 		filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 
 		String location = sendRedirect("/a");
@@ -432,7 +433,7 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void sendRedirectWhenRequestOnlyAndNoXForwardedThenUsesRelativeRedirects() throws Exception {
-		initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(ENABLE_RELATIVE_REDIRECTS_INIT_PARAM,"true"));
+		initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(ENABLE_RELATIVE_REDIRECTS_INIT_PARAM, "true"));
 
 		String location = sendRedirect("/a");
 
@@ -440,7 +441,7 @@ public class ForwardedHeaderFilterTests {
 	}
 
 	private String sendRedirect(final String location) throws ServletException, IOException {
-		Filter triggerRedirect= new OncePerRequestFilter() {
+		Filter triggerRedirect = new OncePerRequestFilter() {
 			@Override
 			protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 					throws ServletException, IOException {
@@ -449,14 +450,15 @@ public class ForwardedHeaderFilterTests {
 		};
 		triggerRedirect.init(new MockFilterConfig("triggerRedirectFilter"));
 
-		MockHttpServletResponse response = doWithFiltersAndGetResponse(this.filter,triggerRedirect) ;
+		MockHttpServletResponse response = doWithFiltersAndGetResponse(this.filter, triggerRedirect);
 		return response.getRedirectedUrl();
 	}
 
 	@SuppressWarnings("serial")
 	private MockHttpServletResponse doWithFiltersAndGetResponse(Filter... filters) throws ServletException, IOException {
 		MockHttpServletResponse response = new MockHttpServletResponse();
-		FilterChain filterChain = new MockFilterChain(new HttpServlet() {}, filters);
+		FilterChain filterChain = new MockFilterChain(new HttpServlet() {
+		}, filters);
 		filterChain.doFilter(request, response);
 		return response;
 	}

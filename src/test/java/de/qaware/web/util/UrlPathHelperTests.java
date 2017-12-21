@@ -64,7 +64,6 @@ public class UrlPathHelperTests {
 	}
 
 
-
 	@Test
 	public void getRequestUri() {
 		request.setRequestURI("/welcome.html");
@@ -74,8 +73,8 @@ public class UrlPathHelperTests {
 		assertEquals("Incorrect path returned", "/foo bar", helper.getRequestUri(request));
 
 		request.setRequestURI("/foo+bar");
-		String expected =new org.springframework.web.util.UrlPathHelper().getRequestUri(request);
-		String myVersion= helper.getRequestUri(request);
+		String expected = new org.springframework.web.util.UrlPathHelper().getRequestUri(request);
+		String myVersion = helper.getRequestUri(request);
 		System.out.println(expected);
 		System.out.println(myVersion);
 		assertEquals("Incorrect path returned", "/foo+bar", helper.getRequestUri(request));

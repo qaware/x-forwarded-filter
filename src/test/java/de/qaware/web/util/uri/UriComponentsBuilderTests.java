@@ -209,7 +209,6 @@ public class UriComponentsBuilderTests {
 	}
 
 
-
 	@Test(expected = IllegalArgumentException.class) // SPR-10539
 	public void fromHttpUrlStringInvalidIPv6Host() throws URISyntaxException {
 		UriComponentsBuilder.fromHttpUrl("http://[1abc:2abc:3abc::5ABC:6abc:8080/resource").build().encode();
@@ -238,7 +237,6 @@ public class UriComponentsBuilderTests {
 		assertTrue(result.getQueryParams().containsKey("foo"));
 		assertEquals("bar@baz", result.getQueryParamsMap().get("foo").get(0));
 	}
-
 
 
 	@Test

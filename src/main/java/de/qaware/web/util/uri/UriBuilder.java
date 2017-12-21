@@ -16,7 +16,6 @@
 package de.qaware.web.util.uri;
 
 
-
 import org.apache.commons.collections4.MultiValuedMap;
 
 import java.net.URI;

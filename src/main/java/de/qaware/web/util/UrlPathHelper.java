@@ -258,12 +258,13 @@ public class UrlPathHelper {
 	 * <li>A sequence "{@code %<i>xy</i>}" is interpreted as a hexadecimal representation of the character.</li>
 	 * <li>ie>Does NOT! convert  '+' into ' ' (space)</li>
 	 * </ul>
-	 * @param source the encoded String
+	 *
+	 * @param source  the encoded String
 	 * @param charset the character set
 	 * @return the decoded value
 	 * @throws IllegalArgumentException when the given source contains invalid encoded sequences
-	 * @since 5.0
 	 * @see java.net.URLDecoder#decode(String, String)
+	 * @since 5.0
 	 */
 	public static String uriDecode(String source, Charset charset) {
 		int length = source.length();
@@ -288,17 +289,16 @@ public class UrlPathHelper {
 					bos.write((char) ((u << 4) + l));
 					i += 2;
 					changed = true;
-				}
-				else {
+				} else {
 					throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(i) + "\"");
 				}
-			}
-			else {
+			} else {
 				bos.write(ch);
 			}
 		}
 		return (changed ? new String(bos.toByteArray(), charset) : source);
 	}
+
 	/**
 	 * Determine the encoding for the given request.
 	 * Can be overridden in subclasses.

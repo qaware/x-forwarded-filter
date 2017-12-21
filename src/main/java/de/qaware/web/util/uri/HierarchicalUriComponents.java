@@ -88,10 +88,10 @@ final class HierarchicalUriComponents extends UriComponents {
 		this.host = host;
 		this.port = port;
 		this.path = (path != null ? path : NULL_PATH_COMPONENT);
-		if(queryParams == null){
-			this.queryParams= MultiMapUtils.EMPTY_MULTI_VALUED_MAP;
-		}else{
-			this.queryParams=MultiMapUtils.unmodifiableMultiValuedMap(new ArrayListValuedHashMap<>(queryParams));
+		if (queryParams == null) {
+			this.queryParams = MultiMapUtils.EMPTY_MULTI_VALUED_MAP;
+		} else {
+			this.queryParams = MultiMapUtils.unmodifiableMultiValuedMap(new ArrayListValuedHashMap<>(queryParams));
 		}
 		this.encoded = encoded;
 
