@@ -17,12 +17,14 @@
 package de.qaware.web.util;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.UnsupportedEncodingException;
+import java.io.ByteArrayOutputStream;
 import java.net.URLDecoder;
+import java.nio.charset.Charset;
 
 /**
  * Helper class for URL path matching. Provides support for URL paths in
@@ -204,7 +206,7 @@ public class UrlPathHelper {
 	/**
 	 * Decode the supplied URI string and strips any extraneous portion after a ';'.
 	 */
-	private String decodeAndCleanUriString(HttpServletRequest request, String uri) {
+	private String decodeAndCleanUriString(HttpServletRequest request, final String uri) {
 		String cleanedUri = removeSemicolonContent(uri);
 		cleanedUri = decodeRequestString(request, cleanedUri);
 		cleanedUri = getSanitizedPath(cleanedUri);
@@ -235,8 +237,10 @@ public class UrlPathHelper {
 	private String decodeInternal(HttpServletRequest request, String source) {
 		String enc = determineEncoding(request);
 		try {
-			return URLDecoder.decode(source, enc);
-		} catch (IllegalArgumentException | UnsupportedEncodingException ex) {
+			//this method behaves differently then javas URLDecoder class
+			// it does NOT transform '+' into '  '
+			return uriDecode(source, Charset.forName(enc));
+		} catch (IllegalArgumentException ex) {
 			if (LOGGER.isWarnEnabled()) {
 				LOGGER.warn("Could not decode request string [" + source + "] with encoding '" + enc +
 						"': falling back to platform default encoding; exception message: " + ex.getMessage());
@@ -245,7 +249,56 @@ public class UrlPathHelper {
 		}
 	}
 
+	/**
+	 * Decode the given encoded URI component value. Based on the following rules:
+	 * <ul>
+	 * <li>Alphanumeric characters {@code "a"} through {@code "z"}, {@code "A"} through {@code "Z"},
+	 * and {@code "0"} through {@code "9"} stay the same.</li>
+	 * <li>Special characters {@code "-"}, {@code "_"}, {@code "."}, and {@code "*"} stay the same.</li>
+	 * <li>A sequence "{@code %<i>xy</i>}" is interpreted as a hexadecimal representation of the character.</li>
+	 * <li>ie>Does NOT! convert  '+' into ' ' (space)</li>
+	 * </ul>
+	 * @param source the encoded String
+	 * @param charset the character set
+	 * @return the decoded value
+	 * @throws IllegalArgumentException when the given source contains invalid encoded sequences
+	 * @since 5.0
+	 * @see java.net.URLDecoder#decode(String, String)
+	 */
+	public static String uriDecode(String source, Charset charset) {
+		int length = source.length();
+		if (length == 0) {
+			return source;
+		}
+		Validate.notNull(charset, "Charset must not be null");
 
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(length);
+		boolean changed = false;
+		for (int i = 0; i < length; i++) {
+			int ch = source.charAt(i);
+			if (ch == '%') {
+				if (i + 2 < length) {
+					char hex1 = source.charAt(i + 1);
+					char hex2 = source.charAt(i + 2);
+					int u = Character.digit(hex1, 16);
+					int l = Character.digit(hex2, 16);
+					if (u == -1 || l == -1) {
+						throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(i) + "\"");
+					}
+					bos.write((char) ((u << 4) + l));
+					i += 2;
+					changed = true;
+				}
+				else {
+					throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(i) + "\"");
+				}
+			}
+			else {
+				bos.write(ch);
+			}
+		}
+		return (changed ? new String(bos.toByteArray(), charset) : source);
+	}
 	/**
 	 * Determine the encoding for the given request.
 	 * Can be overridden in subclasses.

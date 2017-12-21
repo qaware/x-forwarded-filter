@@ -1,8 +1,8 @@
 package de.qaware.web.filter;
 
-import de.qaware.web.util.UriComponents;
-import de.qaware.web.util.UriComponentsBuilder;
 import de.qaware.web.util.UrlPathHelper;
+import de.qaware.web.util.uri.UriComponents;
+import de.qaware.web.util.uri.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
@@ -32,6 +32,7 @@ class ForwardedHeaderExtractingRequest extends ForwardedHeaderRemovingRequest {
 	public ForwardedHeaderExtractingRequest(HttpServletRequest request) {
 		super(request);
 
+		// TODO: Refactor
 		UrlPathHelper pathHelper = new UrlPathHelper();
 		pathHelper.setUrlDecode(false);
 		pathHelper.setRemoveSemicolonContent(false);

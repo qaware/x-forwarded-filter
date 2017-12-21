@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.qaware.web.util;
+package de.qaware.web.util.uri;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiMapUtils;
@@ -25,10 +25,12 @@ import org.apache.commons.lang3.Validate;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.*;
+
 
 /**
  * Extension of {@link UriComponents} for hierarchical URIs.
@@ -44,6 +46,8 @@ import java.util.*;
 final class HierarchicalUriComponents extends UriComponents {
 
 	private static final char PATH_DELIMITER = '/';
+
+	private static final String PATH_DELIMITER_STRING = "/";
 
 
 	/*@Nullable*/
@@ -75,19 +79,20 @@ final class HierarchicalUriComponents extends UriComponents {
 	 * @param encoded     whether the components are already encoded
 	 * @param verify      whether the components need to be checked for illegal characters
 	 */
-	@SuppressWarnings("squid:S00107")
-	//copy and builder constructor
 	HierarchicalUriComponents(/*@Nullable*/ String scheme, /*@Nullable*/ String fragment, /*@Nullable*/ String userInfo,
 			/*@Nullable*/ String host, /*@Nullable*/ String port, /*@Nullable*/ PathComponent path,
 			/*@Nullable*/ MultiValuedMap<String, String> queryParams, boolean encoded, boolean verify) {
 
 		super(scheme, fragment);
-
 		this.userInfo = userInfo;
 		this.host = host;
 		this.port = port;
 		this.path = (path != null ? path : NULL_PATH_COMPONENT);
-		this.queryParams = (queryParams != null ? MultiMapUtils.unmodifiableMultiValuedMap(queryParams) : MultiMapUtils.EMPTY_MULTI_VALUED_MAP);
+		if(queryParams == null){
+			this.queryParams= MultiMapUtils.EMPTY_MULTI_VALUED_MAP;
+		}else{
+			this.queryParams=MultiMapUtils.unmodifiableMultiValuedMap(new ArrayListValuedHashMap<>(queryParams));
+		}
 		this.encoded = encoded;
 
 		if (verify) {
@@ -98,6 +103,13 @@ final class HierarchicalUriComponents extends UriComponents {
 
 	// Component getters
 
+	@Override
+	/*@Nullable*/
+	public String getSchemeSpecificPart() {
+		return null;
+	}
+
+	@Override
 	/*@Nullable*/
 	public String getUserInfo() {
 		return this.userInfo;
@@ -120,10 +132,15 @@ final class HierarchicalUriComponents extends UriComponents {
 		return Integer.parseInt(this.port);
 	}
 
-	//@NonNull
 	@Override
+	/*@NonNull*/
 	public String getPath() {
 		return this.path.getPath();
+	}
+
+	@Override
+	public List<String> getPathSegments() {
+		return this.path.getPathSegments();
 	}
 
 	@Override
@@ -160,6 +177,18 @@ final class HierarchicalUriComponents extends UriComponents {
 		queryBuilder.append(name);
 	}
 
+	/**
+	 * Return the map of query parameters. Empty if no query has been set.
+	 */
+	@Override
+	public Map<String, List<String>> getQueryParamsMap() {
+		return MultiMapUtils.isEmpty(queryParams) ? Collections.emptyMap() : (Map<String, List<String>>) (Object) this.queryParams.asMap();
+	}
+
+	@Override
+	public MultiValuedMap<String, String> getQueryParams() {
+		return queryParams;
+	}
 
 	// Encoding
 
@@ -189,7 +218,7 @@ final class HierarchicalUriComponents extends UriComponents {
 
 	private MultiValuedMap<String, String> encodeQueryParams(Charset charset) {
 		int size = this.queryParams.size();
-		ArrayListValuedHashMap<String, String> result = new ArrayListValuedHashMap<>(size, 1);
+		MultiValuedMap<String, String> result = new ArrayListValuedHashMap<>(size, 1);
 		for (Map.Entry<String, Collection<String>> entry : this.queryParams.asMap().entrySet()) {
 			String name = encodeUriComponent(entry.getKey(), charset, Type.QUERY_PARAM);
 			List<String> values = new ArrayList<>(entry.getValue().size());
@@ -205,6 +234,20 @@ final class HierarchicalUriComponents extends UriComponents {
 	 * Encode the given source into an encoded String using the rules specified
 	 * by the given component and with the given options.
 	 *
+	 * @param source   the source String
+	 * @param encoding the encoding of the source String
+	 * @param type     the URI component for the source
+	 * @return the encoded URI
+	 * @throws IllegalArgumentException when the given value is not a valid URI component
+	 */
+	static String encodeUriComponent(String source, String encoding, Type type) {
+		return encodeUriComponent(source, Charset.forName(encoding), type);
+	}
+
+	/**
+	 * Encode the given source into an encoded String using the rules specified
+	 * by the given component and with the given options.
+	 *
 	 * @param source  the source String
 	 * @param charset the encoding of the source String
 	 * @param type    the URI component for the source
@@ -212,7 +255,7 @@ final class HierarchicalUriComponents extends UriComponents {
 	 * @throws IllegalArgumentException when the given value is not a valid URI component
 	 */
 	static String encodeUriComponent(String source, Charset charset, Type type) {
-		if (!StringUtils.isNotBlank(source)) {
+		if (StringUtils.isEmpty(source)) {
 			return source;
 		}
 		Validate.notNull(charset, "Charset must not be null");
@@ -301,6 +344,37 @@ final class HierarchicalUriComponents extends UriComponents {
 
 
 	// Expanding
+
+	@Override
+	protected HierarchicalUriComponents expandInternal(UriTemplateVariables uriVariables) {
+		Validate.validState(!this.encoded, "Cannot expand an already encoded UriComponents object");
+
+		String schemeTo = expandUriComponent(getScheme(), uriVariables);
+		String fragmentTo = expandUriComponent(getFragment(), uriVariables);
+		String userInfoTo = expandUriComponent(this.userInfo, uriVariables);
+		String hostTo = expandUriComponent(this.host, uriVariables);
+		String portTo = expandUriComponent(this.port, uriVariables);
+		PathComponent pathTo = this.path.expand(uriVariables);
+		MultiValuedMap<String, String> paramsTo = expandQueryParams(uriVariables);
+
+		return new HierarchicalUriComponents(schemeTo, fragmentTo, userInfoTo, hostTo, portTo,
+				pathTo, paramsTo, false, false);
+	}
+
+	private MultiValuedMap<String, String> expandQueryParams(UriTemplateVariables variables) {
+		int size = this.queryParams.size();
+		MultiValuedMap<String, String> result = new ArrayListValuedHashMap<>(size, 1);
+		variables = new QueryUriTemplateVariables(variables);
+		for (Map.Entry<String, Collection<String>> entry : this.queryParams.asMap().entrySet()) {
+			String name = expandUriComponent(entry.getKey(), variables);
+			List<String> values = new ArrayList<>(entry.getValue().size());
+			for (String value : entry.getValue()) {
+				values.add(expandUriComponent(value, variables));
+			}
+			result.putAll(name, values);
+		}
+		return result;
+	}
 
 	/**
 	 * Normalize the path removing sequences like "path/..".
@@ -443,8 +517,7 @@ final class HierarchicalUriComponents extends UriComponents {
 		try {
 			if (this.encoded) {
 				return new URI(toString());
-			}
-			else {
+			} else {
 				String path = getPath();
 				if (StringUtils.isNotEmpty(path) && path.charAt(0) != PATH_DELIMITER) {
 					// Only prefix the path delimiter if something exists before it
@@ -455,11 +528,36 @@ final class HierarchicalUriComponents extends UriComponents {
 				return new URI(getScheme(), getUserInfo(), getHost(), getPort(), path, getQuery(),
 						getFragment());
 			}
-		}
-		catch (URISyntaxException ex) {
+		} catch (URISyntaxException ex) {
 			throw new IllegalStateException("Could not create URI object: " + ex.getMessage(), ex);
 		}
 	}
+
+	@Override
+	protected void copyToUriComponentsBuilder(UriComponentsBuilder builder) {
+		if (getScheme() != null) {
+			builder.scheme(getScheme());
+		}
+		if (getUserInfo() != null) {
+			builder.userInfo(getUserInfo());
+		}
+		if (getHost() != null) {
+			builder.host(getHost());
+		}
+		// Avoid parsing the port, may have URI variable..
+		if (this.port != null) {
+			builder.port(this.port);
+		}
+		this.path.copyToUriComponentsBuilder(builder);
+		if (!getQueryParams().isEmpty()) {
+			builder.queryParams(getQueryParamsMap());
+		}
+		if (getFragment() != null) {
+			builder.fragment(getFragment());
+		}
+	}
+
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -507,6 +605,12 @@ final class HierarchicalUriComponents extends UriComponents {
 				return isAlpha(c) || isDigit(c) || '+' == c || '-' == c || '.' == c;
 			}
 		},
+		AUTHORITY {
+			@Override
+			public boolean isAllowed(int c) {
+				return isUnreserved(c) || isSubDelimiter(c) || ':' == c || '@' == c;
+			}
+		},
 		USER_INFO {
 			@Override
 			public boolean isAllowed(int c) {
@@ -525,6 +629,12 @@ final class HierarchicalUriComponents extends UriComponents {
 				return isUnreserved(c) || isSubDelimiter(c) || '[' == c || ']' == c || ':' == c;
 			}
 		},
+		PORT {
+			@Override
+			public boolean isAllowed(int c) {
+				return isDigit(c);
+			}
+		},
 		PATH {
 			@Override
 			public boolean isAllowed(int c) {
@@ -535,6 +645,12 @@ final class HierarchicalUriComponents extends UriComponents {
 			@Override
 			public boolean isAllowed(int c) {
 				return isPchar(c);
+			}
+		},
+		QUERY {
+			@Override
+			public boolean isAllowed(int c) {
+				return isPchar(c) || '/' == c || '?' == c;
 			}
 		},
 		QUERY_PARAM {
@@ -551,6 +667,12 @@ final class HierarchicalUriComponents extends UriComponents {
 			@Override
 			public boolean isAllowed(int c) {
 				return isPchar(c) || '/' == c || '?' == c;
+			}
+		},
+		URI {
+			@Override
+			public boolean isAllowed(int c) {
+				return isUnreserved(c);
 			}
 		};
 
@@ -580,6 +702,15 @@ final class HierarchicalUriComponents extends UriComponents {
 		}
 
 		/**
+		 * Indicates whether the given character is in the {@code gen-delims} set.
+		 *
+		 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
+		 */
+		protected boolean isGenericDelimiter(int c) {
+			return (':' == c || '/' == c || '?' == c || '#' == c || '[' == c || ']' == c || '@' == c);
+		}
+
+		/**
 		 * Indicates whether the given character is in the {@code sub-delims} set.
 		 *
 		 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
@@ -587,6 +718,15 @@ final class HierarchicalUriComponents extends UriComponents {
 		protected boolean isSubDelimiter(int c) {
 			return ('!' == c || '$' == c || '&' == c || '\'' == c || '(' == c || ')' == c || '*' == c || '+' == c ||
 					',' == c || ';' == c || '=' == c);
+		}
+
+		/**
+		 * Indicates whether the given character is in the {@code reserved} set.
+		 *
+		 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
+		 */
+		protected boolean isReserved(int c) {
+			return (isGenericDelimiter(c) || isSubDelimiter(c));
 		}
 
 		/**
@@ -616,10 +756,15 @@ final class HierarchicalUriComponents extends UriComponents {
 
 		String getPath();
 
+		List<String> getPathSegments();
+
 		PathComponent encode(Charset charset);
 
 		void verify();
 
+		PathComponent expand(UriTemplateVariables uriVariables);
+
+		void copyToUriComponentsBuilder(UriComponentsBuilder builder);
 	}
 
 
@@ -640,6 +785,27 @@ final class HierarchicalUriComponents extends UriComponents {
 		}
 
 		@Override
+		public List<String> getPathSegments() {
+			List<String> segments = tokenizeTrimIgnoreEmpty(this.path, PATH_DELIMITER_STRING);
+			return Collections.unmodifiableList(segments);
+		}
+
+		private static List<String> tokenizeTrimIgnoreEmpty(String path, String pathDelimiterString) {
+			String[] tokens = StringUtils.split(path, pathDelimiterString);
+			if (tokens == null || tokens.length == 0) {
+				return Collections.emptyList();
+			}
+
+			List<String> result = new ArrayList<>(tokens.length);
+			for (String token : tokens) {
+				if (StringUtils.isNotBlank(token)) {
+					result.add(token);
+				}
+			}
+			return result;
+		}
+
+		@Override
 		public PathComponent encode(Charset charset) {
 			String encodedPath = encodeUriComponent(getPath(), charset, Type.PATH);
 			return new FullPathComponent(encodedPath);
@@ -648,6 +814,17 @@ final class HierarchicalUriComponents extends UriComponents {
 		@Override
 		public void verify() {
 			verifyUriComponent(this.path, Type.PATH);
+		}
+
+		@Override
+		public PathComponent expand(UriTemplateVariables uriVariables) {
+			String expandedPath = expandUriComponent(getPath(), uriVariables);
+			return new FullPathComponent(expandedPath);
+		}
+
+		@Override
+		public void copyToUriComponentsBuilder(UriComponentsBuilder builder) {
+			builder.path(getPath());
 		}
 
 		@Override
@@ -689,6 +866,7 @@ final class HierarchicalUriComponents extends UriComponents {
 			return pathBuilder.toString();
 		}
 
+		@Override
 		public List<String> getPathSegments() {
 			return this.pathSegments;
 		}
@@ -709,6 +887,22 @@ final class HierarchicalUriComponents extends UriComponents {
 			for (String pathSegment : getPathSegments()) {
 				verifyUriComponent(pathSegment, Type.PATH_SEGMENT);
 			}
+		}
+
+		@Override
+		public PathComponent expand(UriTemplateVariables uriVariables) {
+			List<String> pathSegments = getPathSegments();
+			List<String> expandedPathSegments = new ArrayList<>(pathSegments.size());
+			for (String pathSegment : pathSegments) {
+				String expandedPathSegment = expandUriComponent(pathSegment, uriVariables);
+				expandedPathSegments.add(expandedPathSegment);
+			}
+			return new PathSegmentComponent(expandedPathSegments);
+		}
+
+		@Override
+		public void copyToUriComponentsBuilder(UriComponentsBuilder builder) {
+			builder.pathSegment(getPathSegments().toArray(new String[getPathSegments().size()]));
 		}
 
 		@Override
@@ -746,6 +940,15 @@ final class HierarchicalUriComponents extends UriComponents {
 		}
 
 		@Override
+		public List<String> getPathSegments() {
+			List<String> result = new ArrayList<>();
+			for (PathComponent pathComponent : this.pathComponents) {
+				result.addAll(pathComponent.getPathSegments());
+			}
+			return result;
+		}
+
+		@Override
 		public PathComponent encode(Charset charset) {
 			List<PathComponent> encodedComponents = new ArrayList<>(this.pathComponents.size());
 			for (PathComponent pathComponent : this.pathComponents) {
@@ -761,6 +964,21 @@ final class HierarchicalUriComponents extends UriComponents {
 			}
 		}
 
+		@Override
+		public PathComponent expand(UriTemplateVariables uriVariables) {
+			List<PathComponent> expandedComponents = new ArrayList<>(this.pathComponents.size());
+			for (PathComponent pathComponent : this.pathComponents) {
+				expandedComponents.add(pathComponent.expand(uriVariables));
+			}
+			return new PathComponentComposite(expandedComponents);
+		}
+
+		@Override
+		public void copyToUriComponentsBuilder(UriComponentsBuilder builder) {
+			for (PathComponent pathComponent : this.pathComponents) {
+				pathComponent.copyToUriComponentsBuilder(builder);
+			}
+		}
 	}
 
 
@@ -774,13 +992,26 @@ final class HierarchicalUriComponents extends UriComponents {
 		}
 
 		@Override
+		public List<String> getPathSegments() {
+			return Collections.emptyList();
+		}
+
+		@Override
 		public PathComponent encode(Charset charset) {
 			return this;
 		}
 
 		@Override
 		public void verify() {
-			//NULL_PATH_COMPONENT has noting to verify
+		}
+
+		@Override
+		public PathComponent expand(UriTemplateVariables uriVariables) {
+			return this;
+		}
+
+		@Override
+		public void copyToUriComponentsBuilder(UriComponentsBuilder builder) {
 		}
 
 		@Override
@@ -794,5 +1025,50 @@ final class HierarchicalUriComponents extends UriComponents {
 		}
 	};
 
+
+	private static class QueryUriTemplateVariables implements UriTemplateVariables {
+
+		private final UriTemplateVariables delegate;
+
+		public QueryUriTemplateVariables(UriTemplateVariables delegate) {
+			this.delegate = delegate;
+		}
+
+		@Override
+		public Object getValue(/*@Nullable*/ String name) {
+			Object value = this.delegate.getValue(name);
+
+			if (isArray(value)) {
+				value = StringUtils.join(", ", toObjectArray(value));
+			}
+			return value;
+		}
+
+		private static boolean isArray(/*@Nullable*/ Object obj) {
+			return (obj != null && obj.getClass().isArray());
+		}
+
+		private static Object[] toObjectArray(/*@Nullable*/ Object source) {
+			if (source instanceof Object[]) {
+				return (Object[]) source;
+			}
+			if (source == null) {
+				return new Object[0];
+			}
+			if (!source.getClass().isArray()) {
+				throw new IllegalArgumentException("Source is not an array: " + source);
+			}
+			int length = Array.getLength(source);
+			if (length == 0) {
+				return new Object[0];
+			}
+			Class<?> wrapperType = Array.get(source, 0).getClass();
+			Object[] newArray = (Object[]) Array.newInstance(wrapperType, length);
+			for (int i = 0; i < length; i++) {
+				newArray[i] = Array.get(source, i);
+			}
+			return newArray;
+		}
+	}
 
 }

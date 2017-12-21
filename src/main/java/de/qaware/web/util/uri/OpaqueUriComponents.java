@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package de.qaware.web.util;
+package de.qaware.web.util.uri;
 
+import org.apache.commons.collections4.MultiMapUtils;
+import org.apache.commons.collections4.MultiValuedMap;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+
 
 /**
  * Extension of {@link UriComponents} for opaque URIs.
@@ -32,6 +38,7 @@ import java.util.Objects;
  */
 @SuppressWarnings("serial")
 final class OpaqueUriComponents extends UriComponents {
+
 
 	/*@Nullable*/
 	private final String ssp;
@@ -45,6 +52,18 @@ final class OpaqueUriComponents extends UriComponents {
 
 	@Override
 	/*@Nullable*/
+	public String getSchemeSpecificPart() {
+		return this.ssp;
+	}
+
+	@Override
+	/*@Nullable*/
+	public String getUserInfo() {
+		return null;
+	}
+
+	@Override
+	/*@Nullable*/
 	public String getHost() {
 		return null;
 	}
@@ -55,17 +74,43 @@ final class OpaqueUriComponents extends UriComponents {
 	}
 
 	@Override
+	/*@Nullable*/
 	public String getPath() {
 		return null;
 	}
 
+	@Override
+	public List<String> getPathSegments() {
+		return Collections.emptyList();
+	}
 
+	@Override
+	/*@Nullable*/
 	public String getQuery() {
 		return null;
 	}
+
+	@Override
+	public Map<String, List<String>> getQueryParamsMap() {
+		return Collections.emptyMap();
+	}
+
+	@Override
+	public MultiValuedMap<String, String> getQueryParams() {
+		return MultiMapUtils.EMPTY_MULTI_VALUED_MAP;
+	}
+
 	@Override
 	public UriComponents encode(Charset charset) {
 		return this;
+	}
+
+	@Override
+	protected UriComponents expandInternal(UriTemplateVariables uriVariables) {
+		String expandedScheme = expandUriComponent(getScheme(), uriVariables);
+		String expandedSsp = expandUriComponent(getSchemeSpecificPart(), uriVariables);
+		String expandedFragment = expandUriComponent(getFragment(), uriVariables);
+		return new OpaqueUriComponents(expandedScheme, expandedSsp, expandedFragment);
 	}
 
 	@Override
@@ -96,11 +141,24 @@ final class OpaqueUriComponents extends UriComponents {
 	public URI toUri() {
 		try {
 			return new URI(getScheme(), this.ssp, getFragment());
-		}
-		catch (URISyntaxException ex) {
+		} catch (URISyntaxException ex) {
 			throw new IllegalStateException("Could not create URI object: " + ex.getMessage(), ex);
 		}
 	}
+
+	@Override
+	protected void copyToUriComponentsBuilder(UriComponentsBuilder builder) {
+		if (getScheme() != null) {
+			builder.scheme(getScheme());
+		}
+		if (getSchemeSpecificPart() != null) {
+			builder.schemeSpecificPart(getSchemeSpecificPart());
+		}
+		if (getFragment() != null) {
+			builder.fragment(getFragment());
+		}
+	}
+
 
 	@Override
 	public boolean equals(Object obj) {

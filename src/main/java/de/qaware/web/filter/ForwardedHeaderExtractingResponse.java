@@ -1,6 +1,6 @@
 package de.qaware.web.filter;
 
-import de.qaware.web.util.UriComponentsBuilder;
+import de.qaware.web.util.uri.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

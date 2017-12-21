@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.qaware.web.util;
+package de.qaware.web.util.uri;
 
 import org.junit.Test;
 
@@ -24,8 +24,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Collections;
 
+import static de.qaware.web.util.uri.UriComponentsBuilder.fromUriString;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Arjen Poutsma
@@ -37,21 +41,21 @@ public class UriComponentsTests {
 	public void encode() {
 		UriComponents uriComponents = UriComponentsBuilder.fromPath("/hotel list").build();
 		UriComponents encoded = uriComponents.encode();
-		assertThat("/hotel%20list").isEqualTo(encoded.getPath());
+		assertEquals("/hotel%20list", encoded.getPath());
 	}
 
 	@Test
 	public void toUriEncoded() throws URISyntaxException {
 		UriComponents uriComponents = UriComponentsBuilder.fromUriString(
 				"http://example.com/hotel list/Z\u00fcrich").build();
-		assertThat(new URI("http://example.com/hotel%20list/Z%C3%BCrich")).isEqualTo( uriComponents.encode().toUri());
+		assertEquals(new URI("http://example.com/hotel%20list/Z%C3%BCrich"), uriComponents.encode().toUri());
 	}
 
 	@Test
 	public void toUriNotEncoded() throws URISyntaxException {
 		UriComponents uriComponents = UriComponentsBuilder.fromUriString(
 				"http://example.com/hotel list/Z\u00fcrich").build();
-		assertThat(new URI("http://example.com/hotel%20list/Z\u00fcrich")).isEqualTo( uriComponents.toUri());
+		assertEquals(new URI("http://example.com/hotel%20list/Z\u00fcrich"), uriComponents.toUri());
 	}
 
 	@Test
@@ -59,7 +63,7 @@ public class UriComponentsTests {
 		UriComponents uriComponents = UriComponentsBuilder.fromUriString(
 				"http://example.com/hotel%20list/Z%C3%BCrich").build(true);
 		UriComponents encoded = uriComponents.encode();
-		assertThat(new URI("http://example.com/hotel%20list/Z%C3%BCrich")).isEqualTo( encoded.toUri());
+		assertEquals(new URI("http://example.com/hotel%20list/Z%C3%BCrich"), encoded.toUri());
 	}
 
 	@Test
@@ -67,24 +71,50 @@ public class UriComponentsTests {
 		UriComponents uriComponents = UriComponentsBuilder.fromUriString(
 				"http://[1abc:2abc:3abc::5ABC:6abc]:8080/hotel%20list/Z%C3%BCrich").build(true);
 		UriComponents encoded = uriComponents.encode();
-		assertThat(new URI("http://[1abc:2abc:3abc::5ABC:6abc]:8080/hotel%20list/Z%C3%BCrich")).isEqualTo( encoded.toUri());
+		assertEquals(new URI("http://[1abc:2abc:3abc::5ABC:6abc]:8080/hotel%20list/Z%C3%BCrich"), encoded.toUri());
 	}
 
+	@Test
+	public void expand() {
+		UriComponents uriComponents = UriComponentsBuilder.fromUriString(
+				"http://example.com").path("/{foo} {bar}").build();
+		uriComponents = uriComponents.expand("1 2", "3 4");
+		assertEquals("/1 2 3 4", uriComponents.getPath());
+		assertEquals("http://example.com/1 2 3 4", uriComponents.toUriString());
+	}
+
+	// SPR-13311
+
+	@Test
+	public void expandWithRegexVar() {
+		String template = "/myurl/{name:[a-z]{1,5}}/show";
+		UriComponents uriComponents = UriComponentsBuilder.fromUriString(template).build();
+		uriComponents = uriComponents.expand(Collections.singletonMap("name", "test"));
+		assertEquals("/myurl/test/show", uriComponents.getPath());
+	}
 
 	// SPR-12123
 
 	@Test
 	public void port() {
-		UriComponents uri1 = UriComponentsBuilder.fromUriString("http://example.com:8080/bar").build();
-		UriComponents uri2 = UriComponentsBuilder.fromUriString("http://example.com/bar").port(8080).build();
-
-		assertThat(8080).isEqualTo( uri1.getPort());
-		assertThat("http://example.com:8080/bar").isEqualTo( uri1.toUriString());
-		assertThat(8080).isEqualTo( uri2.getPort());
-		assertThat("http://example.com:8080/bar").isEqualTo( uri2.toUriString());
-
+		UriComponents uri1 = fromUriString("http://example.com:8080/bar").build();
+		UriComponents uri2 = fromUriString("http://example.com/bar").port(8080).build();
+		UriComponents uri3 = fromUriString("http://example.com/bar").port("{port}").build().expand(8080);
+		UriComponents uri4 = fromUriString("http://example.com/bar").port("808{digit}").build().expand(0);
+		assertEquals(8080, uri1.getPort());
+		assertEquals("http://example.com:8080/bar", uri1.toUriString());
+		assertEquals(8080, uri2.getPort());
+		assertEquals("http://example.com:8080/bar", uri2.toUriString());
+		assertEquals(8080, uri3.getPort());
+		assertEquals("http://example.com:8080/bar", uri3.toUriString());
+		assertEquals(8080, uri4.getPort());
+		assertEquals("http://example.com:8080/bar", uri4.toUriString());
 	}
 
+	@Test(expected = IllegalStateException.class)
+	public void expandEncoded() {
+		UriComponentsBuilder.fromPath("/{foo}").build().encode().expand("bar");
+	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void invalidCharacters() {
@@ -99,7 +129,7 @@ public class UriComponentsTests {
 	@Test
 	public void normalize() {
 		UriComponents uriComponents = UriComponentsBuilder.fromUriString("http://example.com/foo/../bar").build();
-		assertThat("http://example.com/bar").isEqualTo( uriComponents.normalize().toString());
+		assertEquals("http://example.com/bar", uriComponents.normalize().toString());
 	}
 
 	@Test
@@ -111,10 +141,18 @@ public class UriComponentsTests {
 		oos.writeObject(uriComponents);
 		ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bos.toByteArray()));
 		UriComponents readObject = (UriComponents) ois.readObject();
-		assertThat(uriComponents.toString()).isEqualTo( readObject.toString());
+		assertThat(uriComponents.toString()).isEqualTo(readObject.toString());
 	}
 
-
+	@Test
+	public void copyToUriComponentsBuilder() {
+		UriComponents source = UriComponentsBuilder.fromPath("/foo/bar").pathSegment("ba/z").build();
+		UriComponentsBuilder targetBuilder = UriComponentsBuilder.newInstance();
+		source.copyToUriComponentsBuilder(targetBuilder);
+		UriComponents result = targetBuilder.build().encode();
+		assertEquals("/foo/bar/ba%2Fz", result.getPath());
+		assertEquals(Arrays.asList("foo", "bar", "ba%2Fz"), result.getPathSegments());
+	}
 
 	@Test
 	public void equalsHierarchicalUriComponents() throws Exception {
@@ -123,7 +161,7 @@ public class UriComponentsTests {
 		UriComponents uric2 = UriComponentsBuilder.fromUriString(url).path("/{foo}").query("bar={baz}").build();
 		UriComponents uric3 = UriComponentsBuilder.fromUriString(url).path("/{foo}").query("bin={baz}").build();
 		assertThat(uric1).isInstanceOf(HierarchicalUriComponents.class);
-		assertThat(uric1).isEqualTo( uric1);
+		assertThat(uric1).isEqualTo(uric1);
 		assertThat(uric1).isEqualTo(uric2);
 		assertThat(uric1).isNotEqualTo(uric3);
 	}
@@ -133,10 +171,10 @@ public class UriComponentsTests {
 		String baseUrl = "http:example.com";
 		UriComponents uric1 = UriComponentsBuilder.fromUriString(baseUrl + "/foo/bar").build();
 		UriComponents uric2 = UriComponentsBuilder.fromUriString(baseUrl + "/foo/bar").build();
-		UriComponents uric3 = UriComponentsBuilder.fromUriString(baseUrl + "/foo/bin").build();
+		UriComponents uric3 = fromUriString(baseUrl + "/foo/bin").build();
 
 		assertThat(uric1).isInstanceOf(OpaqueUriComponents.class);
-		assertThat(uric1).isEqualTo( uric1);
+		assertThat(uric1).isEqualTo(uric1);
 		assertThat(uric1).isEqualTo(uric2);
 		assertThat(uric1).isNotEqualTo(uric3);
 	}
