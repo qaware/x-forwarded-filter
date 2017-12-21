@@ -7,6 +7,8 @@ import de.qaware.web.util.uri.UriComponentsBuilder;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
 
+import static de.qaware.web.util.uri.UriComponents.PATH_DELIMITER_STRING;
+
 /**
  * Extract and use "Forwarded" or "X-Forwarded-*" headers.
  */
@@ -32,7 +34,6 @@ class ForwardedHeaderExtractingRequest extends ForwardedHeaderRemovingRequest {
 	public ForwardedHeaderExtractingRequest(HttpServletRequest request) {
 		super(request);
 
-		// TODO: Refactor
 		UrlPathHelper pathHelper = new UrlPathHelper();
 		pathHelper.setUrlDecode(false);
 		pathHelper.setRemoveSemicolonContent(false);
@@ -62,7 +63,7 @@ class ForwardedHeaderExtractingRequest extends ForwardedHeaderRemovingRequest {
 			}
 		}
 		if (prefix != null) {
-			while (prefix.endsWith("/")) {
+			while (prefix.endsWith(PATH_DELIMITER_STRING)) {
 				prefix = prefix.substring(0, prefix.length() - 1);
 			}
 		}

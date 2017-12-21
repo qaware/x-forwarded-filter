@@ -96,6 +96,7 @@ final class OpaqueUriComponents extends UriComponents {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public MultiValuedMap<String, String> getQueryParams() {
 		return MultiMapUtils.EMPTY_MULTI_VALUED_MAP;
 	}

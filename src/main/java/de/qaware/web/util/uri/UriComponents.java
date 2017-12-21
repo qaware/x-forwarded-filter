@@ -46,6 +46,10 @@ import java.util.regex.Pattern;
 @SuppressWarnings("serial")
 public abstract class UriComponents implements Serializable {
 
+	public static final char PATH_DELIMITER = '/';
+
+	public static final String PATH_DELIMITER_STRING = "/";
+
 	/**
 	 * Captures URI template variable names
 	 */
@@ -234,16 +238,17 @@ public abstract class UriComponents implements Serializable {
 
 	/*@Nullable*/
 	static String expandUriComponent(/*@Nullable*/ String source, UriTemplateVariables uriVariables) {
-		if (source == null) {
+		String checkedSource=source;
+		if (checkedSource == null) {
 			return null;
 		}
-		if (source.indexOf('{') == -1) {
-			return source;
+		if (checkedSource.indexOf('{') == -1) {
+			return checkedSource;
 		}
-		if (source.indexOf(':') != -1) {
-			source = sanitizeSource(source);
+		if (checkedSource.indexOf(':') != -1) {
+			checkedSource = sanitizeSource(checkedSource);
 		}
-		Matcher matcher = NAMES_PATTERN.matcher(source);
+		Matcher matcher = NAMES_PATTERN.matcher(checkedSource);
 		StringBuffer sb = new StringBuffer();
 		while (matcher.find()) {
 			String match = matcher.group(1);
@@ -296,9 +301,9 @@ public abstract class UriComponents implements Serializable {
 	 *
 	 * @see HierarchicalUriComponents#expand
 	 */
-	public interface UriTemplateVariables {
+	public abstract static  class UriTemplateVariables {
 
-		Object SKIP_VALUE = UriTemplateVariables.class;
+		static final Object SKIP_VALUE = UriTemplateVariables.class;
 
 		/**
 		 * Get the value for the given URI variable name.
@@ -309,14 +314,14 @@ public abstract class UriComponents implements Serializable {
 		 * @return the variable value, possibly {@code null} or {@link #SKIP_VALUE}
 		 */
 		/*@Nullable*/
-		Object getValue(/*@Nullable*/ String name);
+		abstract Object getValue(/*@Nullable*/ String name);
 	}
 
 
 	/**
 	 * URI template variables backed by a map.
 	 */
-	private static class MapTemplateVariables implements UriTemplateVariables {
+	private static class MapTemplateVariables extends UriTemplateVariables {
 
 		private final Map<String, ?> uriVariables;
 
@@ -338,7 +343,7 @@ public abstract class UriComponents implements Serializable {
 	/**
 	 * URI template variables backed by a variable argument array.
 	 */
-	private static class VarArgsTemplateVariables implements UriTemplateVariables {
+	private static class VarArgsTemplateVariables extends UriTemplateVariables {
 
 		private final Iterator<Object> valueIterator;
 

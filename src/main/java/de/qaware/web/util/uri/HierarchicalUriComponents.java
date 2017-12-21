@@ -45,11 +45,6 @@ import java.util.*;
 @SuppressWarnings({"serial", "squid:S1948"})
 final class HierarchicalUriComponents extends UriComponents {
 
-	private static final char PATH_DELIMITER = '/';
-
-	private static final String PATH_DELIMITER_STRING = "/";
-
-
 	/*@Nullable*/
 	private final String userInfo;
 
@@ -79,6 +74,7 @@ final class HierarchicalUriComponents extends UriComponents {
 	 * @param encoded     whether the components are already encoded
 	 * @param verify      whether the components need to be checked for illegal characters
 	 */
+	@SuppressWarnings("squid:S00107")//copy constructor
 	HierarchicalUriComponents(/*@Nullable*/ String scheme, /*@Nullable*/ String fragment, /*@Nullable*/ String userInfo,
 			/*@Nullable*/ String host, /*@Nullable*/ String port, /*@Nullable*/ PathComponent path,
 			/*@Nullable*/ MultiValuedMap<String, String> queryParams, boolean encoded, boolean verify) {
@@ -181,6 +177,7 @@ final class HierarchicalUriComponents extends UriComponents {
 	 * Return the map of query parameters. Empty if no query has been set.
 	 */
 	@Override
+	@SuppressWarnings("unchecked")
 	public Map<String, List<String>> getQueryParamsMap() {
 		return MultiMapUtils.isEmpty(queryParams) ? Collections.emptyMap() : (Map<String, List<String>>) (Object) this.queryParams.asMap();
 	}
@@ -364,12 +361,12 @@ final class HierarchicalUriComponents extends UriComponents {
 	private MultiValuedMap<String, String> expandQueryParams(UriTemplateVariables variables) {
 		int size = this.queryParams.size();
 		MultiValuedMap<String, String> result = new ArrayListValuedHashMap<>(size, 1);
-		variables = new QueryUriTemplateVariables(variables);
+		QueryUriTemplateVariables queryVariables = new QueryUriTemplateVariables(variables);
 		for (Map.Entry<String, Collection<String>> entry : this.queryParams.asMap().entrySet()) {
-			String name = expandUriComponent(entry.getKey(), variables);
+			String name = expandUriComponent(entry.getKey(), queryVariables);
 			List<String> values = new ArrayList<>(entry.getValue().size());
 			for (String value : entry.getValue()) {
-				values.add(expandUriComponent(value, variables));
+				values.add(expandUriComponent(value, queryVariables));
 			}
 			result.putAll(name, values);
 		}
@@ -419,7 +416,7 @@ final class HierarchicalUriComponents extends UriComponents {
 		String prefix = "";
 		if (prefixIndex != -1) {
 			prefix = pathToUse.substring(0, prefixIndex + 1);
-			if (prefix.contains("/")) {
+			if (prefix.contains(FOLDER_SEPARATOR)) {
 				prefix = "";
 			} else {
 				pathToUse = pathToUse.substring(prefixIndex + 1);
@@ -518,14 +515,14 @@ final class HierarchicalUriComponents extends UriComponents {
 			if (this.encoded) {
 				return new URI(toString());
 			} else {
-				String path = getPath();
-				if (StringUtils.isNotEmpty(path) && path.charAt(0) != PATH_DELIMITER) {
-					// Only prefix the path delimiter if something exists before it
-					if (getScheme() != null || getUserInfo() != null || getHost() != null || getPort() != -1) {
-						path = PATH_DELIMITER + path;
-					}
+				String lPath = getPath();
+				// Only prefix the path delimiter if something exists before it
+				if (StringUtils.isNotEmpty(lPath)  //
+						&& lPath.charAt(0) != PATH_DELIMITER//
+						&& (getScheme() != null || getUserInfo() != null || getHost() != null || getPort() != -1)) {
+						lPath = PATH_DELIMITER + lPath;
 				}
-				return new URI(getScheme(), getUserInfo(), getHost(), getPort(), path, getQuery(),
+				return new URI(getScheme(), getUserInfo(), getHost(), getPort(), lPath, getQuery(),
 						getFragment());
 			}
 		} catch (URISyntaxException ex) {
@@ -656,11 +653,7 @@ final class HierarchicalUriComponents extends UriComponents {
 		QUERY_PARAM {
 			@Override
 			public boolean isAllowed(int c) {
-				if ('=' == c || '&' == c) {
-					return false;
-				} else {
-					return isPchar(c) || '/' == c || '?' == c;
-				}
+				return !('=' == c || '&' == c) && (isPchar(c) || '/' == c || '?' == c);
 			}
 		},
 		FRAGMENT {
@@ -891,9 +884,9 @@ final class HierarchicalUriComponents extends UriComponents {
 
 		@Override
 		public PathComponent expand(UriTemplateVariables uriVariables) {
-			List<String> pathSegments = getPathSegments();
-			List<String> expandedPathSegments = new ArrayList<>(pathSegments.size());
-			for (String pathSegment : pathSegments) {
+			List<String> lPathSegments = getPathSegments();
+			List<String> expandedPathSegments = new ArrayList<>(lPathSegments.size());
+			for (String pathSegment : lPathSegments) {
 				String expandedPathSegment = expandUriComponent(pathSegment, uriVariables);
 				expandedPathSegments.add(expandedPathSegment);
 			}
@@ -1003,6 +996,7 @@ final class HierarchicalUriComponents extends UriComponents {
 
 		@Override
 		public void verify() {
+			//nothing to verify
 		}
 
 		@Override
@@ -1012,10 +1006,13 @@ final class HierarchicalUriComponents extends UriComponents {
 
 		@Override
 		public void copyToUriComponentsBuilder(UriComponentsBuilder builder) {
+			//Null Path cannot copy
 		}
 
+		@SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
 		@Override
 		public boolean equals(Object obj) {
+			//static final anonymous class can compare with ==
 			return (this == obj);
 		}
 
@@ -1026,7 +1023,7 @@ final class HierarchicalUriComponents extends UriComponents {
 	};
 
 
-	private static class QueryUriTemplateVariables implements UriTemplateVariables {
+	private static class QueryUriTemplateVariables extends UriTemplateVariables {
 
 		private final UriTemplateVariables delegate;
 

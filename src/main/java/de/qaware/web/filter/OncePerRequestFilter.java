@@ -66,13 +66,11 @@ public abstract class OncePerRequestFilter implements Filter {
 	 */
 	public static final String ALREADY_FILTERED_SUFFIX = ".FILTERED";
 
-	private String filterName;
 	private String alreadyFilteredAttributeName;
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
-		filterName = filterConfig.getFilterName();
-		alreadyFilteredAttributeName = Optional.ofNullable(filterName).orElse(getClass().getName()) + ALREADY_FILTERED_SUFFIX;
+		this.alreadyFilteredAttributeName = Optional.ofNullable(filterConfig.getFilterName()).orElse(getClass().getName()) + ALREADY_FILTERED_SUFFIX;
 	}
 
 	/**

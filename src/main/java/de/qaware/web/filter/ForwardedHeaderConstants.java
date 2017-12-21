@@ -33,14 +33,15 @@ public class ForwardedHeaderConstants {
 	public static final String REMOVE_ONLY_INIT_PARAM = "removeOnly";
 
 
-	public static final Set<String> FORWARDED_HEADER_NAMES =
-			Collections.newSetFromMap(new CaseInsensitiveMap<>(5));
+	protected static final Set<String> FORWARDED_HEADER_NAMES;
 
 	static {
-		ForwardedHeaderConstants.FORWARDED_HEADER_NAMES.add("Forwarded");
-		ForwardedHeaderConstants.FORWARDED_HEADER_NAMES.add("X-Forwarded-Host");
-		ForwardedHeaderConstants.FORWARDED_HEADER_NAMES.add("X-Forwarded-Port");
-		ForwardedHeaderConstants.FORWARDED_HEADER_NAMES.add("X-Forwarded-Proto");
-		ForwardedHeaderConstants.FORWARDED_HEADER_NAMES.add("X-Forwarded-Prefix");
+		Set<String> headerNames = Collections.newSetFromMap(new CaseInsensitiveMap<>(5));
+		headerNames.add("Forwarded");
+		headerNames.add("X-Forwarded-Host");
+		headerNames.add("X-Forwarded-Port");
+		headerNames.add("X-Forwarded-Proto");
+		headerNames.add("X-Forwarded-Prefix");
+		FORWARDED_HEADER_NAMES=headerNames;
 	}
 }

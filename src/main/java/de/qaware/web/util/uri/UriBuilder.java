@@ -100,7 +100,7 @@ public interface UriBuilder {
 	 *
 	 * @param pathSegments the URI path segments
 	 */
-	UriBuilder pathSegment(String... pathSegments) throws IllegalArgumentException;
+	UriBuilder pathSegment(String... pathSegments);
 
 	/**
 	 * Append the given query to the existing query of this builder.

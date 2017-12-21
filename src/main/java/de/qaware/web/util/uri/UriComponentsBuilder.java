@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static de.qaware.web.util.uri.UriComponents.PATH_DELIMITER_STRING;
+
 
 /**
  * Builder for {@link UriComponents}.
@@ -94,6 +96,8 @@ public class UriComponentsBuilder implements UriBuilder, Cloneable {
 	private static final Pattern FORWARDED_HOST_PATTERN = Pattern.compile("host=\"?([^;,\"]+)\"?");
 
 	private static final Pattern FORWARDED_PROTO_PATTERN = Pattern.compile("proto=\"?([^;,\"]+)\"?");
+
+
 
 
 	/*@Nullable*/
@@ -556,7 +560,7 @@ public class UriComponentsBuilder implements UriBuilder, Cloneable {
 	 * @return this UriComponentsBuilder
 	 */
 	@Override
-	public UriComponentsBuilder pathSegment(String... pathSegments) throws IllegalArgumentException {
+	public UriComponentsBuilder pathSegment(String... pathSegments)  {
 		this.pathBuilder.addPathSegments(pathSegments);
 		resetSchemeSpecificPart();
 		return this;
@@ -666,7 +670,7 @@ public class UriComponentsBuilder implements UriBuilder, Cloneable {
 	@Override
 	public UriComponentsBuilder queryParams(/*@Nullable*/ Map<String, List<String>> params) {
 		if (params != null) {
-			params.forEach((k, v) -> this.queryParams.putAll(k, v));
+			params.forEach(this.queryParams::putAll);
 		}
 		return this;
 	}
@@ -777,18 +781,18 @@ public class UriComponentsBuilder implements UriBuilder, Cloneable {
 	 * Returns first token only. e.g: value="123, 345, 678"  with delim="," will return "123"
 	 * or more formally: return value.substring(0,value.indexOf(delim));
 	 *
-	 * @param value
-	 * @param delim
-	 * @return
+	 * @param value value to be split
+	 * @param delimiter delimiter
+	 * @return first token
 	 */
-	private static String getFirstValueToken(String value, String delim) {
-		int pos = value.indexOf(delim);
+	private static String getFirstValueToken(String value, String delimiter) {
+		int pos = value.indexOf(delimiter);
 		return (pos == -1) ? value : value.substring(0, pos);
 	}
 
 	private void adaptForwardedHost(String hostToUse) {
-		int portSeparatorIdx = hostToUse.lastIndexOf(":");
-		if (portSeparatorIdx > hostToUse.lastIndexOf("]")) {
+		int portSeparatorIdx = hostToUse.lastIndexOf(':');
+		if (portSeparatorIdx > hostToUse.lastIndexOf(']')) {
 			host(hostToUse.substring(0, portSeparatorIdx));
 			port(Integer.parseInt(hostToUse.substring(portSeparatorIdx + 1)));
 		} else {
@@ -815,6 +819,7 @@ public class UriComponentsBuilder implements UriBuilder, Cloneable {
 	 * Delegates to {@link #cloneBuilder()}.
 	 */
 	@Override
+	@SuppressWarnings({"squid:S2975", "squid:S1182", "MethodDoesntCallSuperMethod"})//spring original - is copy constructor
 	public Object clone() {
 		return cloneBuilder();
 	}
@@ -859,33 +864,21 @@ public class UriComponentsBuilder implements UriBuilder, Cloneable {
 		}
 
 		public void addPath(String path) {
-//			if (StringUtils.isNotBlank(path)) {
-//				PathSegmentComponentBuilder psBuilder = getLastBuilder(PathSegmentComponentBuilder.class);
-//				FullPathComponentBuilder fpBuilder = getLastBuilder(FullPathComponentBuilder.class);
-//
-//				if (fpBuilder == null) {
-//					fpBuilder = new FullPathComponentBuilder();
-//					this.builders.add(fpBuilder);
-//				}
-//				if (psBuilder != null) {
-//					fpBuilder.append(path.startsWith("/") ? path : "/" + path);
-//				} else {
-//					fpBuilder.append(path);
-//				}
-//			}
-
 			if (StringUtils.isNotBlank(path)) {
 				PathSegmentComponentBuilder psBuilder = getLastBuilder(PathSegmentComponentBuilder.class);
 				FullPathComponentBuilder fpBuilder = getLastBuilder(FullPathComponentBuilder.class);
-				if (psBuilder != null) {
-					path = (path.startsWith("/") ? path : "/" + path);
-				}
+
 				if (fpBuilder == null) {
 					fpBuilder = new FullPathComponentBuilder();
 					this.builders.add(fpBuilder);
 				}
-				fpBuilder.append(path);
+				if (psBuilder != null) {
+					fpBuilder.append(path.startsWith(PATH_DELIMITER_STRING) ? path : PATH_DELIMITER_STRING + path);
+				} else {
+					fpBuilder.append(path);
+				}
 			}
+
 		}
 
 		@SuppressWarnings("unchecked")

@@ -176,7 +176,7 @@ public class HttpHeaders implements Map<String, List<String>> {
 
 	@Override
 	public boolean containsValue(Object value) {
-		return headers.containsValue(value);
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

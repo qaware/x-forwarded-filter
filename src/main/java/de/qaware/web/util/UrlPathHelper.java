@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 
+
 /**
  * Helper class for URL path matching. Provides support for URL paths in
  * RequestDispatcher includes and support for consistent URL decoding.
@@ -40,6 +41,7 @@ public class UrlPathHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UrlPathHelper.class);
 
+	public static final String PATH_DELIMITER_STRING = "/";
 
 	private boolean urlDecode = true;
 
@@ -81,10 +83,26 @@ public class UrlPathHelper {
 	/**
 	 * Return the default character encoding to use for URL decoding.
 	 */
-	protected String getDefaultEncoding() {
+	public String getDefaultEncoding() {
 		return this.defaultEncoding;
 	}
 
+	/**
+	 * Set the default character encoding to use for URL decoding.
+	 * Default is ISO-8859-1, according to the Servlet spec.
+	 * <p>If the request specifies a character encoding itself, the request
+	 * encoding will override this setting. This also allows for generically
+	 * overriding the character encoding in a filter that invokes the
+	 * {@code ServletRequest.setCharacterEncoding} method.
+	 * @param defaultEncoding the character encoding to use
+	 * @see #determineEncoding
+	 * @see javax.servlet.ServletRequest#getCharacterEncoding()
+	 * @see javax.servlet.ServletRequest#setCharacterEncoding(String)
+	 * @see WebUtilsConstants#DEFAULT_CHARACTER_ENCODING
+	 */
+	public void setDefaultEncoding(String defaultEncoding) {
+		 this.defaultEncoding=defaultEncoding;
+	}
 
 	/**
 	 * Return the path within the web application for the given request.
@@ -99,7 +117,7 @@ public class UrlPathHelper {
 		String path = getRemainingPath(requestUri, contextPath, true);
 		if (path != null) {
 			// Normal case: URI contains context path.
-			return (StringUtils.isNotEmpty(path) ? path : "/");
+			return (StringUtils.isNotEmpty(path) ? path : PATH_DELIMITER_STRING);
 		} else {
 			return requestUri;
 		}
@@ -195,7 +213,7 @@ public class UrlPathHelper {
 		if (contextPath == null) {
 			contextPath = request.getContextPath();
 		}
-		if ("/".equals(contextPath)) {
+		if (PATH_DELIMITER_STRING.equals(contextPath)) {
 			// Invalid case, but happens for includes on Jetty: silently adapt it.
 			contextPath = "";
 		}
@@ -275,22 +293,23 @@ public class UrlPathHelper {
 
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(length);
 		boolean changed = false;
-		for (int i = 0; i < length; i++) {
-			int ch = source.charAt(i);
+		int pos=-1;
+		while(++pos < length){
+			int ch = source.charAt(pos);
 			if (ch == '%') {
-				if (i + 2 < length) {
-					char hex1 = source.charAt(i + 1);
-					char hex2 = source.charAt(i + 2);
+				if (pos + 2 < length) {
+					char hex1 = source.charAt(pos + 1);
+					char hex2 = source.charAt(pos + 2);
 					int u = Character.digit(hex1, 16);
 					int l = Character.digit(hex2, 16);
 					if (u == -1 || l == -1) {
-						throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(i) + "\"");
+						throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(pos) + "\"");
 					}
 					bos.write((char) ((u << 4) + l));
-					i += 2;
+					pos += 2;
 					changed = true;
 				} else {
-					throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(i) + "\"");
+					throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(pos) + "\"");
 				}
 			} else {
 				bos.write(ch);
