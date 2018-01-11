@@ -9,7 +9,7 @@ import java.util.Set;
 /**
  *
  */
-public class ForwardedHeaderConstants {
+class ForwardedHeaderConstants {
 
 	private ForwardedHeaderConstants() {
 		//utility class

@@ -705,11 +705,11 @@ public class UriComponentsBuilderTests {
 	}
 
 	@Test
-	public void testClone() throws URISyntaxException {
+	public void testCopyConstructor() throws URISyntaxException {
 		UriComponentsBuilder builder1 = UriComponentsBuilder.newInstance();
 		builder1.scheme("http").host("e1.com").path("/p1").pathSegment("ps1").queryParam("q1").fragment("f1");
 
-		UriComponentsBuilder builder2 = (UriComponentsBuilder) builder1.clone();
+		UriComponentsBuilder builder2 = new UriComponentsBuilder(builder1);
 		builder2.scheme("https").host("e2.com").path("p2").pathSegment("ps2").queryParam("q2").fragment("f2");
 
 		UriComponents result1 = builder1.build();

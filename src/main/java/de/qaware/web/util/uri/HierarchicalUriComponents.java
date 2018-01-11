@@ -42,7 +42,7 @@ import java.util.*;
  * @see <a href="http://tools.ietf.org/html/rfc3986#section-1.2.3">Hierarchical URIs</a>
  * @since 3.1.3
  */
-@SuppressWarnings({"serial", "squid:S1948"})
+@SuppressWarnings({"serial"})
 final class HierarchicalUriComponents extends UriComponents {
 
 	/*@Nullable*/
@@ -56,10 +56,11 @@ final class HierarchicalUriComponents extends UriComponents {
 
 	private final PathComponent path;
 
-	private final MultiValuedMap<String, String> queryParams;
+	//MultiValuedMap interface does not implement Serializable but all know implementations of it do.
+	@SuppressWarnings("squid:S1948") //the IF does not implement serializable but impls do
+	private final transient MultiValuedMap<String, String> queryParams;
 
 	private final boolean encoded;
-
 
 	/**
 	 * Package-private constructor. All arguments are optional, and can be {@code null}.
@@ -401,11 +402,11 @@ final class HierarchicalUriComponents extends UriComponents {
 	 * @param path the original path
 	 * @return the normalized path
 	 */
-	@SuppressWarnings("squid:S3776")
 	public static String cleanPath(String path) {
 		if (StringUtils.isBlank(path)) {
 			return path;
 		}
+		//bring to common form
 		String pathToUse = StringUtils.replace(path, WINDOWS_FOLDER_SEPARATOR, FOLDER_SEPARATOR);
 
 		// Strip prefix from path to analyze, to not treat it as part of the
@@ -422,11 +423,17 @@ final class HierarchicalUriComponents extends UriComponents {
 				pathToUse = pathToUse.substring(prefixIndex + 1);
 			}
 		}
+
 		if (pathToUse.startsWith(FOLDER_SEPARATOR)) {
 			prefix = prefix + FOLDER_SEPARATOR;
 			pathToUse = pathToUse.substring(1);
 		}
+		//normalize path by spliting into distinct path tokens
+		List<String> pathElements = splitIntoPathElements(pathToUse);
+		return prefix + String.join(FOLDER_SEPARATOR, pathElements);
+	}
 
+	private static List<String> splitIntoPathElements(String pathToUse) {
 		String[] pathArray = StringUtils.splitPreserveAllTokens(pathToUse, FOLDER_SEPARATOR);
 		List<String> pathElements = new LinkedList<>();
 		int tops = 0;
@@ -456,8 +463,7 @@ final class HierarchicalUriComponents extends UriComponents {
 		for (int i = 0; i < tops; i++) {
 			pathElements.add(0, TOP_PATH);
 		}
-
-		return prefix + String.join(FOLDER_SEPARATOR, pathElements);
+		return pathElements;
 	}
 
 
@@ -1067,5 +1073,4 @@ final class HierarchicalUriComponents extends UriComponents {
 			return newArray;
 		}
 	}
-
 }

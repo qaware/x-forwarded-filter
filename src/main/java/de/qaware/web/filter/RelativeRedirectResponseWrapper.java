@@ -55,14 +55,13 @@ class RelativeRedirectResponseWrapper extends HttpServletResponseWrapper {
 		return (hasWrapper(response) ? response : new RelativeRedirectResponseWrapper(response, redirectStatus));
 	}
 
-	@SuppressWarnings("squid:S1226")
 	private static boolean hasWrapper(ServletResponse response) {
 		if (response instanceof RelativeRedirectResponseWrapper) {
 			return true;
 		}
 		while (response instanceof HttpServletResponseWrapper) {
-			response = ((HttpServletResponseWrapper) response).getResponse();
-			if (response instanceof RelativeRedirectResponseWrapper) {
+			ServletResponse unwrapedResponse = ((HttpServletResponseWrapper) response).getResponse();
+			if (unwrapedResponse instanceof RelativeRedirectResponseWrapper) {
 				return true;
 			}
 		}
