@@ -17,23 +17,23 @@ Supported Http Headers:
   - `X-forwarded-Prefix`
 
 
-TOC
-  - Why would i use this filter?
-  - What this filter is not
-  -  Usage
-    - SpringBoot
-      - Websphere liberty:
-    - Disable other (x-)forwarded* header processing in various products
-      - Websphere liberty:
-      - Spring
-      - Tomcat
-  - Implementation Details
-  - How to Build 
-  - (x-)forwarded* support in various products
+# TOC
+  - [Why would i use this filter?](#why-would-i-use-this-filter)
+  - [What this filter is not](#what-this-filter-is-not)
+  -  [Usage](#usage)
+    - [SpringBoot](#springboot)
+      - [Websphere liberty]()
+    - [Disable other (x-)forwarded* header processing in various products]()
+      - [Websphere liberty](#websphere-liberty)
+      - [Spring](#spring)
+      - [Tomcat](#tomcat)
+  - [Implementation Details](#implementation-details)
+  - [How to Build](#how-to-build)
+  - [(x-)forwarded* support in various products](#x-forwarded-support-in-various-products)
 
 ## Why would i use this filter?
-a. Imagine your applications sits behind a proxy or a chain of proxies
-b. Imagine your application is reachable over different DNS names 
+1. Imagine your applications sits behind a proxy or a chain of proxies
+2. Imagine your application is reachable over different DNS names 
  
 Now you require, for whatever reason, the exact URL - as the client calling you sees it - your where called with.
 For example because you want to redirect you client to another URL/Service (e.g. a login service), lets call this service 'FOO' and you require 'FOO' to send the user back to you after he's done - hence requiring your service to tell 'FOO' the exact URL as the clients browser used to contact you in order to send him back to you.
@@ -94,7 +94,7 @@ Based on [Springs ForwardedHeaderFilter](https://github.com/spring-projects/spri
    - `REPLACE` the Context-Path of the Application with the (first) value from `X-forwarded-Prefix`
      -  example:
  
-## Build 
+## How to build 
 Based on Gradle. First trigger of build will take longer and download the buildtool.
 execute:
 `gradlew build`
