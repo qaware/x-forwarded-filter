@@ -49,10 +49,8 @@ class RelativeRedirectResponseWrapper extends HttpServletResponseWrapper {
 	}
 
 
-	public static HttpServletResponse wrapIfNecessary(HttpServletResponse response,
-	                                                  int redirectStatus) {
-
-		return (hasWrapper(response) ? response : new RelativeRedirectResponseWrapper(response, redirectStatus));
+	public static HttpServletResponse wrapIfNecessary(HttpServletResponse response, int redirectStatus) {
+		return hasWrapper(response) ? response : new RelativeRedirectResponseWrapper(response, redirectStatus);
 	}
 
 	private static boolean hasWrapper(ServletResponse response) {

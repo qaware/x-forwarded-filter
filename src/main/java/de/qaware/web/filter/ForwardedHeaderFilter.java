@@ -80,10 +80,13 @@ public class ForwardedHeaderFilter extends OncePerRequestFilter {
 			ForwardedHeaderRemovingRequest theRequest = new ForwardedHeaderRemovingRequest(request);
 			filterChain.doFilter(theRequest, response);
 		} else {
-			HttpServletRequest theRequest = new ForwardedHeaderExtractingRequest(request);
-			HttpServletResponse theResponse = (this.relativeRedirects ?
-					RelativeRedirectResponseWrapper.wrapIfNecessary(response, WebUtilsConstants.SEE_OTHER) :
-					new ForwardedHeaderExtractingResponse(response, theRequest));
+			final HttpServletRequest theRequest = new ForwardedHeaderExtractingRequest(request);
+			final HttpServletResponse theResponse;
+			if (this.relativeRedirects) {
+				theResponse = RelativeRedirectResponseWrapper.wrapIfNecessary(response, WebUtilsConstants.SEE_OTHER);
+			}else{
+				theResponse = new ForwardedHeaderExtractingResponse(response, theRequest);
+			}
 			filterChain.doFilter(theRequest, theResponse);
 		}
 	}
