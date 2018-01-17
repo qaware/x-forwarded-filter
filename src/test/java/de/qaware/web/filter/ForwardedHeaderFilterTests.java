@@ -36,6 +36,7 @@ import java.util.Map;
 
 import static de.qaware.web.filter.ForwardedHeaderConstants.ENABLE_RELATIVE_REDIRECTS_INIT_PARAM;
 import static de.qaware.web.filter.ForwardedHeaderConstants.REMOVE_ONLY_INIT_PARAM;
+import static de.qaware.web.util.ForwardedHeader.*;
 import static org.junit.Assert.*;
 
 /**
@@ -47,19 +48,13 @@ import static org.junit.Assert.*;
  */
 public class ForwardedHeaderFilterTests {
 
-	private static final String X_FORWARDED_PROTO = "x-forwarded-proto";  // SPR-14372 (case insensitive)
-	private static final String X_FORWARDED_HOST = "x-forwarded-host";
-	private static final String X_FORWARDED_PORT = "x-forwarded-port";
-	private static final String X_FORWARDED_PREFIX = "x-forwarded-prefix";
 	public static final String UNIT_TEST_FORWARED_FILTER = "unitTestForwaredFilter";
-
 
 	private ForwardedHeaderFilter filter;
 
 	private MockHttpServletRequest request;
 
 	private MockFilterChain filterChain;
-
 
 	@Before
 	@SuppressWarnings("serial")
@@ -86,25 +81,25 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void contextPathEmpty() throws Exception {
-		this.request.addHeader(X_FORWARDED_PREFIX, "");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "");
 		assertEquals("", filterAndGetContextPath());
 	}
 
 	@Test
 	public void contextPathWithTrailingSlash() throws Exception {
-		this.request.addHeader(X_FORWARDED_PREFIX, "/foo/bar/");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/foo/bar/");
 		assertEquals("/foo/bar", filterAndGetContextPath());
 	}
 
 	@Test
 	public void contextPathWithTrailingSlashes() throws Exception {
-		this.request.addHeader(X_FORWARDED_PREFIX, "/foo/bar/baz///");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/foo/bar/baz///");
 		assertEquals("/foo/bar/baz", filterAndGetContextPath());
 	}
 
 	@Test
 	public void contextPathWithForwardedPrefix() throws Exception {
-		this.request.addHeader(X_FORWARDED_PREFIX, "/prefix");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
 		this.request.setContextPath("/mvc-showcase");
 
 		String actual = filterAndGetContextPath();
@@ -113,7 +108,7 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void contextPathWithForwardedPrefixTrailingSlash() throws Exception {
-		this.request.addHeader(X_FORWARDED_PREFIX, "/prefix/");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix/");
 		this.request.setContextPath("/mvc-showcase");
 
 		String actual = filterAndGetContextPath();
@@ -133,7 +128,7 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void requestUri() throws Exception {
-		this.request.addHeader(X_FORWARDED_PREFIX, "/");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/");
 		this.request.setContextPath("/app");
 		this.request.setRequestURI("/app/path");
 		HttpServletRequest actual = filterAndGetWrappedRequest();
@@ -144,7 +139,7 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void requestUriWithTrailingSlash() throws Exception {
-		this.request.addHeader(X_FORWARDED_PREFIX, "/");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/");
 		this.request.setContextPath("/app");
 		this.request.setRequestURI("/app/path/");
 		HttpServletRequest actual = filterAndGetWrappedRequest();
@@ -166,7 +161,7 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void requestUriEqualsContextPath() throws Exception {
-		this.request.addHeader(X_FORWARDED_PREFIX, "/");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/");
 		this.request.setContextPath("/app");
 		this.request.setRequestURI("/app");
 		HttpServletRequest actual = filterAndGetWrappedRequest();
@@ -177,7 +172,7 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void requestUriRootUrl() throws Exception {
-		this.request.addHeader(X_FORWARDED_PREFIX, "/");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/");
 		this.request.setContextPath("/app");
 		this.request.setRequestURI("/app/");
 		HttpServletRequest actual = filterAndGetWrappedRequest();
@@ -213,7 +208,7 @@ public class ForwardedHeaderFilterTests {
 				return null;
 			}
 		};
-		this.request.addHeader(X_FORWARDED_PREFIX, "/prefix");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
 		this.request.setRequestURI("/path");
 		HttpServletRequest actual = filterAndGetWrappedRequest();
 
@@ -222,10 +217,10 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void shouldFilter() throws Exception {
-		testShouldFilter("Forwarded");
-		testShouldFilter(X_FORWARDED_HOST);
-		testShouldFilter(X_FORWARDED_PORT);
-		testShouldFilter(X_FORWARDED_PROTO);
+		testShouldFilter(FORWARDED.headerName());
+		testShouldFilter(X_FORWARDED_HOST.headerName());
+		testShouldFilter(X_FORWARDED_PORT.headerName());
+		testShouldFilter(X_FORWARDED_PROTO.headerName());
 	}
 
 	@Test
@@ -236,9 +231,9 @@ public class ForwardedHeaderFilterTests {
 	@Test
 	public void forwardedRequest() throws Exception {
 		this.request.setRequestURI("/mvc-showcase");
-		this.request.addHeader(X_FORWARDED_PROTO, "https");
-		this.request.addHeader(X_FORWARDED_HOST, "84.198.58.199");
-		this.request.addHeader(X_FORWARDED_PORT, "443");
+		this.request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		this.request.addHeader(X_FORWARDED_HOST.headerName(), "84.198.58.199");
+		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 		this.request.addHeader("foo", "bar");
 
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
@@ -250,18 +245,18 @@ public class ForwardedHeaderFilterTests {
 		assertEquals(443, actual.getServerPort());
 		assertTrue(actual.isSecure());
 
-		assertNull(actual.getHeader(X_FORWARDED_PROTO));
-		assertNull(actual.getHeader(X_FORWARDED_HOST));
-		assertNull(actual.getHeader(X_FORWARDED_PORT));
+		assertNull(actual.getHeader(X_FORWARDED_PROTO.headerName()));
+		assertNull(actual.getHeader(X_FORWARDED_HOST.headerName()));
+		assertNull(actual.getHeader(X_FORWARDED_PORT.headerName()));
 		assertEquals("bar", actual.getHeader("foo"));
 	}
 
 	@Test
 	public void forwardedRequestInRemoveOnlyMode() throws Exception {
 		this.request.setRequestURI("/mvc-showcase");
-		this.request.addHeader(X_FORWARDED_PROTO, "https");
-		this.request.addHeader(X_FORWARDED_HOST, "84.198.58.199");
-		this.request.addHeader(X_FORWARDED_PORT, "443");
+		this.request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		this.request.addHeader(X_FORWARDED_HOST.headerName(), "84.198.58.199");
+		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 		this.request.addHeader("foo", "bar");
 
 		this.filter = initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(REMOVE_ONLY_INIT_PARAM, "true"));
@@ -274,15 +269,15 @@ public class ForwardedHeaderFilterTests {
 		assertEquals(80, actual.getServerPort());
 		assertFalse(actual.isSecure());
 
-		assertNull(actual.getHeader(X_FORWARDED_PROTO));
-		assertNull(actual.getHeader(X_FORWARDED_HOST));
-		assertNull(actual.getHeader(X_FORWARDED_PORT));
+		assertNull(actual.getHeader(X_FORWARDED_PROTO.headerName()));
+		assertNull(actual.getHeader(X_FORWARDED_HOST.headerName()));
+		assertNull(actual.getHeader(X_FORWARDED_PORT.headerName()));
 		assertEquals("bar", actual.getHeader("foo"));
 	}
 
 	@Test
 	public void requestUriWithForwardedPrefix() throws Exception {
-		this.request.addHeader(X_FORWARDED_PREFIX, "/prefix");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
 		this.request.setRequestURI("/mvc-showcase");
 
 		HttpServletRequest actual = filterAndGetWrappedRequest();
@@ -291,7 +286,7 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void requestUriWithForwardedPrefixTrailingSlash() throws Exception {
-		this.request.addHeader(X_FORWARDED_PREFIX, "/prefix/");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix/");
 		this.request.setRequestURI("/mvc-showcase");
 
 		HttpServletRequest actual = filterAndGetWrappedRequest();
@@ -300,7 +295,7 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void requestURLNewStringBuffer() throws Exception {
-		this.request.addHeader(X_FORWARDED_PREFIX, "/prefix/");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix/");
 		this.request.setRequestURI("/mvc-showcase");
 
 		HttpServletRequest actual = filterAndGetWrappedRequest();
@@ -310,9 +305,9 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void sendRedirectWithAbsolutePath() throws Exception {
-		this.request.addHeader(X_FORWARDED_PROTO, "https");
-		this.request.addHeader(X_FORWARDED_HOST, "example.com");
-		this.request.addHeader(X_FORWARDED_PORT, "443");
+		this.request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		this.request.addHeader(X_FORWARDED_HOST.headerName(), "example.com");
+		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 
 		String redirectedUrl = sendRedirect("/foo/bar");
 		assertEquals("https://example.com/foo/bar", redirectedUrl);
@@ -320,9 +315,9 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void sendRedirectWithContextPath() throws Exception {
-		this.request.addHeader(X_FORWARDED_PROTO, "https");
-		this.request.addHeader(X_FORWARDED_HOST, "example.com");
-		this.request.addHeader(X_FORWARDED_PORT, "443");
+		this.request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		this.request.addHeader(X_FORWARDED_HOST.headerName(), "example.com");
+		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 		this.request.setContextPath("/context");
 
 		String redirectedUrl = sendRedirect("/context/foo/bar");
@@ -331,9 +326,9 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void sendRedirectWithRelativePath() throws Exception {
-		this.request.addHeader(X_FORWARDED_PROTO, "https");
-		this.request.addHeader(X_FORWARDED_HOST, "example.com");
-		this.request.addHeader(X_FORWARDED_PORT, "443");
+		this.request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		this.request.addHeader(X_FORWARDED_HOST.headerName(), "example.com");
+		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 		this.request.setRequestURI("/parent/");
 
 		String redirectedUrl = sendRedirect("foo/bar");
@@ -342,9 +337,9 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void sendRedirectWithFileInPathAndRelativeRedirect() throws Exception {
-		this.request.addHeader(X_FORWARDED_PROTO, "https");
-		this.request.addHeader(X_FORWARDED_HOST, "example.com");
-		this.request.addHeader(X_FORWARDED_PORT, "443");
+		this.request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		this.request.addHeader(X_FORWARDED_HOST.headerName(), "example.com");
+		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 		this.request.setRequestURI("/context/a");
 
 		String redirectedUrl = sendRedirect("foo/bar");
@@ -353,9 +348,9 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void sendRedirectWithRelativePathIgnoresFile() throws Exception {
-		this.request.addHeader(X_FORWARDED_PROTO, "https");
-		this.request.addHeader(X_FORWARDED_HOST, "example.com");
-		this.request.addHeader(X_FORWARDED_PORT, "443");
+		this.request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		this.request.addHeader(X_FORWARDED_HOST.headerName(), "example.com");
+		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 		this.request.setRequestURI("/parent");
 
 		String redirectedUrl = sendRedirect("foo/bar");
@@ -364,9 +359,9 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void sendRedirectWithLocationDotDotPath() throws Exception {
-		this.request.addHeader(X_FORWARDED_PROTO, "https");
-		this.request.addHeader(X_FORWARDED_HOST, "example.com");
-		this.request.addHeader(X_FORWARDED_PORT, "443");
+		this.request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		this.request.addHeader(X_FORWARDED_HOST.headerName(), "example.com");
+		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 
 		String redirectedUrl = sendRedirect("parent/../foo/bar");
 		assertEquals("https://example.com/foo/bar", redirectedUrl);
@@ -374,9 +369,9 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void sendRedirectWithLocationHasScheme() throws Exception {
-		this.request.addHeader(X_FORWARDED_PROTO, "https");
-		this.request.addHeader(X_FORWARDED_HOST, "example.com");
-		this.request.addHeader(X_FORWARDED_PORT, "443");
+		this.request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		this.request.addHeader(X_FORWARDED_HOST.headerName(), "example.com");
+		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 
 		String location = "http://other.info/foo/bar";
 		String redirectedUrl = sendRedirect(location);
@@ -385,9 +380,9 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void sendRedirectWithLocationSlashSlash() throws Exception {
-		this.request.addHeader(X_FORWARDED_PROTO, "https");
-		this.request.addHeader(X_FORWARDED_HOST, "example.com");
-		this.request.addHeader(X_FORWARDED_PORT, "443");
+		this.request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		this.request.addHeader(X_FORWARDED_HOST.headerName(), "example.com");
+		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 
 		String location = "//other.info/foo/bar";
 		String redirectedUrl = sendRedirect(location);
@@ -396,9 +391,9 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void sendRedirectWithLocationSlashSlashParentDotDot() throws Exception {
-		this.request.addHeader(X_FORWARDED_PROTO, "https");
-		this.request.addHeader(X_FORWARDED_HOST, "example.com");
-		this.request.addHeader(X_FORWARDED_PORT, "443");
+		this.request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		this.request.addHeader(X_FORWARDED_HOST.headerName(), "example.com");
+		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 
 		String location = "//other.info/parent/../foo/bar";
 		String redirectedUrl = sendRedirect(location);
@@ -419,9 +414,9 @@ public class ForwardedHeaderFilterTests {
 
 	@Test
 	public void sendRedirectWhenRequestOnlyAndXForwardedThenUsesRelativeRedirects() throws Exception {
-		this.request.addHeader(X_FORWARDED_PROTO, "https");
-		this.request.addHeader(X_FORWARDED_HOST, "example.com");
-		this.request.addHeader(X_FORWARDED_PORT, "443");
+		this.request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		this.request.addHeader(X_FORWARDED_HOST.headerName(), "example.com");
+		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 
 		initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(ENABLE_RELATIVE_REDIRECTS_INIT_PARAM, "true"));
 		filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);

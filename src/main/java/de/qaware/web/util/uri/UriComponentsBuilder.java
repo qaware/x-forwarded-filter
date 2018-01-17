@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static de.qaware.web.util.ForwardedHeader.*;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 
@@ -725,7 +726,7 @@ public class UriComponentsBuilder  {
 	 * @since 4.2.7
 	 */
 	private UriComponentsBuilder adaptFromForwardedHeaders(HttpHeaders headers) {
-		String forwardedHeader = headers.getFirst("Forwarded");
+		String forwardedHeader = headers.getFirst(FORWARDED.headerName());
 
 		if (isNotBlank(forwardedHeader)) {
 			adaptForwardedHeader(forwardedHeader);
@@ -755,21 +756,21 @@ public class UriComponentsBuilder  {
 	}
 
 	private void adaptXForwardedProto(HttpHeaders headers) {
-		String protocolHeader = headers.getFirst("X-Forwarded-Proto");
+		String protocolHeader = headers.getFirst(X_FORWARDED_PROTO.headerName());
 		if (isNotBlank(protocolHeader)) {
 			scheme(getFirstValueToken(protocolHeader, ","));
 		}
 	}
 
 	private void adaptXForwardedPort(HttpHeaders headers) {
-		String portHeader = headers.getFirst("X-Forwarded-Port");
+		String portHeader = headers.getFirst(X_FORWARDED_PORT.headerName());
 		if (isNotBlank(portHeader)) {
 			port(Integer.parseInt(getFirstValueToken(portHeader, ",")));
 		}
 	}
 
 	private void adaptXForwardedHost(HttpHeaders headers) {
-		String hostHeader = headers.getFirst("X-Forwarded-Host");
+		String hostHeader = headers.getFirst(X_FORWARDED_HOST.headerName());
 		if (isNotBlank(hostHeader)) {
 			adaptForwardedHost(getFirstValueToken(hostHeader, ","));
 		}

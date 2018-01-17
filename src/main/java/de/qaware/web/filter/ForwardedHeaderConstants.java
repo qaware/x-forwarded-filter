@@ -1,10 +1,6 @@
 package de.qaware.web.filter;
 
-import org.apache.commons.collections4.map.CaseInsensitiveMap;
-
 import javax.servlet.http.HttpServletResponse;
-import java.util.Collections;
-import java.util.Set;
 
 /**
  *
@@ -32,16 +28,4 @@ class ForwardedHeaderConstants {
 	 */
 	public static final String REMOVE_ONLY_INIT_PARAM = "removeOnly";
 
-
-	protected static final Set<String> FORWARDED_HEADER_NAMES;
-
-	static {
-		Set<String> headerNames = Collections.newSetFromMap(new CaseInsensitiveMap<>(5));
-		headerNames.add("Forwarded");
-		headerNames.add("X-Forwarded-Host");
-		headerNames.add("X-Forwarded-Port");
-		headerNames.add("X-Forwarded-Proto");
-		headerNames.add("X-Forwarded-Prefix");
-		FORWARDED_HEADER_NAMES=headerNames;
-	}
 }

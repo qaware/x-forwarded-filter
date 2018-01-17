@@ -7,6 +7,7 @@ import de.qaware.web.util.uri.UriComponentsBuilder;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
 
+import static de.qaware.web.util.ForwardedHeader.X_FORWARDED_PREFIX;
 import static de.qaware.web.util.uri.UriComponents.PATH_DELIMITER_STRING;
 
 /**
@@ -58,8 +59,10 @@ class ForwardedHeaderExtractingRequest extends ForwardedHeaderRemovingRequest {
 		Enumeration<String> names = request.getHeaderNames();
 		while (names.hasMoreElements()) {
 			String name = names.nextElement();
-			if ("X-Forwarded-Prefix".equalsIgnoreCase(name)) {
+			if (X_FORWARDED_PREFIX.headerName().equalsIgnoreCase(name)) {
 				prefix = request.getHeader(name);
+				//FIXME! validate this statement: i think we should use the "first found" as it is probably the header form the most outer proxy
+				//do NOT break here. maybe we have multiple headers
 			}
 		}
 		if (prefix != null) {

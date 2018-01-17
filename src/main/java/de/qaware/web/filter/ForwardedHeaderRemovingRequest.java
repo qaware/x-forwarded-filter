@@ -1,6 +1,7 @@
 package de.qaware.web.filter;
 
 
+import de.qaware.web.util.ForwardedHeader;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 
@@ -28,7 +29,7 @@ class ForwardedHeaderRemovingRequest extends HttpServletRequestWrapper {
 		Enumeration<String> names = request.getHeaderNames();
 		while (names.hasMoreElements()) {
 			String name = names.nextElement();
-			if (!ForwardedHeaderConstants.FORWARDED_HEADER_NAMES.contains(name)) {
+			if (!ForwardedHeader.isForwardedHeader(name)) {
 				headers.put(name, Collections.list(request.getHeaders(name)));
 			}
 		}

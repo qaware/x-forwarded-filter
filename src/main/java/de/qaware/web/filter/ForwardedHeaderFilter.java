@@ -14,6 +14,7 @@ package de.qaware.web.filter;/*
  * limitations under the License.
  */
 
+import de.qaware.web.util.ForwardedHeader;
 import de.qaware.web.util.WebUtilsConstants;
 
 import javax.servlet.FilterChain;
@@ -66,7 +67,7 @@ public class ForwardedHeaderFilter extends OncePerRequestFilter {
 		Enumeration<String> names = request.getHeaderNames();
 		while (names.hasMoreElements()) {
 			String name = names.nextElement();
-			if (ForwardedHeaderConstants.FORWARDED_HEADER_NAMES.contains(name)) {
+			if (ForwardedHeader.isForwardedHeader(name)) {
 				return false;
 			}
 		}

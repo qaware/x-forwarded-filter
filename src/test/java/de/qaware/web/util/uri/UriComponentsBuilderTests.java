@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static de.qaware.web.util.ForwardedHeader.*;
 import static de.qaware.web.util.uri.UriComponentsBuilder.fromUriString;
 import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -259,9 +260,9 @@ public class UriComponentsBuilderTests {
 	@Test // SPR-12771
 	public void fromHttpRequestResetsPortBeforeSettingIt() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.addHeader("X-Forwarded-Proto", "https");
-		request.addHeader("X-Forwarded-Host", "84.198.58.199");
-		request.addHeader("X-Forwarded-Port", 443);
+		request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		request.addHeader(X_FORWARDED_HOST.headerName(), "84.198.58.199");
+		request.addHeader(X_FORWARDED_PORT.headerName(), 443);
 		request.setScheme("http");
 		request.setServerName("example.com");
 		request.setServerPort(80);
@@ -282,7 +283,7 @@ public class UriComponentsBuilderTests {
 		request.setServerName("localhost");
 		request.setServerPort(-1);
 		request.setRequestURI("/mvc-showcase");
-		request.addHeader("Forwarded", "host=192.168.0.1");
+		request.addHeader(FORWARDED.headerName(), "host=192.168.0.1");
 
 		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
 
@@ -296,7 +297,7 @@ public class UriComponentsBuilderTests {
 		request.setServerName("localhost");
 		request.setServerPort(-1);
 		request.setRequestURI("/mvc-showcase");
-		request.addHeader("Forwarded", "host=[1abc:2abc:3abc::5ABC:6abc]");
+		request.addHeader(FORWARDED.headerName(), "host=[1abc:2abc:3abc::5ABC:6abc]");
 
 		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
 
@@ -310,7 +311,7 @@ public class UriComponentsBuilderTests {
 		request.setServerName("localhost");
 		request.setServerPort(-1);
 		request.setRequestURI("/mvc-showcase");
-		request.addHeader("X-Forwarded-Host", "[1abc:2abc:3abc::5ABC:6abc]");
+		request.addHeader(X_FORWARDED_HOST.headerName(), "[1abc:2abc:3abc::5ABC:6abc]");
 
 		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
 
@@ -324,7 +325,7 @@ public class UriComponentsBuilderTests {
 		request.setServerName("localhost");
 		request.setServerPort(-1);
 		request.setRequestURI("/mvc-showcase");
-		request.addHeader("X-Forwarded-Host", "[1abc:2abc:3abc::5ABC:6abc]:8080");
+		request.addHeader(X_FORWARDED_HOST.headerName(), "[1abc:2abc:3abc::5ABC:6abc]:8080");
 
 		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
 
@@ -339,7 +340,7 @@ public class UriComponentsBuilderTests {
 		request.setServerName("localhost");
 		request.setServerPort(-1);
 		request.setRequestURI("/mvc-showcase");
-		request.addHeader("X-Forwarded-Host", "anotherHost");
+		request.addHeader(X_FORWARDED_HOST.headerName(), "anotherHost");
 
 		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
 
@@ -353,7 +354,7 @@ public class UriComponentsBuilderTests {
 		request.setServerName("localhost");
 		request.setServerPort(-1);
 		request.setRequestURI("/mvc-showcase");
-		request.addHeader("X-Forwarded-Host", "webtest.foo.bar.com:443");
+		request.addHeader(X_FORWARDED_HOST.headerName(), "webtest.foo.bar.com:443");
 
 
 		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
@@ -368,7 +369,7 @@ public class UriComponentsBuilderTests {
 		request.setScheme("http");
 		request.setServerName("localhost");
 		request.setServerPort(-1);
-		request.addHeader("X-Forwarded-Host", "a.example.org, b.example.org, c.example.org");
+		request.addHeader(X_FORWARDED_HOST.headerName(), "a.example.org, b.example.org, c.example.org");
 
 
 		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
@@ -383,8 +384,8 @@ public class UriComponentsBuilderTests {
 		request.setScheme("http");
 		request.setServerName("localhost");
 		request.setServerPort(8080);
-		request.addHeader("X-Forwarded-Host", "foobarhost");
-		request.addHeader("X-Forwarded-Port", "9090");
+		request.addHeader(X_FORWARDED_HOST.headerName(), "foobarhost");
+		request.addHeader(X_FORWARDED_PORT.headerName(), "9090");
 
 
 		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
@@ -399,7 +400,7 @@ public class UriComponentsBuilderTests {
 		request.setScheme("http");
 		request.setServerName("localhost");
 		request.setServerPort(10080);
-		request.addHeader("X-Forwarded-Host", "example.org");
+		request.addHeader(X_FORWARDED_HOST.headerName(), "example.org");
 
 
 		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
@@ -415,8 +416,8 @@ public class UriComponentsBuilderTests {
 		request.setScheme("http");
 		request.setServerName("localhost");
 		request.setServerPort(10080);
-		request.addHeader("X-Forwarded-Host", "example.org");
-		request.addHeader("X-Forwarded-Proto", "https");
+		request.addHeader(X_FORWARDED_HOST.headerName(), "example.org");
+		request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
 
 
 		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
@@ -433,9 +434,9 @@ public class UriComponentsBuilderTests {
 		request.setServerName("localhost");
 		request.setServerPort(80);
 		request.setRequestURI("/mvc-showcase");
-		request.addHeader("X-Forwarded-Proto", "https");
-		request.addHeader("X-Forwarded-Host", "84.198.58.199");
-		request.addHeader("X-Forwarded-Port", "443");
+		request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		request.addHeader(X_FORWARDED_HOST.headerName(), "84.198.58.199");
+		request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 
 
 		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
@@ -450,8 +451,8 @@ public class UriComponentsBuilderTests {
 		request.setServerName("localhost");
 		request.setServerPort(9090);
 		request.setRequestURI("/mvc-showcase");
-		request.addHeader("X-Forwarded-Host", "a.example.org");
-		request.addHeader("X-Forwarded-Port", "80,52022");
+		request.addHeader(X_FORWARDED_HOST.headerName(), "a.example.org");
+		request.addHeader(X_FORWARDED_PORT.headerName(), "80,52022");
 
 
 		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
@@ -466,9 +467,9 @@ public class UriComponentsBuilderTests {
 		request.setServerName("localhost");
 		request.setServerPort(8080);
 		request.setRequestURI("/mvc-showcase");
-		request.addHeader("X-Forwarded-Host", "a.example.org");
-		request.addHeader("X-Forwarded-Port", "443");
-		request.addHeader("X-Forwarded-Proto", "https,https");
+		request.addHeader(X_FORWARDED_HOST.headerName(), "a.example.org");
+		request.addHeader(X_FORWARDED_PORT.headerName(), "443");
+		request.addHeader(X_FORWARDED_PROTO.headerName(), "https,https");
 
 
 		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
@@ -730,7 +731,7 @@ public class UriComponentsBuilderTests {
 	@Test // SPR-11856
 	public void fromHttpRequestForwardedHeader() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.addHeader("Forwarded", "proto=https; host=84.198.58.199");
+		request.addHeader(FORWARDED.headerName(), "proto=https; host=84.198.58.199");
 		request.setScheme("http");
 		request.setServerName("example.com");
 		request.setRequestURI("/rest/mobile/users/1");
@@ -746,7 +747,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void fromHttpRequestForwardedHeaderQuoted() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.addHeader("Forwarded", "proto=\"https\"; host=\"84.198.58.199\"");
+		request.addHeader(FORWARDED.headerName(), "proto=\"https\"; host=\"84.198.58.199\"");
 		request.setScheme("http");
 		request.setServerName("example.com");
 		request.setRequestURI("/rest/mobile/users/1");
@@ -762,8 +763,8 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void fromHttpRequestMultipleForwardedHeader() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.addHeader("Forwarded", "host=84.198.58.199;proto=https");
-		request.addHeader("Forwarded", "proto=ftp; host=1.2.3.4");
+		request.addHeader(FORWARDED.headerName(), "host=84.198.58.199;proto=https");
+		request.addHeader(FORWARDED.headerName(), "proto=ftp; host=1.2.3.4");
 		request.setScheme("http");
 		request.setServerName("example.com");
 		request.setRequestURI("/rest/mobile/users/1");
@@ -779,7 +780,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void fromHttpRequestMultipleForwardedHeaderComma() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.addHeader("Forwarded", "host=84.198.58.199 ;proto=https, proto=ftp; host=1.2.3.4");
+		request.addHeader(FORWARDED.headerName(), "host=84.198.58.199 ;proto=https, proto=ftp; host=1.2.3.4");
 		request.setScheme("http");
 		request.setServerName("example.com");
 		request.setRequestURI("/rest/mobile/users/1");
@@ -795,7 +796,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void fromHttpRequestForwardedHeaderWithHostPortAndWithoutServerPort() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.addHeader("Forwarded", "proto=https; host=84.198.58.199:9090");
+		request.addHeader(FORWARDED.headerName(), "proto=https; host=84.198.58.199:9090");
 		request.setScheme("http");
 		request.setServerName("example.com");
 		request.setRequestURI("/rest/mobile/users/1");
@@ -813,7 +814,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void fromHttpRequestForwardedHeaderWithHostPortAndServerPort() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.addHeader("Forwarded", "proto=https; host=84.198.58.199:9090");
+		request.addHeader(FORWARDED.headerName(), "proto=https; host=84.198.58.199:9090");
 		request.setScheme("http");
 		request.setServerPort(8080);
 		request.setServerName("example.com");
@@ -832,7 +833,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void fromHttpRequestForwardedHeaderWithoutHostPortAndWithServerPort() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
-		request.addHeader("Forwarded", "proto=https; host=84.198.58.199");
+		request.addHeader(FORWARDED.headerName(), "proto=https; host=84.198.58.199");
 		request.setScheme("http");
 		request.setServerPort(8080);
 		request.setServerName("example.com");
