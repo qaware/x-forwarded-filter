@@ -58,7 +58,7 @@ final class HierarchicalUriComponents extends UriComponents {
 
 	//MultiValuedMap interface does not implement Serializable but all know implementations of it do.
 	@SuppressWarnings("squid:S1948") //the IF does not implement serializable but impls do
-	private final transient MultiValuedMap<String, String> queryParams;
+	private final MultiValuedMap<String, String> queryParams;
 
 	private final boolean encoded;
 
