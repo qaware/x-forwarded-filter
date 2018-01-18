@@ -426,6 +426,24 @@ public class ForwardedHeaderFilterTests {
 	}
 
 	@Test
+	public void rfc7239ForwardedRequestCaseInsensitive() throws Exception {
+		this.request.setRequestURI("/mvc-showcase");
+		this.request.addHeader(FORWARDED.headerName().toUpperCase(), "FORWARDED: FOR=192.0.2.60; PROTO=https; HOST=84.198.58.199:443");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
+		this.request.addHeader("foo", "bar");
+
+		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
+		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
+
+		assertEquals("https://84.198.58.199/prefix/mvc-showcase", actual.getRequestURL().toString());
+		assertEquals("https", actual.getScheme());
+		assertEquals("84.198.58.199", actual.getServerName());
+		assertEquals(443, actual.getServerPort());
+		assertEquals("/prefix", actual.getContextPath());
+		assertTrue(actual.isSecure());
+	}
+
+	@Test
 	public void rfc7239ForwardedRequestWithCommaSpaceDelimitedValues() throws Exception {
 		this.request.setRequestURI("/mvc-showcase");
 		this.request.addHeader(FORWARDED.headerName(), "Forwarded: for=192.0.2.60; proto=https; host=84.198.58.199:443, for=2.2.2.2; proto=secondProto; host=22.22.22.22:22");
