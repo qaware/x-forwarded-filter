@@ -6,17 +6,25 @@ Standalone (x-)forwarded* Filter.
 
 The (x-)forwarded*  Http Headers are a Pseudostandard with varying and mostly lacking support in most products.
 
-Features:
-- Supports adapting the scheme, host, port and prefix of `HttpServletRequest`'s by replacing them transparently using the information from the (x-)forwarded* header(s).
-- Supports `HttpServletResponse.sendRedirect(location)` by rewriting them accordingly
-
 Supported Http Headers:
 -  `Forwarded` [as of RFC 7239](http://tools.ietf.org/html/rfc7239)
 - or if `Forwarded` header is NOT found:
   - `X-Forwarded-Host`
   - `X-Forwarded-Port`
   - `X-Forwarded-Proto`
-- Additionally for both cases: `X-Forwarded-Prefix`
+- Additionally for both cases: `X-Forwarded-Prefix` to adapt the `getContextPath` result is supported.
+
+Features:
+- Supports adapting the scheme, host, port and prefix(contextPath) of `HttpServletRequest`'s by replacing them transparently using the information from the (x-)forwarded* header(s).
+- Supports `HttpServletResponse.sendRedirect(location)` by rewriting them accordingly
+- Processing of headers and extracting parts (e.g. form `Forwarded` ) is case insensitive
+  - valid: X-Forwarded-Host, x-forwarded-host, X-FORWARED-HOST,..
+- Supports multiple headers of same name in request -> use Find-First-Strategy
+  - e.g.<br/>
+    X-Forwarded-Host: "hostA"<br/>
+    X-Forwarded-Host: "hostB"   => filter will use "hostA" 
+- Supports multiple COMMA-SPACE separated values inside a headers value ->use Find-First-Strategy
+  - e.g. X-Forwarded-Host: "hostA, hostB"  => filter will use "hostA"
 
 
 # TOC
