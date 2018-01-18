@@ -90,7 +90,7 @@ Based on [Springs ForwardedHeaderFilter](https://github.com/spring-projects/spri
  - without Spring dependency -> easily integrable into many projects
  - has toogle to NOT remove the evaluated headers from the request 
    - allows using this filter inside a Proxy to forward/append to these headers to downstram services (e.g. Zuul)
- - Selectable processing strategy for `X-Forward-Prefix`  
+ - Selectable processing strategy for `X-Forwarded-Prefix`  
    - `PREPEND` the Context-Path of the Application with the (first) value from `X-forwarded-Prefix`
      -  example:
    - `REPLACE` the Context-Path of the Application with the (first) value from `X-forwarded-Prefix`
@@ -121,7 +121,7 @@ execute:
 | Supports multiple Headers with same name  | YES         | YES          | YES    | NO                    | NO    | ?                                 | ? | 
 | Strip forwarded header from `Request`     | YES(toggle) | YES(always)  | ?      | ?                     | ?     | ?                                 | ? | 
 | Supports relative redirects in `Response` | YES         | YES          | NO     | NO                    | NO    | ?                                 | ? |
-| `X-Forward-Prefix` processing strategy    | PREPEND or REPLACE | REPLACE | ?    | ?                     | ?     | ?                                 | ? | 
+| `X-Forwarded-Prefix` processing strategy    | PREPEND or REPLACE | REPLACE | ?    | ?                     | ?     | ?                                 | ? | 
 
 
 | Header                 | Description |
