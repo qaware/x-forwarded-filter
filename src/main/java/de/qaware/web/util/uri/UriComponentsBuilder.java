@@ -32,6 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static de.qaware.web.util.ForwardedHeader.*;
+import static de.qaware.web.util.HttpServletRequestUtil.getFirstValueToken;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 
@@ -784,19 +785,6 @@ public class UriComponentsBuilder  {
 		return scheme != null && scheme.equals("https") && "443".equals(this.port);
 	}
 
-
-	/**
-	 * Returns first token only. e.g: value="123, 345, 678"  with delim="," will return "123"
-	 * or more formally: return value.substring(0,value.indexOf(delim));
-	 *
-	 * @param value value to be split
-	 * @param delimiter delimiter
-	 * @return first token
-	 */
-	private static String getFirstValueToken(String value, String delimiter) {
-		int pos = value.indexOf(delimiter);
-		return (pos == -1) ? value : value.substring(0, pos);
-	}
 
 	private void adaptForwardedHost(String hostToUse) {
 		int portSeparatorIdx = hostToUse.lastIndexOf(':');

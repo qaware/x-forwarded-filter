@@ -71,5 +71,19 @@ public class HttpServletRequestUtil {
 		}
 	}
 
-
+	/**
+	 * Returns first token only. e.g: value="123, 345, 678"  with delim="," will return "123"
+	 * or more formally: return value.substring(0,value.indexOf(delim));
+	 *
+	 * @param value value to be split
+	 * @param delimiter delimiter
+	 * @return first token or the original string
+	 */
+	public static String getFirstValueToken(String value, String delimiter) {
+		if(value == null){
+			return null;
+		}
+		int pos = value.indexOf(delimiter);
+		return (pos == -1) ? value : value.substring(0, pos);
+	}
 }

@@ -1,14 +1,15 @@
 package de.qaware.web.filter;
 
+import de.qaware.web.util.HttpServletRequestUtil;
 import de.qaware.web.util.UrlPathHelper;
 import de.qaware.web.util.uri.UriComponents;
 import de.qaware.web.util.uri.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Enumeration;
 
 import static de.qaware.web.util.ForwardedHeader.X_FORWARDED_PREFIX;
 import static de.qaware.web.util.uri.UriComponents.PATH_DELIMITER_STRING;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * Extract and use "Forwarded" or "X-Forwarded-*" headers.
@@ -55,17 +56,9 @@ class ForwardedHeaderExtractingRequest extends ForwardedHeaderRemovingRequest {
 
 	/*@Nullable*/
 	private static String getForwardedPrefix(HttpServletRequest request) {
-		String prefix = null;
-		Enumeration<String> names = request.getHeaderNames();
-		while (names.hasMoreElements()) {
-			String name = names.nextElement();
-			if (X_FORWARDED_PREFIX.headerName().equalsIgnoreCase(name)) {
-				prefix = request.getHeader(name);
-				//FIXME! validate this statement: i think we should use the "first found" as it is probably the header form the most outer proxy
-				//do NOT break here. maybe we have multiple headers
-			}
-		}
-		if (prefix != null) {
+		String prefix = HttpServletRequestUtil.getHeaders(request).getFirst(X_FORWARDED_PREFIX.headerName());
+		if (isNotBlank(prefix)) {
+			prefix = HttpServletRequestUtil.getFirstValueToken(prefix, ",");
 			while (prefix.endsWith(PATH_DELIMITER_STRING)) {
 				prefix = prefix.substring(0, prefix.length() - 1);
 			}
