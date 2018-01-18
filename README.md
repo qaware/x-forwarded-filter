@@ -16,7 +16,7 @@ Supported Http Headers:
   - `X-Forwarded-Host`
   - `X-Forwarded-Port`
   - `X-Forwarded-Proto`
-  - `X-forwarded-Prefix`
+- Additionally for both cases: `X-Forwarded-Prefix`
 
 
 # TOC
