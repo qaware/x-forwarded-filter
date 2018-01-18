@@ -34,8 +34,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map;
 
-import static de.qaware.web.filter.ForwardedHeaderConstants.ENABLE_RELATIVE_REDIRECTS_INIT_PARAM;
-import static de.qaware.web.filter.ForwardedHeaderConstants.REMOVE_ONLY_INIT_PARAM;
+import static de.qaware.web.filter.ForwardedHeaderConstants.*;
 import static de.qaware.web.util.ForwardedHeader.*;
 import static org.junit.Assert.*;
 
@@ -418,10 +417,7 @@ public class ForwardedHeaderFilterTests {
 		assertTrue(actual.isSecure());
 
 		//TODO only if 'remove' feature is is on
-		assertNull(actual.getHeader(X_FORWARDED_PROTO.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_HOST.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PORT.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PREFIX.headerName()));
+		assertNull(actual.getHeader(FORWARDED.headerName()));
 		assertEquals("bar", actual.getHeader("foo"));
 	}
 
@@ -461,10 +457,7 @@ public class ForwardedHeaderFilterTests {
 		assertTrue(actual.isSecure());
 
 		//TODO only if 'remove' feature is is on
-		assertNull(actual.getHeader(X_FORWARDED_PROTO.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_HOST.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PORT.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PREFIX.headerName()));
+		assertNull(actual.getHeader(FORWARDED.headerName()));
 		assertEquals("bar", actual.getHeader("foo"));
 	}
 
@@ -488,21 +481,36 @@ public class ForwardedHeaderFilterTests {
 		assertTrue(actual.isSecure());
 
 		//TODO only if 'remove' feature is is on
-		assertNull(actual.getHeader(X_FORWARDED_PROTO.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_HOST.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PORT.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PREFIX.headerName()));
+		assertNull(actual.getHeader(FORWARDED.headerName()));
 		assertEquals("bar", actual.getHeader("foo"));
 	}
 
 
 	@Test
 	public void requestUriWithForwardedPrefix() throws Exception {
+		//Assume default processing strategy is {@link XForwardedPrefixStrategy#REPLACE}
+		initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(X_FORWARDED_PREFIX_STRATEGY, null));
+
+		this.request.setContextPath("/shouldBeReplaced");
 		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
 		this.request.setRequestURI("/mvc-showcase");
 
 		HttpServletRequest actual = filterAndGetWrappedRequest();
+		assertEquals("/prefix", actual.getContextPath());
 		assertEquals("http://localhost/prefix/mvc-showcase", actual.getRequestURL().toString());
+	}
+
+	@Test
+	public void requestUriWithForwardedPrefixPrependStrategy() throws Exception {
+		//Assume default processing strategy is {@link XForwardedPrefixStrategy#REPLACE}
+		this.request.setContextPath("/shouldBePrependedByPrefix");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
+		this.request.setRequestURI("/mvc-showcase");
+		initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(X_FORWARDED_PREFIX_STRATEGY, XForwardedPrefixStrategy.PREPEND.name()));
+
+		HttpServletRequest actual = filterAndGetWrappedRequest();
+		assertEquals("/prefix/shouldBePrependedByPrefix", actual.getContextPath());
+		assertEquals("http://localhost/prefix/shouldBePrependedByPrefix/mvc-showcase", actual.getRequestURL().toString());
 	}
 
 	@Test

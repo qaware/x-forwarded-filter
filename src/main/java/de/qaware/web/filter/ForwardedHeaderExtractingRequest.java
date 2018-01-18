@@ -33,7 +33,7 @@ class ForwardedHeaderExtractingRequest extends ForwardedHeaderRemovingRequest {
 	private final String requestUrl;
 
 	@SuppressWarnings("squid:S3358")//nested ternary op is more readable in this case
-	public ForwardedHeaderExtractingRequest(HttpServletRequest request) {
+	public ForwardedHeaderExtractingRequest(HttpServletRequest request, XForwardedPrefixStrategy prefixStrategy) {
 		super(request);
 
 		UrlPathHelper pathHelper = new UrlPathHelper();
@@ -48,10 +48,26 @@ class ForwardedHeaderExtractingRequest extends ForwardedHeaderRemovingRequest {
 		this.host = uriComponents.getHost();
 		this.port = (portFromUri == -1 ? (this.secure ? 443 : 80) : portFromUri);
 
-		String prefix = getForwardedPrefix(request);
-		this.contextPath = (prefix != null ? prefix : request.getContextPath());
+		this.contextPath = adaptFromXForwaredPrefix(request, prefixStrategy);
+
 		this.requestUri = this.contextPath + pathHelper.getPathWithinApplication(request);
 		this.requestUrl = this.scheme + "://" + this.host + (portFromUri == -1 ? "" : ":" + portFromUri) + this.requestUri;
+	}
+
+	private static String adaptFromXForwaredPrefix(HttpServletRequest request, XForwardedPrefixStrategy prefixStrategy) {
+		String prefix = getForwardedPrefix(request);
+		if (prefix == null) {
+			return request.getContextPath();
+		}
+		switch (prefixStrategy) {
+			case PREPEND:
+				return prefix + request.getContextPath();
+			case REPLACE:
+				return prefix;
+			default:
+				throw new UnsupportedOperationException("Implementation for enum case is missing: " + prefixStrategy);
+		}
+
 	}
 
 	/*@Nullable*/

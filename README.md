@@ -25,7 +25,10 @@ Features:
     X-Forwarded-Host: "hostB"   => filter will use "hostA" 
 - Supports multiple COMMA-SPACE separated values inside a headers value ->use Find-First-Strategy
   - e.g. X-Forwarded-Host: "hostA, hostB"  => filter will use "hostA"
+- Configurable processing strategy for `X-Forwarded-Proto` =>  PREPEND or REPLACE the contextPath
+  `ForwardedFilter.xForwardedProtoStrategy=[PREPEND, REPLACE]`
 
+   
 
 # TOC
   - [Why would i use this filter?](#why-would-i-use-this-filter)

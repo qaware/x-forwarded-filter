@@ -24,9 +24,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.Optional;
 
-import static de.qaware.web.filter.ForwardedHeaderConstants.ENABLE_RELATIVE_REDIRECTS_INIT_PARAM;
-import static de.qaware.web.filter.ForwardedHeaderConstants.REMOVE_ONLY_INIT_PARAM;
+import static de.qaware.web.filter.ForwardedHeaderConstants.*;
+import static de.qaware.web.filter.XForwardedPrefixStrategy.REPLACE;
 import static java.lang.Boolean.parseBoolean;
 
 /**
@@ -52,14 +53,19 @@ import static java.lang.Boolean.parseBoolean;
  */
 public class ForwardedHeaderFilter extends OncePerRequestFilter {
 
+
 	private boolean removeOnly;
 	private boolean relativeRedirects;
+	private XForwardedPrefixStrategy prefixStrategy = REPLACE;
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 		super.init(filterConfig);
 		relativeRedirects = parseBoolean(filterConfig.getInitParameter(ENABLE_RELATIVE_REDIRECTS_INIT_PARAM));
 		removeOnly = parseBoolean(filterConfig.getInitParameter(REMOVE_ONLY_INIT_PARAM));
+		prefixStrategy = Optional.ofNullable(filterConfig.getInitParameter(X_FORWARDED_PREFIX_STRATEGY))//
+				.map(XForwardedPrefixStrategy::valueOf)//
+				.orElse(XForwardedPrefixStrategy.REPLACE);
 	}
 
 	@Override
@@ -80,11 +86,11 @@ public class ForwardedHeaderFilter extends OncePerRequestFilter {
 			ForwardedHeaderRemovingRequest theRequest = new ForwardedHeaderRemovingRequest(request);
 			filterChain.doFilter(theRequest, response);
 		} else {
-			final HttpServletRequest theRequest = new ForwardedHeaderExtractingRequest(request);
+			final HttpServletRequest theRequest = new ForwardedHeaderExtractingRequest(request, prefixStrategy);
 			final HttpServletResponse theResponse;
 			if (this.relativeRedirects) {
 				theResponse = RelativeRedirectResponseWrapper.wrapIfNecessary(response, WebUtilsConstants.SEE_OTHER);
-			}else{
+			} else {
 				theResponse = new ForwardedHeaderExtractingResponse(response, theRequest);
 			}
 			filterChain.doFilter(theRequest, theResponse);

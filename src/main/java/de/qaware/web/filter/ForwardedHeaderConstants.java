@@ -28,4 +28,9 @@ class ForwardedHeaderConstants {
 	 */
 	public static final String REMOVE_ONLY_INIT_PARAM = "removeOnly";
 
+	/**
+	 *  selects processing mode how to handle the x-forwarded-proto header.
+	 */
+	public static final String X_FORWARDED_PREFIX_STRATEGY = "xForwardedProtoStrategy";
+
 }
