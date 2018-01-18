@@ -99,7 +99,6 @@ public class UriComponentsBuilder  {
 
 
 
-
 	/*@Nullable*/
 	private String scheme;
 
@@ -756,6 +755,17 @@ public class UriComponentsBuilder  {
 		}
 	}
 
+	private void adaptForwardedHost(String hostToUse) {
+		int portSeparatorIdx = hostToUse.lastIndexOf(':');
+		if (portSeparatorIdx > hostToUse.lastIndexOf(']')) {
+			host(hostToUse.substring(0, portSeparatorIdx));
+			port(Integer.parseInt(hostToUse.substring(portSeparatorIdx + 1)));
+		} else {
+			host(hostToUse);
+			port(null);
+		}
+	}
+
 	private void adaptXForwardedProto(HttpHeaders headers) {
 		String protocolHeader = headers.getFirst(X_FORWARDED_PROTO.headerName());
 		if (isNotBlank(protocolHeader)) {
@@ -785,17 +795,6 @@ public class UriComponentsBuilder  {
 		return scheme != null && scheme.equals("https") && "443".equals(this.port);
 	}
 
-
-	private void adaptForwardedHost(String hostToUse) {
-		int portSeparatorIdx = hostToUse.lastIndexOf(':');
-		if (portSeparatorIdx > hostToUse.lastIndexOf(']')) {
-			host(hostToUse.substring(0, portSeparatorIdx));
-			port(Integer.parseInt(hostToUse.substring(portSeparatorIdx + 1)));
-		} else {
-			host(hostToUse);
-			port(null);
-		}
-	}
 
 	private void resetHierarchicalComponents() {
 		this.userInfo = null;
