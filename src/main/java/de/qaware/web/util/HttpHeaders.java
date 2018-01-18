@@ -36,6 +36,7 @@ import java.util.*;
  * <p>
  * <p>Inspired by {@code com.sun.net.httpserver.Headers}.
  *
+ * @author Michael Frank
  * @author Arjen Poutsma
  * @author Sebastien Deleuze
  * @author Brian Clozel

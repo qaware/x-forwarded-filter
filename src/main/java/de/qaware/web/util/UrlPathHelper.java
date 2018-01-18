@@ -31,7 +31,7 @@ import java.nio.charset.Charset;
  * Helper class for URL path matching. Provides support for URL paths in
  * RequestDispatcher includes and support for consistent URL decoding.
  * <p>
- *
+ * @author Michael Frank
  * @author Juergen Hoeller
  * @author Rob Harrop
  * @author Rossen Stoyanchev

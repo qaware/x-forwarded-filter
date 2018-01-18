@@ -27,7 +27,12 @@ Features:
   - e.g. X-Forwarded-Host: "hostA, hostB"  => filter will use "hostA"
 - Configurable processing strategy for `X-Forwarded-Proto` =>  PREPEND or REPLACE the contextPath
   `ForwardedFilter.xForwardedProtoStrategy=[PREPEND, REPLACE]`
-
+- Configurable header processing and removal strategy
+  `ForwardedFilter.headerProcessingStrategy=[USE_AND_KEEP, USE_AND_REMOVE, DONT_USE_AND_REMOVE]`
+  - EVAL_AND_KEEP - process headers and keep them in the list of headers for downstream processing
+  - EVAL_AND_REMOVE - process headers and remove them. Wont be visible any more when accessing getHeader(s)
+  - DONT_EVAL_AND_REMOVE - don't process the headers, just remove them.
+  - ~~DONT_EVAL_AND_DONT_REMOVE~~ => just don't activate this filter - same effect
    
 
 # TOC

@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- *
+ * Supported forwarded headers and their (caseInsensitive) name inside the http headers
  */
 public enum ForwardedHeader {
 	FORWARDED("Forwarded"),

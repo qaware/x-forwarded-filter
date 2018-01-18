@@ -52,6 +52,7 @@ import java.util.Optional;
  * identify that a request is already filtered. The default implementation is
  * based on the configured name of the concrete filter instance.
  *
+ * @author Michael Frank
  * @author Juergen Hoeller
  * @author Rossen Stoyanchev
  * @since 06.12.2003

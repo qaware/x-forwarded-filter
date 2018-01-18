@@ -8,7 +8,7 @@ import java.util.Enumeration;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
- *
+ * Helper Class containing methods to extract information from HttpServletRequest's
  */
 public class HttpServletRequestUtil {
 

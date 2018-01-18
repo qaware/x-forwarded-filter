@@ -26,8 +26,6 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Optional;
 
-import static de.qaware.web.filter.ForwardedHeaderConstants.*;
-import static de.qaware.web.filter.XForwardedPrefixStrategy.REPLACE;
 import static java.lang.Boolean.parseBoolean;
 
 /**
@@ -42,9 +40,10 @@ import static java.lang.Boolean.parseBoolean;
  * protocol and address.
  * <p>
  * <p><strong>Note:</strong> This filter can also be used in a
- * {@link ForwardedHeaderFilter#removeOnly } mode where "Forwarded" and "X-Forwarded-*"
+ * {@link HeaderProcessingStrategy#DONT_EVAL_AND_REMOVE } mode where "Forwarded" and "X-Forwarded-*"
  * headers are only eliminated without being used.
  *
+ * @author Michael Frank
  * @author Rossen Stoyanchev
  * @author Eddú Meléndez
  * @author Rob Winch
@@ -52,17 +51,50 @@ import static java.lang.Boolean.parseBoolean;
  * @since 4.3
  */
 public class ForwardedHeaderFilter extends OncePerRequestFilter {
+	/**
+	 * Use this init param to enable relative redirects as explained in and also
+	 * using the same response wrapper as {@link RelativeRedirectFilter} does.
+	 * Or if both filters are used, only one will wrap the response.
+	 * <p>By default, if this property is set to false, in which case calls to
+	 * {@link HttpServletResponse#sendRedirect(String)} are overridden in order
+	 * to turn relative into absolute URLs since (which Servlet containers are
+	 * also required to do) also taking forwarded headers into consideration.
+	 */
+	public static final String ENABLE_RELATIVE_REDIRECTS_INIT_PARAM = "enableRelativeRedirects";
+
+	/**--
+	 * Different processing strategies:
+	 * <ul>
+	 *   <li>EVAL_AND_KEEP: Evaluate headers remove afterwards so they will be visible to downstream
+	 *       filters and the application.
+	 *   </li>
+	 *   <li>EVAL_AND_REMOVE: Evaluate headers remove afterwards so they wont be visible to downstream
+	 *       filters and the application.
+	 *   </li>
+	 *   <li>DONT_EVAL_AND_REMOVE: Enables mode in which any "Forwarded" or "X-Forwarded-*" headers
+	 *       are removed only and the information in them ignored.
+	 *   </li>
+	 * </ul>
+	 */
+	public static final String HEADER_PROCESSING_STRATEGY = "headerProcessingStrategy";
+
+	/**
+	 *  selects processing mode how to handle the x-forwarded-proto header.
+	 */
+	public static final String X_FORWARDED_PREFIX_STRATEGY = "xForwardedProtoStrategy";
 
 
-	private boolean removeOnly;
 	private boolean relativeRedirects;
-	private XForwardedPrefixStrategy prefixStrategy = REPLACE;
+	private XForwardedPrefixStrategy prefixStrategy;
+	private HeaderProcessingStrategy headerProcessingStrategy;
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 		super.init(filterConfig);
 		relativeRedirects = parseBoolean(filterConfig.getInitParameter(ENABLE_RELATIVE_REDIRECTS_INIT_PARAM));
-		removeOnly = parseBoolean(filterConfig.getInitParameter(REMOVE_ONLY_INIT_PARAM));
+		headerProcessingStrategy = Optional.ofNullable(filterConfig.getInitParameter(HEADER_PROCESSING_STRATEGY))//
+				.map(HeaderProcessingStrategy::valueOf)//
+				.orElse(HeaderProcessingStrategy.EVAL_AND_REMOVE);
 		prefixStrategy = Optional.ofNullable(filterConfig.getInitParameter(X_FORWARDED_PREFIX_STRATEGY))//
 				.map(XForwardedPrefixStrategy::valueOf)//
 				.orElse(XForwardedPrefixStrategy.REPLACE);
@@ -81,20 +113,25 @@ public class ForwardedHeaderFilter extends OncePerRequestFilter {
 	}
 
 
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-		if (this.removeOnly) {
-			ForwardedHeaderRemovingRequest theRequest = new ForwardedHeaderRemovingRequest(request);
-			filterChain.doFilter(theRequest, response);
-		} else {
-			final HttpServletRequest theRequest = new ForwardedHeaderExtractingRequest(request, prefixStrategy);
-			final HttpServletResponse theResponse;
-			if (this.relativeRedirects) {
-				theResponse = RelativeRedirectResponseWrapper.wrapIfNecessary(response, WebUtilsConstants.SEE_OTHER);
+	protected void doFilterInternal(HttpServletRequest originalRequest, HttpServletResponse originalResponse, FilterChain filterChain) throws ServletException, IOException {
+		HttpServletRequest request = originalRequest;
+		HttpServletResponse response = originalResponse;
+
+		if(headerProcessingStrategy.isEvaluateHeaders()){
+			request = new ForwardedHeaderExtractingRequest(request, prefixStrategy);
+			if (relativeRedirects) {
+				response = RelativeRedirectResponseWrapper.wrapIfNecessary(response, WebUtilsConstants.SEE_OTHER);
 			} else {
-				theResponse = new ForwardedHeaderExtractingResponse(response, theRequest);
+				response = new ForwardedHeaderExtractingResponse(response, request);
 			}
-			filterChain.doFilter(theRequest, theResponse);
 		}
+
+		if(headerProcessingStrategy.isRemoveHeaders()){
+			request=new ForwardedHeaderRemovingRequest(request);
+		}
+
+		filterChain.doFilter(request,response);
+
 	}
 
 }

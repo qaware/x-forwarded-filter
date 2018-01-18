@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * A response wrapper used for the implementation of
  * {@link RelativeRedirectFilter} also shared with {@link ForwardedHeaderFilter}.
- *
+ * @author Michael Frank
  * @author Rossen Stoyanchev
  * @since 4.3.10
  */

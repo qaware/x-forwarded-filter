@@ -22,6 +22,7 @@ import javax.servlet.ServletRequest;
  * Miscellaneous utilities for web applications.
  * Used by various framework classes.
  *
+ * @author Michael Frank
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @author Sebastien Deleuze

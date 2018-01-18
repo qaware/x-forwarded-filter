@@ -34,7 +34,7 @@ import java.io.IOException;
  * <p>
  * <p><strong>Note:</strong> While relative redirects are more efficient they
  * may not work with reverse proxies under some configurations.
- *
+ * @author Michael Frank
  * @author Rob Winch
  * @author Rossen Stoyanchev
  * @since 4.3.10

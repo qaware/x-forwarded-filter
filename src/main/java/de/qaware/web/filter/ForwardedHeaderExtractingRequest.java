@@ -6,6 +6,7 @@ import de.qaware.web.util.uri.UriComponents;
 import de.qaware.web.util.uri.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 
 import static de.qaware.web.util.ForwardedHeader.X_FORWARDED_PREFIX;
 import static de.qaware.web.util.uri.UriComponents.PATH_DELIMITER_STRING;
@@ -14,7 +15,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 /**
  * Extract and use "Forwarded" or "X-Forwarded-*" headers.
  */
-class ForwardedHeaderExtractingRequest extends ForwardedHeaderRemovingRequest {
+class ForwardedHeaderExtractingRequest extends HttpServletRequestWrapper {
 
 	/*@Nullable*/
 	private final String scheme;

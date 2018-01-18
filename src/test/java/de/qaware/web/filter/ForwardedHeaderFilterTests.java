@@ -34,7 +34,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map;
 
-import static de.qaware.web.filter.ForwardedHeaderConstants.*;
+import static de.qaware.web.filter.ForwardedHeaderFilter.*;
 import static de.qaware.web.util.ForwardedHeader.*;
 import static org.junit.Assert.*;
 
@@ -234,25 +234,16 @@ public class ForwardedHeaderFilterTests {
 		this.request.addHeader(X_FORWARDED_HOST.headerName(), "84.198.58.199");
 		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
-
-		this.request.addHeader("foo", "bar");
+		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
 
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
 
-		assertEquals("https://84.198.58.199/prefix/mvc-showcase", actual.getRequestURL().toString());
-		assertEquals("https", actual.getScheme());
-		assertEquals("84.198.58.199", actual.getServerName());
-		assertEquals(443, actual.getServerPort());
-		assertEquals("/prefix", actual.getContextPath());
-		assertTrue(actual.isSecure());
-
-		//TODO only if 'remove' feature is is on
-		assertNull(actual.getHeader(X_FORWARDED_PROTO.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_HOST.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PORT.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PREFIX.headerName()));
-		assertEquals("bar", actual.getHeader("foo"));
+		//===========================================================
+		//Assert HeaderProcessingStrategy is default: EVAL_AND_REMOVE
+		//===========================================================
+		assertHeadersAREProcessed(actual);
+		assertHeadersAREremovedFromRequest(actual);
 	}
 
 	@Test
@@ -262,19 +253,16 @@ public class ForwardedHeaderFilterTests {
 		this.request.addHeader(X_FORWARDED_HOST.headerName().toUpperCase(), "84.198.58.199");
 		this.request.addHeader(X_FORWARDED_PORT.headerName().toUpperCase(), "443");
 		this.request.addHeader(X_FORWARDED_PREFIX.headerName().toUpperCase(), "/prefix");
-
-		this.request.addHeader("foo", "bar");
+		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
 
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
 
-		assertEquals("https://84.198.58.199/prefix/mvc-showcase", actual.getRequestURL().toString());
-		assertEquals("https", actual.getScheme());
-		assertEquals("84.198.58.199", actual.getServerName());
-		assertEquals(443, actual.getServerPort());
-		assertEquals("/prefix", actual.getContextPath());
-		assertTrue(actual.isSecure());
-
+		//===========================================================
+		//Assert HeaderProcessingStrategy is default: EVAL_AND_REMOVE
+		//===========================================================
+		assertHeadersAREProcessed(actual);
+		assertHeadersAREremovedFromRequest(actual);
 	}
 
 	@Test
@@ -289,25 +277,19 @@ public class ForwardedHeaderFilterTests {
 		this.request.addHeader(X_FORWARDED_HOST.headerName(), "secondHost");
 		this.request.addHeader(X_FORWARDED_PORT.headerName(), "secondPort");
 		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/secondPrefix");
-		this.request.addHeader("foo", "bar");
+		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
 
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
 
-		assertEquals("https://84.198.58.199/prefix/mvc-showcase", actual.getRequestURL().toString());
-		assertEquals("https", actual.getScheme());
-		assertEquals("84.198.58.199", actual.getServerName());
-		assertEquals(443, actual.getServerPort());
-		assertEquals("/prefix", actual.getContextPath());
-		assertTrue(actual.isSecure());
-
-		//TODO only if 'remove' feature is is on
-		assertNull(actual.getHeader(X_FORWARDED_PROTO.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_HOST.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PORT.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PREFIX.headerName()));
-		assertEquals("bar", actual.getHeader("foo"));
+		//===========================================================
+		//Assert HeaderProcessingStrategy is default: EVAL_AND_REMOVE
+		//===========================================================
+		assertHeadersAREProcessed(actual);
+		assertHeadersAREremovedFromRequest(actual);
 	}
+
+
 
 	@Test
 	public void xForwardedRequestWithCommaSpaceSeparatedValues() throws Exception {
@@ -321,24 +303,16 @@ public class ForwardedHeaderFilterTests {
 		this.request.addHeader(X_FORWARDED_HOST.headerName(), "thirdHost");
 		this.request.addHeader(X_FORWARDED_PORT.headerName(), "thirdPort");
 		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/thirdPrefix");
-		this.request.addHeader("foo", "bar");
+		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
 
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
 
-		assertEquals("https://84.198.58.199/prefix/mvc-showcase", actual.getRequestURL().toString());
-		assertEquals("https", actual.getScheme());
-		assertEquals("84.198.58.199", actual.getServerName());
-		assertEquals(443, actual.getServerPort());
-		assertEquals("/prefix", actual.getContextPath());
-		assertTrue(actual.isSecure());
-
-		//TODO only if 'remove' feature is is on
-		assertNull(actual.getHeader(X_FORWARDED_PROTO.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_HOST.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PORT.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PREFIX.headerName()));
-		assertEquals("bar", actual.getHeader("foo"));
+		//===========================================================
+		//Assert HeaderProcessingStrategy is default: EVAL_AND_REMOVE
+		//===========================================================
+		assertHeadersAREProcessed(actual);
+		assertHeadersAREremovedFromRequest(actual);
 	}
 
 	@Test
@@ -348,25 +322,16 @@ public class ForwardedHeaderFilterTests {
 		this.request.addHeader(X_FORWARDED_HOST.headerName(), "84.198.58.199, 1.2.3.4");
 		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443, 123");
 		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix, /secondPrefix");
-
-		this.request.addHeader("foo", "bar");
+		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
 
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
 
-		assertEquals("https://84.198.58.199/prefix/mvc-showcase", actual.getRequestURL().toString());
-		assertEquals("https", actual.getScheme());
-		assertEquals("84.198.58.199", actual.getServerName());
-		assertEquals(443, actual.getServerPort());
-		assertEquals("/prefix", actual.getContextPath());
-		assertTrue(actual.isSecure());
-
-		//TODO only if 'remove' feature is is on
-		assertNull(actual.getHeader(X_FORWARDED_PROTO.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_HOST.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PORT.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PREFIX.headerName()));
-		assertEquals("bar", actual.getHeader("foo"));
+		//===========================================================
+		//Assert HeaderProcessingStrategy is default: EVAL_AND_REMOVE
+		//===========================================================
+		assertHeadersAREProcessed(actual);
+		assertHeadersAREremovedFromRequest(actual);
 	}
 
 
@@ -377,26 +342,44 @@ public class ForwardedHeaderFilterTests {
 		this.request.addHeader(X_FORWARDED_HOST.headerName(), "84.198.58.199");
 		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
-		this.request.addHeader("foo", "bar");
+		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
 
-		this.filter = initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(REMOVE_ONLY_INIT_PARAM, "true"));
+		//Set HEADER_PROCESSING_STRATEGY
+		this.filter = initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(HEADER_PROCESSING_STRATEGY, HeaderProcessingStrategy.DONT_EVAL_AND_REMOVE.name()));
+
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
 
-		assertEquals("http://localhost/mvc-showcase", actual.getRequestURL().toString());
-		assertEquals("http", actual.getScheme());
-		assertEquals("localhost", actual.getServerName());
-		assertEquals(80, actual.getServerPort());
-		assertEquals("", actual.getContextPath());
-		assertFalse(actual.isSecure());
-
-		//TODO only if 'remove' feature is is on
-		assertNull(actual.getHeader(X_FORWARDED_PROTO.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_HOST.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PORT.headerName()));
-		assertNull(actual.getHeader(X_FORWARDED_PREFIX.headerName()));
-		assertEquals("bar", actual.getHeader("foo"));
+		//===========================================================
+		//Assert HeaderProcessingStrategy is:     DONT_EVAL_AND_REMOVE
+		//===========================================================
+		assertForwardedHeadersAreNOTProcessed(actual);
+		assertHeadersAREremovedFromRequest(actual);
 	}
+
+
+	@Test
+	public void xForwardedRequestInEvalAndKeepMode() throws Exception {
+		this.request.setRequestURI("/mvc-showcase");
+		this.request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		this.request.addHeader(X_FORWARDED_HOST.headerName(), "84.198.58.199");
+		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
+		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
+
+		//Set HEADER_PROCESSING_STRATEGY
+		this.filter = initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(HEADER_PROCESSING_STRATEGY, HeaderProcessingStrategy.EVAL_AND_KEEP.name()));
+
+		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
+		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
+
+		//===========================================================
+		//Assert HeaderProcessingStrategy is:            EVAL_AND_KEEP
+		//===========================================================
+		assertHeadersAREProcessed(actual);
+		assertXHeadersNOTremovedFromRequest(actual);
+	}
+
 
 
 	@Test
@@ -404,21 +387,59 @@ public class ForwardedHeaderFilterTests {
 		this.request.setRequestURI("/mvc-showcase");
 		this.request.addHeader(FORWARDED.headerName(), "Forwarded: for=192.0.2.60; proto=https; host=84.198.58.199:443");
 		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
-		this.request.addHeader("foo", "bar");
+		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
 
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
 
-		assertEquals("https://84.198.58.199/prefix/mvc-showcase", actual.getRequestURL().toString());
-		assertEquals("https", actual.getScheme());
-		assertEquals("84.198.58.199", actual.getServerName());
-		assertEquals(443, actual.getServerPort());
-		assertEquals("/prefix", actual.getContextPath());
-		assertTrue(actual.isSecure());
+		//===========================================================
+		//Assert HeaderProcessingStrategy is default: EVAL_AND_REMOVE
+		//===========================================================
+		assertHeadersAREProcessed(actual);
+		assertHeadersAREremovedFromRequest(actual);
+	}
 
-		//TODO only if 'remove' feature is is on
-		assertNull(actual.getHeader(FORWARDED.headerName()));
-		assertEquals("bar", actual.getHeader("foo"));
+	@Test
+	public void rfc7239ForwardedRequestInRemoveOnlyMode() throws Exception {
+		this.request.setRequestURI("/mvc-showcase");
+		this.request.addHeader(FORWARDED.headerName(), "Forwarded: for=192.0.2.60; proto=https; host=84.198.58.199:443");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
+		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
+
+		//Set HEADER_PROCESSING_STRATEGY
+		this.filter = initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(HEADER_PROCESSING_STRATEGY, HeaderProcessingStrategy.DONT_EVAL_AND_REMOVE.name()));
+
+		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
+		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
+
+		//===========================================================
+		//Assert HeaderProcessingStrategy is:     DONT_EVAL_AND_REMOVE
+		//===========================================================
+		assertForwardedHeadersAreNOTProcessed(actual);
+		assertHeadersAREremovedFromRequest(actual);
+	}
+
+	@Test
+	public void rfc7239ForwardedRequestInEvalAndKeepMode() throws Exception {
+		this.request.setRequestURI("/mvc-showcase");
+		this.request.addHeader(FORWARDED.headerName(), "Forwarded: for=192.0.2.60; proto=https; host=84.198.58.199:443");
+		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
+		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
+
+		//Set HEADER_PROCESSING_STRATEGY
+		this.filter = initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(HEADER_PROCESSING_STRATEGY, HeaderProcessingStrategy.EVAL_AND_KEEP.name()));
+
+		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
+		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
+
+		//===========================================================
+		//Assert HeaderProcessingStrategy is:            EVAL_AND_KEEP
+		//===========================================================
+		assertHeadersAREProcessed(actual);
+		//Headers must NOT be removed in this mode
+		assertNotNull(actual.getHeader(FORWARDED.headerName()));
+		assertNotNull(actual.getHeader(X_FORWARDED_PREFIX.headerName()));
+		assertEquals("notToBeRemoved", actual.getHeader("notToBeRemoved"));
 	}
 
 	@Test
@@ -426,17 +447,16 @@ public class ForwardedHeaderFilterTests {
 		this.request.setRequestURI("/mvc-showcase");
 		this.request.addHeader(FORWARDED.headerName().toUpperCase(), "FORWARDED: FOR=192.0.2.60; PROTO=https; HOST=84.198.58.199:443");
 		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
-		this.request.addHeader("foo", "bar");
+		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
 
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
 
-		assertEquals("https://84.198.58.199/prefix/mvc-showcase", actual.getRequestURL().toString());
-		assertEquals("https", actual.getScheme());
-		assertEquals("84.198.58.199", actual.getServerName());
-		assertEquals(443, actual.getServerPort());
-		assertEquals("/prefix", actual.getContextPath());
-		assertTrue(actual.isSecure());
+		//===========================================================
+		//Assert HeaderProcessingStrategy is default: EVAL_AND_REMOVE
+		//===========================================================
+		assertHeadersAREProcessed(actual);
+		assertHeadersAREremovedFromRequest(actual);
 	}
 
 	@Test
@@ -444,21 +464,16 @@ public class ForwardedHeaderFilterTests {
 		this.request.setRequestURI("/mvc-showcase");
 		this.request.addHeader(FORWARDED.headerName(), "Forwarded: for=192.0.2.60; proto=https; host=84.198.58.199:443, for=2.2.2.2; proto=secondProto; host=22.22.22.22:22");
 		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
-		this.request.addHeader("foo", "bar");
+		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
 
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
 
-		assertEquals("https://84.198.58.199/prefix/mvc-showcase", actual.getRequestURL().toString());
-		assertEquals("https", actual.getScheme());
-		assertEquals("84.198.58.199", actual.getServerName());
-		assertEquals(443, actual.getServerPort());
-		assertEquals("/prefix", actual.getContextPath());
-		assertTrue(actual.isSecure());
-
-		//TODO only if 'remove' feature is is on
-		assertNull(actual.getHeader(FORWARDED.headerName()));
-		assertEquals("bar", actual.getHeader("foo"));
+		//===========================================================
+		//Assert HeaderProcessingStrategy is default: EVAL_AND_REMOVE
+		//===========================================================
+		assertHeadersAREProcessed(actual);
+		assertHeadersAREremovedFromRequest(actual);
 	}
 
 	@Test
@@ -466,24 +481,20 @@ public class ForwardedHeaderFilterTests {
 		this.request.setRequestURI("/mvc-showcase");
 		this.request.addHeader(FORWARDED.headerName(), "Forwarded: for=192.0.2.60; proto=https; host=84.198.58.199:443, for=2.2.2.2; proto=secondProto; host=22.22.22.22:22");
 		this.request.addHeader(FORWARDED.headerName(), "Forwarded: for=3.3.3.3; proto=thirdProto; host=33.33.33:33, for=44.44.44.44; proto=fourthProto; host=77.77.77:77");
-
 		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
-		this.request.addHeader("foo", "bar");
+		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
 
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
 
-		assertEquals("https://84.198.58.199/prefix/mvc-showcase", actual.getRequestURL().toString());
-		assertEquals("https", actual.getScheme());
-		assertEquals("84.198.58.199", actual.getServerName());
-		assertEquals(443, actual.getServerPort());
-		assertEquals("/prefix", actual.getContextPath());
-		assertTrue(actual.isSecure());
-
-		//TODO only if 'remove' feature is is on
-		assertNull(actual.getHeader(FORWARDED.headerName()));
-		assertEquals("bar", actual.getHeader("foo"));
+		//===========================================================
+		//Assert HeaderProcessingStrategy is default: EVAL_AND_REMOVE
+		//===========================================================
+		assertHeadersAREProcessed(actual);
+		assertHeadersAREremovedFromRequest(actual);
 	}
+
+
 
 
 	@Test
@@ -663,6 +674,43 @@ public class ForwardedHeaderFilterTests {
 
 		assertEquals("/a", location);
 	}
+
+	private void assertHeadersAREProcessed(HttpServletRequest actual) {
+		assertEquals("https://84.198.58.199/prefix/mvc-showcase", actual.getRequestURL().toString());
+		assertEquals("https", actual.getScheme());
+		assertEquals("84.198.58.199", actual.getServerName());
+		assertEquals(443, actual.getServerPort());
+		assertEquals("/prefix", actual.getContextPath());
+		assertTrue(actual.isSecure());
+	}
+
+	private void assertForwardedHeadersAreNOTProcessed(HttpServletRequest actual) {
+		assertEquals("http://localhost/mvc-showcase", actual.getRequestURL().toString());
+		assertEquals("http", actual.getScheme());
+		assertEquals("localhost", actual.getServerName());
+		assertEquals(80, actual.getServerPort());
+		assertEquals("", actual.getContextPath());
+		assertFalse(actual.isSecure());
+	}
+
+	private void assertHeadersAREremovedFromRequest(HttpServletRequest actual) {
+		assertNull(actual.getHeader(FORWARDED.headerName()));
+		assertNull(actual.getHeader(X_FORWARDED_PROTO.headerName()));
+		assertNull(actual.getHeader(X_FORWARDED_HOST.headerName()));
+		assertNull(actual.getHeader(X_FORWARDED_PORT.headerName()));
+		assertNull(actual.getHeader(X_FORWARDED_PREFIX.headerName()));
+		assertEquals("notToBeRemoved", actual.getHeader("notToBeRemoved"));
+
+	}
+
+	private void assertXHeadersNOTremovedFromRequest(HttpServletRequest actual) {
+		assertNotNull(actual.getHeader(X_FORWARDED_PROTO.headerName()));
+		assertNotNull(actual.getHeader(X_FORWARDED_HOST.headerName()));
+		assertNotNull(actual.getHeader(X_FORWARDED_PORT.headerName()));
+		assertNotNull(actual.getHeader(X_FORWARDED_PREFIX.headerName()));
+		assertEquals("notToBeRemoved", actual.getHeader("notToBeRemoved"));
+	}
+
 
 	private String sendRedirect(final String location) throws ServletException, IOException {
 		Filter triggerRedirect = new OncePerRequestFilter() {
