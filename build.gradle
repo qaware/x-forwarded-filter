@@ -1,5 +1,16 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+plugins {
+    id "org.sonarqube" version "2.6"
+}
+
 apply plugin: 'java'
 apply plugin: 'maven'
+apply plugin: 'jacoco'
 
 group = 'de.qaware'
 version = '1.0-SNAPSHOT'
@@ -12,12 +23,10 @@ tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'
 }
 
-
-
 repositories {
-     maven { url "https://artifactory.cc.azd.cloud.allianz/artifactory/libs-release" }
-     maven { url "https://artifactory.cc.azd.cloud.allianz/artifactory/libs-snapshot" }
+    mavenCentral()
 }
+
 dependencies {
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'
@@ -32,3 +41,25 @@ dependencies {
     testCompile group: 'org.assertj', name: 'assertj-core', version: '3.8.0'
     testCompile group: 'org.mockito', name: 'mockito-core', version:'2.13.0'
 }
+
+jacoco {
+    toolVersion = "0.8.0"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.enabled true
+    }
+}
+
+sonarqube {
+    properties {
+        property "sonar.host.url", System.env.SONAR_URL
+        property "sonar.login", System.env.SONAR_TOKEN
+        property "sonar.exclusions", ""
+        property "sonar.projectName", "x-forwarded-filter"
+    }
+}
+

@@ -1,0 +1,25 @@
+image: gradle:4.5-jdk8-alpine
+
+stages:
+  - build
+  - analyze
+
+################################################################################
+# BUILD
+
+gradle-build:
+  stage: build
+  script:
+    - gradle build
+
+################################################################################
+# ANALYZE
+
+sonarqube:
+  stage: analyze
+  script:
+    - >
+      if [ "$CI_COMMIT_REF_NAME" != "master" ]; then
+      SONAR_BRANCH_NAME="-Dsonar.branch.name=$CI_COMMIT_REF_NAME";
+      fi
+    - gradle sonarqube $SONAR_BRANCH_NAME
