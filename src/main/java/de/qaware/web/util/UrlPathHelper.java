@@ -23,14 +23,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayOutputStream;
-import java.net.URLDecoder;
-import java.nio.charset.Charset;
+import java.io.UnsupportedEncodingException;
+import java.util.Locale;
 
 
 /**
  * Helper class for URL path matching. Provides support for URL paths in
  * RequestDispatcher includes and support for consistent URL decoding.
  * <p>
+ *
  * @author Michael Frank
  * @author Juergen Hoeller
  * @author Rob Harrop
@@ -42,6 +43,8 @@ public class UrlPathHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UrlPathHelper.class);
 
 	public static final String PATH_DELIMITER_STRING = "/";
+	private static final int HEX_RADIX = 16;
+	private static final String JSESSIONID = ";jsessionid=";
 
 	private boolean urlDecode = true;
 
@@ -75,6 +78,8 @@ public class UrlPathHelper {
 	/**
 	 * Set if ";" (semicolon) content should be stripped from the request URI.
 	 * <p>Default is "true".
+	 *
+	 * @param removeSemicolonContent true=remove content after ';' in URI
 	 */
 	public void setRemoveSemicolonContent(boolean removeSemicolonContent) {
 		this.removeSemicolonContent = removeSemicolonContent;
@@ -94,6 +99,7 @@ public class UrlPathHelper {
 	 * encoding will override this setting. This also allows for generically
 	 * overriding the character encoding in a filter that invokes the
 	 * {@code ServletRequest.setCharacterEncoding} method.
+	 *
 	 * @param defaultEncoding the character encoding to use
 	 * @see #determineEncoding
 	 * @see javax.servlet.ServletRequest#getCharacterEncoding()
@@ -101,7 +107,7 @@ public class UrlPathHelper {
 	 * @see WebUtilsConstants#DEFAULT_CHARACTER_ENCODING
 	 */
 	public void setDefaultEncoding(String defaultEncoding) {
-		 this.defaultEncoding=defaultEncoding;
+		this.defaultEncoding = defaultEncoding;
 	}
 
 	/**
@@ -129,7 +135,6 @@ public class UrlPathHelper {
 	 * context path and the servlet path returned by the HttpServletRequest are
 	 * stripped of semicolon content unlike the requesUri.
 	 */
-	/*@Nullable*/
 	private String getRemainingPath(String requestUri, String mapping, boolean ignoreCase) {
 		int index1 = 0;
 		int index2 = 0;
@@ -251,21 +256,13 @@ public class UrlPathHelper {
 		return source;
 	}
 
-	@SuppressWarnings({"squid:CallToDeprecatedMethod", "deprecation"})
 	private String decodeInternal(HttpServletRequest request, String source) {
-		String enc = determineEncoding(request);
-		try {
-			//this method behaves differently then javas URLDecoder class
-			// it does NOT transform '+' into '  '
-			return uriDecode(source, Charset.forName(enc));
-		} catch (IllegalArgumentException ex) {
-			if (LOGGER.isWarnEnabled()) {
-				LOGGER.warn("Could not decode request string [" + source + "] with encoding '" + enc +
-						"': falling back to platform default encoding; exception message: " + ex.getMessage());
-			}
-			return URLDecoder.decode(source);
-		}
+		String charset = determineEncoding(request);
+		//this method behaves differently then javas URLDecoder class
+		// it does NOT transform '+' into '  ' which is very important!
+		return uriDecode(source, charset);
 	}
+
 
 	/**
 	 * Decode the given encoded URI component value. Based on the following rules:
@@ -284,39 +281,82 @@ public class UrlPathHelper {
 	 * @see java.net.URLDecoder#decode(String, String)
 	 * @since 5.0
 	 */
-	public static String uriDecode(String source, Charset charset) {
-		int length = source.length();
+	@SuppressWarnings("squid:S109")
+//"magic number"  required for decoder logic
+	String uriDecode(String source, String charset) {
+		Validate.notNull(charset, "Charset must not be null");
+
+		final int length = source.length();
 		if (length == 0) {
 			return source;
 		}
-		Validate.notNull(charset, "Charset must not be null");
 
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(length);
 		boolean changed = false;
-		int pos=-1;
-		while(++pos < length){
-			int ch = source.charAt(pos);
-			if (ch == '%') {
-				if (pos + 2 < length) {
-					char hex1 = source.charAt(pos + 1);
-					char hex2 = source.charAt(pos + 2);
-					int u = Character.digit(hex1, 16);
-					int l = Character.digit(hex2, 16);
-					if (u == -1 || l == -1) {
-						throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(pos) + "\"");
-					}
-					bos.write((char) ((u << 4) + l));
-					pos += 2;
-					changed = true;
-				} else {
-					throw new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(pos) + "\"");
-				}
+		int pos = 0;
+		while (pos < length) {
+			char currentChar = source.charAt(pos);
+			//format: %xy
+			if (currentChar == '%') {
+				//process the next 2 chars following the '%' at once to decode the original value
+				bos.write(decodePercentEncodedChar(source, pos));
+				pos += 2;
+				changed = true;
 			} else {
-				bos.write(ch);
+				bos.write(currentChar);
 			}
+			++pos;
 		}
-		return (changed ? new String(bos.toByteArray(), charset) : source);
+
+		return (changed ? decodeToString(source, bos, charset) : source);
 	}
+
+	private String decodeToString(String source, ByteArrayOutputStream bos, String providedCharset) {
+		try {
+			return bos.toString(providedCharset);
+		} catch (UnsupportedEncodingException | IllegalArgumentException ex) {
+			final String defaultCharset = getDefaultEncoding();
+			if (defaultCharset.equals(providedCharset)) {
+				throw new AssertionError("Could not decode request string. Default encoding '" + defaultCharset + "' should always be available.", ex);
+			}
+			if (LOGGER.isWarnEnabled()) {
+				LOGGER.warn("Could not decode request string with encoding '" + providedCharset +
+						"': falling back to default encoding" + defaultCharset + ". Request string: [" + source + "]; exception message: " + ex.getMessage(), ex);
+			}
+			return decodeToString(source, bos, defaultCharset);
+		}
+	}
+
+
+	/**
+	 * process the next 2 chars following the '%' at once to decode the original value
+	 */
+	@SuppressWarnings("squid:S109")//"magic number"  required for decoder logic
+	private static char decodePercentEncodedChar(String source, int pos) {
+		//process the next 2 chars following the '%' at once to decode the original value
+		checkBoundsOfSequence(source, pos + 2);
+		char hex1 = source.charAt(pos + 1);
+		char hex2 = source.charAt(pos + 2);
+		int high4Bits = Character.digit(hex1, HEX_RADIX);
+		int low4Bits = Character.digit(hex2, HEX_RADIX);
+		if (high4Bits == -1 || low4Bits == -1) {
+			throw illegalEncodingSecuence(source, pos);
+		}
+		//reverse the '%xy' encoding to reconstruct the oringinal char
+		return (char) ((high4Bits << 4) + low4Bits);
+	}
+
+
+	private static void checkBoundsOfSequence(String source, int pos) {
+		if (pos >= source.length()) {
+			throw illegalEncodingSecuence(source, pos);
+		}
+	}
+
+	private static IllegalArgumentException illegalEncodingSecuence(String source, int pos) {
+		return new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(pos) + "\"");
+	}
+
 
 	/**
 	 * Determine the encoding for the given request.
@@ -355,7 +395,7 @@ public class UrlPathHelper {
 		while (semicolonIndex != -1) {
 			int slashIndex = cleanedUri.indexOf('/', semicolonIndex);
 			String start = cleanedUri.substring(0, semicolonIndex);
-			cleanedUri = (slashIndex != -1) ? start + cleanedUri.substring(slashIndex) : start;
+			cleanedUri = (slashIndex != -1) ? (start + cleanedUri.substring(slashIndex)) : start;
 			semicolonIndex = cleanedUri.indexOf(';', semicolonIndex);
 		}
 		return cleanedUri;
@@ -363,11 +403,11 @@ public class UrlPathHelper {
 
 	private String removeJsessionid(final String uri) {
 		String cleanedUri = uri;
-		int startIndex = cleanedUri.toLowerCase().indexOf(";jsessionid=");
+		int startIndex = cleanedUri.toLowerCase(Locale.ENGLISH).indexOf(JSESSIONID);
 		if (startIndex != -1) {
-			int endIndex = cleanedUri.indexOf(';', startIndex + 12);
+			int endIndex = cleanedUri.indexOf(';', startIndex + JSESSIONID.length());
 			String start = cleanedUri.substring(0, startIndex);
-			cleanedUri = (endIndex != -1) ? start + cleanedUri.substring(endIndex) : start;
+			cleanedUri = (endIndex != -1) ? (start + cleanedUri.substring(endIndex)) : start;
 		}
 		return cleanedUri;
 	}

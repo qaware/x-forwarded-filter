@@ -34,9 +34,19 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map;
 
-import static de.qaware.web.filter.ForwardedHeaderFilter.*;
-import static de.qaware.web.util.ForwardedHeader.*;
-import static org.junit.Assert.*;
+import static de.qaware.web.filter.ForwardedHeaderFilter.ENABLE_RELATIVE_REDIRECTS_INIT_PARAM;
+import static de.qaware.web.filter.ForwardedHeaderFilter.HEADER_PROCESSING_STRATEGY;
+import static de.qaware.web.filter.ForwardedHeaderFilter.X_FORWARDED_PREFIX_STRATEGY;
+import static de.qaware.web.util.ForwardedHeader.FORWARDED;
+import static de.qaware.web.util.ForwardedHeader.X_FORWARDED_HOST;
+import static de.qaware.web.util.ForwardedHeader.X_FORWARDED_PORT;
+import static de.qaware.web.util.ForwardedHeader.X_FORWARDED_PREFIX;
+import static de.qaware.web.util.ForwardedHeader.X_FORWARDED_PROTO;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for {@link ForwardedHeaderFilter}.
@@ -290,7 +300,6 @@ public class ForwardedHeaderFilterTests {
 	}
 
 
-
 	@Test
 	public void xForwardedRequestWithCommaSpaceSeparatedValues() throws Exception {
 		this.request.setRequestURI("/mvc-showcase");
@@ -379,7 +388,6 @@ public class ForwardedHeaderFilterTests {
 		assertHeadersAREProcessed(actual);
 		assertXHeadersNOTremovedFromRequest(actual);
 	}
-
 
 
 	@Test
@@ -493,8 +501,6 @@ public class ForwardedHeaderFilterTests {
 		assertHeadersAREProcessed(actual);
 		assertHeadersAREremovedFromRequest(actual);
 	}
-
-
 
 
 	@Test

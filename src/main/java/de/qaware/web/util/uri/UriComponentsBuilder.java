@@ -27,17 +27,21 @@ import org.apache.commons.lang3.Validate;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static de.qaware.web.util.ForwardedHeader.*;
+import static de.qaware.web.util.ForwardedHeader.FORWARDED;
+import static de.qaware.web.util.ForwardedHeader.X_FORWARDED_HOST;
+import static de.qaware.web.util.ForwardedHeader.X_FORWARDED_PORT;
+import static de.qaware.web.util.ForwardedHeader.X_FORWARDED_PROTO;
 import static de.qaware.web.util.HttpServletRequestUtil.getFirstValueToken;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 
 /**
- * Builder for {@link UriComponents}.
+ * Builder for {@link UriComponentsBase}.
  * <p>
  * <p>Typical usage involves:
  * <ol>
@@ -47,7 +51,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * {@link #userInfo(String)}, {@link #host(String)}, {@link #port(int)}, {@link #path(String)},
  * {@link #pathSegment(String...)}, {@link #queryParam(String, Object...)}, and
  * {@link #fragment(String)}.</li>
- * <li>Build the {@link UriComponents} instance with the {@link #build()} method.</li>
+ * <li>Build the {@link UriComponentsBase} instance with the {@link #build()} method.</li>
  * </ol>
  *
  * @author Arjen Poutsma
@@ -60,9 +64,12 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * @see #fromUri(URI)
  * @since 3.1
  */
-public class UriComponentsBuilder  {
+public class UriComponentsBuilder {
 
 	private static final Pattern QUERY_PARAM_PATTERN = Pattern.compile("([^&=]+)(=?)([^&]+)?");
+	private static final int QUERY_PARAM_PATTERN_NAME_INDEX = 1;
+	private static final int QUERY_PARAM_PATTERN_EQ_INDEX = 2;
+	private static final int QUERY_PARAM_PATTERN_VALUE_INDEX = 3;
 
 	private static final String SCHEME_PATTERN = "([^:/?#]+):";
 
@@ -82,6 +89,7 @@ public class UriComponentsBuilder  {
 
 	private static final String QUERY_PATTERN = "([^#]*)";
 
+
 	private static final String LAST_PATTERN = "(.*)";
 
 	// Regex patterns that matches URIs. See RFC 3986, appendix B
@@ -89,14 +97,29 @@ public class UriComponentsBuilder  {
 			"^(" + SCHEME_PATTERN + ")?" + "(//(" + USERINFO_PATTERN + "@)?" + HOST_PATTERN + "(:" + PORT_PATTERN +
 					")?" + ")?" + PATH_PATTERN + "(\\?" + QUERY_PATTERN + ")?" + "(#" + LAST_PATTERN + ")?");
 
+	private static final int URI_PATTERN_SCHEME_INDEX = 2;
+	private static final int URI_PATTERN_USER_INFO_INDEX = 5;
+	private static final int URI_PATTERN_HOST_INDEX = 6;
+	private static final int URI_PATTERN_PORT_INDEX = 8;
+	private static final int URI_PATTERN_PATH_INDEX = 9;
+	private static final int URI_PATTERN_QUERY_INDEX = 11;
+	private static final int URI_PATTERN_FRAGMENT_INDEX = 13;
+
+
 	private static final Pattern HTTP_URL_PATTERN = Pattern.compile(
 			"^" + HTTP_PATTERN + "(//(" + USERINFO_PATTERN + "@)?" + HOST_PATTERN + "(:" + PORT_PATTERN + ")?" + ")?" +
 					PATH_PATTERN + "(\\?" + LAST_PATTERN + ")?");
 
+	private static final int HTTP_URL_PATTERN_SCHEME_INDEX = 1;
+	private static final int HTTP_URL_PATTERN_USER_INFO_INDEX = 4;
+	private static final int HTTP_URL_PATTERN_HOST_INDEX = 5;
+	private static final int HTTP_URL_PATTERN_PORT_INDEX = 7;
+	private static final int HTTP_URL_PATTERN_PATH_INDEX = 8;
+	private static final int HTTP_URL_PATTERN_QUERY_INDEX = 10;
+
 	private static final Pattern FORWARDED_HOST_PATTERN = Pattern.compile("host=\"?([^;,\"]+)\"?", Pattern.CASE_INSENSITIVE);
 
 	private static final Pattern FORWARDED_PROTO_PATTERN = Pattern.compile("proto=\"?([^;,\"]+)\"?", Pattern.CASE_INSENSITIVE);
-
 
 
 	/*@Nullable*/
@@ -205,16 +228,16 @@ public class UriComponentsBuilder  {
 		Validate.notNull(uri, "URI must not be null");
 		Matcher matcher = URI_PATTERN.matcher(uri);
 		if (!matcher.matches()) {
-				throw new IllegalArgumentException("[" + uri + "] is not a valid URI");
+			throw new IllegalArgumentException("[" + uri + "] is not a valid URI");
 		}
 		UriComponentsBuilder builder = new UriComponentsBuilder();
-		String scheme = matcher.group(2);
-		String userInfo = matcher.group(5);
-		String host = matcher.group(6);
-		String port = matcher.group(8);
-		String path = matcher.group(9);
-		String query = matcher.group(11);
-		String fragment = matcher.group(13);
+		String scheme = matcher.group(URI_PATTERN_SCHEME_INDEX);
+		String userInfo = matcher.group(URI_PATTERN_USER_INFO_INDEX);
+		String host = matcher.group(URI_PATTERN_HOST_INDEX);
+		String port = matcher.group(URI_PATTERN_PORT_INDEX);
+		String path = matcher.group(URI_PATTERN_PATH_INDEX);
+		String query = matcher.group(URI_PATTERN_QUERY_INDEX);
+		String fragment = matcher.group(URI_PATTERN_FRAGMENT_INDEX);
 		builder.scheme(scheme);
 		if (isOpaque(uri, scheme)) {
 			setSchemeSpecificPart(uri, builder, scheme, fragment);
@@ -245,7 +268,7 @@ public class UriComponentsBuilder  {
 		if (StringUtils.isNotEmpty(scheme)) {
 			String rest = uri.substring(scheme.length());
 			if (!rest.startsWith(":/")) {
-				return  true;
+				return true;
 			}
 		}
 		return false;
@@ -271,20 +294,20 @@ public class UriComponentsBuilder  {
 		Matcher matcher = HTTP_URL_PATTERN.matcher(httpUrl);
 		if (matcher.matches()) {
 			UriComponentsBuilder builder = new UriComponentsBuilder();
-			String scheme = matcher.group(1);
-			builder.scheme(scheme != null ? scheme.toLowerCase() : null);
-			builder.userInfo(matcher.group(4));
-			String host = matcher.group(5);
+			String scheme = matcher.group(HTTP_URL_PATTERN_SCHEME_INDEX);
+			builder.scheme(scheme != null ? scheme.toLowerCase(Locale.ENGLISH) : null);
+			builder.userInfo(matcher.group(HTTP_URL_PATTERN_USER_INFO_INDEX));
+			String host = matcher.group(HTTP_URL_PATTERN_HOST_INDEX);
 			if (StringUtils.isNotEmpty(scheme) && StringUtils.isEmpty(host)) {
 				throw new IllegalArgumentException("[" + httpUrl + "] is not a valid HTTP URL");
 			}
 			builder.host(host);
-			String port = matcher.group(7);
+			String port = matcher.group(HTTP_URL_PATTERN_PORT_INDEX);
 			if (StringUtils.isNotEmpty(port)) {
 				builder.port(port);
 			}
-			builder.path(matcher.group(8));
-			builder.query(matcher.group(10));
+			builder.path(matcher.group(HTTP_URL_PATTERN_PATH_INDEX));
+			builder.query(matcher.group(HTTP_URL_PATTERN_QUERY_INDEX));
 			return builder;
 		} else {
 			throw new IllegalArgumentException("[" + httpUrl + "] is not a valid HTTP URL");
@@ -316,7 +339,7 @@ public class UriComponentsBuilder  {
 	 *
 	 * @return the URI components
 	 */
-	public UriComponents build() {
+	public UriComponentsBase build() {
 		return build(false);
 	}
 
@@ -328,7 +351,7 @@ public class UriComponentsBuilder  {
 	 *                encoded ({@code true}) or not ({@code false})
 	 * @return the URI components
 	 */
-	public UriComponents build(boolean encoded) {
+	public UriComponentsBase build(boolean encoded) {
 		if (this.ssp != null) {
 			return new OpaqueUriComponents(this.scheme, this.ssp, this.fragment);
 		} else {
@@ -340,24 +363,24 @@ public class UriComponentsBuilder  {
 	/**
 	 * Build a {@code UriComponents} instance and replaces URI template variables
 	 * with the values from a map. This is a shortcut method which combines
-	 * calls to {@link #build()} and then {@link UriComponents#expand(Map)}.
+	 * calls to {@link #build()} and then {@link UriComponentsBase#expand(Map)}.
 	 *
 	 * @param uriVariables the map of URI variables
 	 * @return the URI components with expanded values
 	 */
-	public UriComponents buildAndExpand(Map<String, ?> uriVariables) {
+	public UriComponentsBase buildAndExpand(Map<String, ?> uriVariables) {
 		return build(false).expand(uriVariables);
 	}
 
 	/**
 	 * Build a {@code UriComponents} instance and replaces URI template variables
 	 * with the values from an array. This is a shortcut method which combines
-	 * calls to {@link #build()} and then {@link UriComponents#expand(Object...)}.
+	 * calls to {@link #build()} and then {@link UriComponentsBase#expand(Object...)}.
 	 *
 	 * @param uriVariableValues URI variable values
 	 * @return the URI components with expanded values
 	 */
-	public UriComponents buildAndExpand(Object... uriVariableValues) {
+	public UriComponentsBase buildAndExpand(Object... uriVariableValues) {
 		return build(false).expand(uriVariableValues);
 	}
 
@@ -387,10 +410,10 @@ public class UriComponentsBuilder  {
 
 	/**
 	 * Build a URI String. This is a shortcut method which combines calls
-	 * to {@link #build()}, then {@link UriComponents#encode()} and finally
-	 * {@link UriComponents#toUriString()}.
+	 * to {@link #build()}, then {@link UriComponentsBase#encode()} and finally
+	 * {@link UriComponentsBase#toUriString()}.
 	 *
-	 * @see UriComponents#toUriString()
+	 * @see UriComponentsBase#toUriString()
 	 * @since 4.1
 	 */
 	public String toUriString() {
@@ -440,7 +463,7 @@ public class UriComponentsBuilder  {
 
 	/**
 	 * Set or append individual URI components of this builder from the values
-	 * of the given {@link UriComponents} instance.
+	 * of the given {@link UriComponentsBase} instance.
 	 * <p>For the semantics of each component (i.e. set vs append) check the
 	 * builder methods on this class. For example {@link #host(String)} sets
 	 * while {@link #path(String)} appends.
@@ -448,7 +471,7 @@ public class UriComponentsBuilder  {
 	 * @param uriComponents the UriComponents to copy from
 	 * @return this UriComponentsBuilder
 	 */
-	public UriComponentsBuilder uriComponents(UriComponents uriComponents) {
+	public UriComponentsBuilder uriComponents(UriComponentsBase uriComponents) {
 		Validate.notNull(uriComponents, "UriComponents must not be null");
 		uriComponents.copyToUriComponentsBuilder(this);
 		return this;
@@ -555,7 +578,7 @@ public class UriComponentsBuilder  {
 	 * @param pathSegments the URI path segments
 	 * @return this UriComponentsBuilder
 	 */
-	public UriComponentsBuilder pathSegment(String... pathSegments)  {
+	public UriComponentsBuilder pathSegment(String... pathSegments) {
 		this.pathBuilder.addPathSegments(pathSegments);
 		resetSchemeSpecificPart();
 		return this;
@@ -597,9 +620,9 @@ public class UriComponentsBuilder  {
 		if (query != null) {
 			Matcher matcher = QUERY_PARAM_PATTERN.matcher(query);
 			while (matcher.find()) {
-				String name = matcher.group(1);
-				String eq = matcher.group(2);
-				String value = matcher.group(3);
+				String name = matcher.group(QUERY_PARAM_PATTERN_NAME_INDEX);
+				String eq = matcher.group(QUERY_PARAM_PATTERN_EQ_INDEX);
+				String value = matcher.group(QUERY_PARAM_PATTERN_VALUE_INDEX);
 				if (value == null) {
 					value = isNotBlank(eq) ? "" : null;
 				}

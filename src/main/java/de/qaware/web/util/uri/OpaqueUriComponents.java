@@ -29,7 +29,7 @@ import java.util.Objects;
 
 
 /**
- * Extension of {@link UriComponents} for opaque URIs.
+ * Extension of {@link UriComponentsBase} for opaque URIs.
  *
  * @author Arjen Poutsma
  * @author Phillip Webb
@@ -37,12 +37,9 @@ import java.util.Objects;
  * @since 3.2
  */
 @SuppressWarnings("serial")
-final class OpaqueUriComponents extends UriComponents {
+final class OpaqueUriComponents extends UriComponentsBase {
 
-
-	/*@Nullable*/
 	private final String ssp;
-
 
 	OpaqueUriComponents(/*@Nullable*/ String scheme, /*@Nullable*/ String schemeSpecificPart, /*@Nullable*/ String fragment) {
 		super(scheme, fragment);
@@ -102,12 +99,12 @@ final class OpaqueUriComponents extends UriComponents {
 	}
 
 	@Override
-	public UriComponents encode(Charset charset) {
+	public UriComponentsBase encode(Charset charset) {
 		return this;
 	}
 
 	@Override
-	protected UriComponents expandInternal(UriTemplateVariables uriVariables) {
+	protected UriComponentsBase expandInternal(UriTemplateVariables uriVariables) {
 		String expandedScheme = expandUriComponent(getScheme(), uriVariables);
 		String expandedSsp = expandUriComponent(getSchemeSpecificPart(), uriVariables);
 		String expandedFragment = expandUriComponent(getFragment(), uriVariables);
@@ -115,7 +112,7 @@ final class OpaqueUriComponents extends UriComponents {
 	}
 
 	@Override
-	public UriComponents normalize() {
+	public UriComponentsBase normalize() {
 		return this;
 	}
 

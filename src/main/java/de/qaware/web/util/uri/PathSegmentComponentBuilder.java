@@ -6,9 +6,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- *
+ * PathSegmentComponentBuilder
  */
-class PathSegmentComponentBuilder implements PathComponentBuilder {
+final class PathSegmentComponentBuilder implements PathComponentBuilder {
 
 	private final List<String> pathSegments = new LinkedList<>();
 
@@ -21,9 +21,9 @@ class PathSegmentComponentBuilder implements PathComponentBuilder {
 	}
 
 	@Override
-	public HierarchicalUriComponents.PathComponent build() {
+	public PathComponent build() {
 		return (this.pathSegments.isEmpty() ? null :
-				new HierarchicalUriComponents.PathSegmentComponent(this.pathSegments));
+				new PathSegmentComponent(this.pathSegments));
 	}
 
 	@Override

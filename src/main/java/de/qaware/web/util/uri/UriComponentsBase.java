@@ -23,8 +23,6 @@ import java.io.Serializable;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -44,10 +42,9 @@ import java.util.regex.Pattern;
  * @since 3.1
  */
 @SuppressWarnings("serial")
-public abstract class UriComponents implements Serializable {
+public abstract class UriComponentsBase implements Serializable {
 
 	public static final char PATH_DELIMITER = '/';
-
 	public static final String PATH_DELIMITER_STRING = "/";
 
 	/**
@@ -63,7 +60,7 @@ public abstract class UriComponents implements Serializable {
 	private final String fragment;
 
 
-	protected UriComponents(/*@Nullable*/ String scheme, /*@Nullable*/ String fragment) {
+	protected UriComponentsBase(/*@Nullable*/ String scheme, /*@Nullable*/ String fragment) {
 		this.scheme = scheme;
 		this.fragment = fragment;
 	}
@@ -87,57 +84,6 @@ public abstract class UriComponents implements Serializable {
 		return this.fragment;
 	}
 
-	/**
-	 * Return the scheme specific part. Can be {@code null}.
-	 */
-	/*@Nullable*/
-	public abstract String getSchemeSpecificPart();
-
-	/**
-	 * Return the user info. Can be {@code null}.
-	 */
-	/*@Nullable*/
-	public abstract String getUserInfo();
-
-	/**
-	 * Return the host. Can be {@code null}.
-	 */
-	/*@Nullable*/
-	public abstract String getHost();
-
-	/**
-	 * Return the port. {@code -1} if no port has been set.
-	 */
-	public abstract int getPort();
-
-	/**
-	 * Return the path. Can be {@code null}.
-	 */
-	/*@Nullable*/
-	public abstract String getPath();
-
-	/**
-	 * Return the list of path segments. Empty if no path has been set.
-	 */
-	public abstract List<String> getPathSegments();
-
-	/**
-	 * Return the query. Can be {@code null}.
-	 */
-	/*@Nullable*/
-	public abstract String getQuery();
-
-	/**
-	 * Return the map of query parameters. Empty if no query has been set.
-	 */
-	public abstract Map<String, List<String>> getQueryParamsMap();
-
-
-	/**
-	 * Return the map of query parameters. Empty if no query has been set.
-	 */
-	public abstract MultiValuedMap<String, String> getQueryParams();
-
 
 	/**
 	 * Encode all URI components using their specific encoding rules, and returns the
@@ -145,18 +91,9 @@ public abstract class UriComponents implements Serializable {
 	 *
 	 * @return the encoded URI components
 	 */
-	public final UriComponents encode() {
+	public final UriComponentsBase encode() {
 		return encode(StandardCharsets.UTF_8);
 	}
-
-	/**
-	 * Encode all URI components using their specific encoding rules, and
-	 * returns the result as a new {@code UriComponents} instance.
-	 *
-	 * @param charset the encoding of the values contained in this map
-	 * @return the encoded URI components
-	 */
-	public abstract UriComponents encode(Charset charset);
 
 	/**
 	 * Replace all URI template variables with the values from a given map.
@@ -166,7 +103,7 @@ public abstract class UriComponents implements Serializable {
 	 * @param uriVariables the map of URI variables
 	 * @return the expanded URI components
 	 */
-	public final UriComponents expand(Map<String, ?> uriVariables) {
+	public final UriComponentsBase expand(Map<String, ?> uriVariables) {
 		Validate.notNull(uriVariables, "'uriVariables' must not be null");
 		return expandInternal(new MapTemplateVariables(uriVariables));
 	}
@@ -178,7 +115,7 @@ public abstract class UriComponents implements Serializable {
 	 * @param uriVariableValues the URI variable values
 	 * @return the expanded URI components
 	 */
-	public final UriComponents expand(Object... uriVariableValues) {
+	public final UriComponentsBase expand(Object... uriVariableValues) {
 		Validate.notNull(uriVariableValues, "'uriVariableValues' must not be null");
 		return expandInternal(new VarArgsTemplateVariables(uriVariableValues));
 	}
@@ -190,9 +127,39 @@ public abstract class UriComponents implements Serializable {
 	 * @param uriVariables the URI template values
 	 * @return the expanded URI components
 	 */
-	public final UriComponents expand(UriTemplateVariables uriVariables) {
+	public final UriComponentsBase expand(UriTemplateVariables uriVariables) {
 		Validate.notNull(uriVariables, "'uriVariables' must not be null");
 		return expandInternal(uriVariables);
+	}
+
+	static void verifyUriComponent(/*@Nullable*/ String source, URIComponentType type) {
+		if (source == null) {
+			return;
+		}
+		int length = source.length();
+		int pos = -1;
+		while (++pos < length) {
+			char ch = source.charAt(pos);
+			if (ch == '%') {
+				if ((pos + 2) < length) {
+					char hex1 = source.charAt(pos + 1);
+					char hex2 = source.charAt(pos + 2);
+					int u = Character.digit(hex1, 16);
+					int l = Character.digit(hex2, 16);
+					if (u == -1 || l == -1) {
+						throw new IllegalArgumentException("Invalid encoded sequence \"" +
+								source.substring(pos) + "\"");
+					}
+					pos += 2;
+				} else {
+					throw new IllegalArgumentException("Invalid encoded sequence \"" +
+							source.substring(pos) + "\"");
+				}
+			} else if (!type.isAllowedCharacter(ch)) {
+				throw new IllegalArgumentException("Invalid character '" + ch + "' for " +
+						type.name() + " in \"" + source + "\"");
+			}
+		}
 	}
 
 	/**
@@ -202,24 +169,7 @@ public abstract class UriComponents implements Serializable {
 	 * @param uriVariables URI template values
 	 * @return the expanded URI components
 	 */
-	abstract UriComponents expandInternal(UriTemplateVariables uriVariables);
-
-	/**
-	 * Normalize the path removing sequences like "path/..". Note that calling this method will
-	 * combine all path segments into a full path before doing the actual normalisation, i.e.
-	 * individual path segments will not be normalized individually.
-	 */
-	public abstract UriComponents normalize();
-
-	/**
-	 * Return a URI String from this {@code UriComponents} instance.
-	 */
-	public abstract String toUriString();
-
-	/**
-	 * Return a {@code URI} from this {@code UriComponents} instance.
-	 */
-	public abstract URI toUri();
+	abstract UriComponentsBase expandInternal(UriTemplateVariables uriVariables);
 
 	@Override
 	public final String toString() {
@@ -297,68 +247,78 @@ public abstract class UriComponents implements Serializable {
 
 
 	/**
-	 * Defines the contract for URI Template variables
+	 * Return the scheme specific part. Can be {@code null}.
+	 */
+	/*@Nullable*/
+	public abstract String getSchemeSpecificPart();
+
+	/**
+	 * Return the user info. Can be {@code null}.
+	 */
+	/*@Nullable*/
+	public abstract String getUserInfo();
+
+	/**
+	 * Return the host. Can be {@code null}.
+	 */
+	/*@Nullable*/
+	public abstract String getHost();
+
+	/**
+	 * Return the port. {@code -1} if no port has been set.
+	 */
+	public abstract int getPort();
+
+	/**
+	 * Return the path. Can be {@code null}.
+	 */
+	/*@Nullable*/
+	public abstract String getPath();
+
+	/**
+	 * Return the list of path segments. Empty if no path has been set.
+	 */
+	public abstract List<String> getPathSegments();
+
+	/**
+	 * Return the query. Can be {@code null}.
+	 */
+	/*@Nullable*/
+	public abstract String getQuery();
+
+	/**
+	 * Return the map of query parameters. Empty if no query has been set.
+	 */
+	public abstract Map<String, List<String>> getQueryParamsMap();
+
+	/**
+	 * Return the map of query parameters. Empty if no query has been set.
+	 */
+	public abstract MultiValuedMap<String, String> getQueryParams();
+
+	/**
+	 * Encode all URI components using their specific encoding rules, and
+	 * returns the result as a new {@code UriComponents} instance.
 	 *
-	 * @see HierarchicalUriComponents#expand
+	 * @param charset the encoding of the values contained in this map
+	 * @return the encoded URI components
 	 */
-	public abstract static  class UriTemplateVariables {
-
-		static final Object SKIP_VALUE = UriTemplateVariables.class;
-
-		/**
-		 * Get the value for the given URI variable name.
-		 * If the value is {@code null}, an empty String is expanded.
-		 * If the value is {@link #SKIP_VALUE}, the URI variable is not expanded.
-		 *
-		 * @param name the variable name
-		 * @return the variable value, possibly {@code null} or {@link #SKIP_VALUE}
-		 */
-		/*@Nullable*/
-		abstract Object getValue(/*@Nullable*/ String name);
-	}
-
+	public abstract UriComponentsBase encode(Charset charset);
 
 	/**
-	 * URI template variables backed by a map.
+	 * Normalize the path removing sequences like "path/..". Note that calling this method will
+	 * combine all path segments into a full path before doing the actual normalisation, i.e.
+	 * individual path segments will not be normalized individually.
 	 */
-	private static class MapTemplateVariables extends UriTemplateVariables {
-
-		private final Map<String, ?> uriVariables;
-
-		public MapTemplateVariables(Map<String, ?> uriVariables) {
-			this.uriVariables = uriVariables;
-		}
-
-		@Override
-		/*@Nullable*/
-		public Object getValue(/*@Nullable*/ String name) {
-			if (!this.uriVariables.containsKey(name)) {
-				throw new IllegalArgumentException("Map has no value for '" + name + "'");
-			}
-			return this.uriVariables.get(name);
-		}
-	}
-
+	public abstract UriComponentsBase normalize();
 
 	/**
-	 * URI template variables backed by a variable argument array.
+	 * Return a URI String from this {@code UriComponents} instance.
 	 */
-	private static class VarArgsTemplateVariables extends UriTemplateVariables {
+	public abstract String toUriString();
 
-		private final Iterator<Object> valueIterator;
-
-		public VarArgsTemplateVariables(Object... uriVariableValues) {
-			this.valueIterator = Arrays.asList(uriVariableValues).iterator();
-		}
-
-		@Override
-		/*@Nullable*/
-		public Object getValue(/*@Nullable*/ String name) {
-			if (!this.valueIterator.hasNext()) {
-				throw new IllegalArgumentException("Not enough variable values available to expand '" + name + "'");
-			}
-			return this.valueIterator.next();
-		}
-	}
-
+	/**
+	 * Return a {@code URI} from this {@code UriComponents} instance.
+	 */
+	public abstract URI toUri();
 }

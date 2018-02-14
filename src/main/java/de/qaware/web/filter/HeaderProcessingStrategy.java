@@ -1,7 +1,12 @@
 package de.qaware.web.filter;
 
 /**
- *
+ * ForwaredHeader Processing Strategy offers choices:
+ * <ul>
+ *     <li>EVAL_AND_KEEP</li>
+ *     <li>EVAL_AND_REMOVE</li>
+ *     <li>DONT_EVAL_AND_REMOVE</li>
+ * </ul>
  */
 public enum HeaderProcessingStrategy {
 

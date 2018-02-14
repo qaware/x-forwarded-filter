@@ -117,11 +117,11 @@ public class UrlPathHelperTests {
 	}
 
 	@Test
-	public void setDefaultEncoding(){
+	public void setDefaultEncoding() {
 		helper.setDefaultEncoding("UTF-8");
-		assertEquals(helper.getDefaultEncoding(),"UTF-8");
+		assertEquals(helper.getDefaultEncoding(), "UTF-8");
 		helper.setDefaultEncoding("ISO-8859-1");
-		assertEquals(helper.getDefaultEncoding(),"ISO-8859-1");
+		assertEquals(helper.getDefaultEncoding(), "ISO-8859-1");
 	}
 
 }

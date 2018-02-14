@@ -29,7 +29,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static de.qaware.web.util.ForwardedHeader.*;
+import static de.qaware.web.util.ForwardedHeader.FORWARDED;
+import static de.qaware.web.util.ForwardedHeader.X_FORWARDED_HOST;
+import static de.qaware.web.util.ForwardedHeader.X_FORWARDED_PORT;
+import static de.qaware.web.util.ForwardedHeader.X_FORWARDED_PROTO;
 import static de.qaware.web.util.uri.UriComponentsBuilder.fromUriString;
 import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +54,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void plain() throws URISyntaxException {
 		UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
-		UriComponents result = builder.scheme("http").host("example.com")
+		UriComponentsBase result = builder.scheme("http").host("example.com")
 				.path("foo").queryParam("bar").fragment("baz")
 				.build();
 		assertEquals("http", result.getScheme());
@@ -68,9 +71,9 @@ public class UriComponentsBuilderTests {
 	public void multipleFromSameBuilder() throws URISyntaxException {
 		UriComponentsBuilder builder = UriComponentsBuilder.newInstance()
 				.scheme("http").host("example.com").pathSegment("foo");
-		UriComponents result1 = builder.build();
+		UriComponentsBase result1 = builder.build();
 		builder = builder.pathSegment("foo2").queryParam("bar").fragment("baz");
-		UriComponents result2 = builder.build();
+		UriComponentsBase result2 = builder.build();
 
 		assertEquals("http", result1.getScheme());
 		assertEquals("example.com", result1.getHost());
@@ -89,7 +92,7 @@ public class UriComponentsBuilderTests {
 
 	@Test
 	public void fromPath() throws URISyntaxException {
-		UriComponents result = UriComponentsBuilder.fromPath("foo").queryParam("bar").fragment("baz").build();
+		UriComponentsBase result = UriComponentsBuilder.fromPath("foo").queryParam("bar").fragment("baz").build();
 		assertEquals("foo", result.getPath());
 		assertEquals("bar", result.getQuery());
 		assertEquals("baz", result.getFragment());
@@ -109,7 +112,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void fromHierarchicalUri() throws URISyntaxException {
 		URI uri = new URI("http://example.com/foo?bar#baz");
-		UriComponents result = UriComponentsBuilder.fromUri(uri).build();
+		UriComponentsBase result = UriComponentsBuilder.fromUri(uri).build();
 		assertEquals("http", result.getScheme());
 		assertEquals("example.com", result.getHost());
 		assertEquals("/foo", result.getPath());
@@ -122,7 +125,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void fromOpaqueUri() throws URISyntaxException {
 		URI uri = new URI("mailto:foo@bar.com#baz");
-		UriComponents result = UriComponentsBuilder.fromUri(uri).build();
+		UriComponentsBase result = UriComponentsBuilder.fromUri(uri).build();
 		assertEquals("mailto", result.getScheme());
 		assertEquals("foo@bar.com", result.getSchemeSpecificPart());
 		assertEquals("baz", result.getFragment());
@@ -142,7 +145,7 @@ public class UriComponentsBuilderTests {
 
 	@Test
 	public void testFromUriString() {
-		UriComponents result = fromUriString("http://www.ietf.org/rfc/rfc3986.txt").build();
+		UriComponentsBase result = fromUriString("http://www.ietf.org/rfc/rfc3986.txt").build();
 		assertEquals("http", result.getScheme());
 		assertNull(result.getUserInfo());
 		assertEquals("www.ietf.org", result.getHost());
@@ -189,7 +192,7 @@ public class UriComponentsBuilderTests {
 	@Test // SPR-9832
 	public void fromUriStringQueryParamWithReservedCharInValue() throws URISyntaxException {
 		String uri = "http://www.google.com/ig/calculator?q=1USD=?EUR";
-		UriComponents result = fromUriString(uri).build();
+		UriComponentsBase result = fromUriString(uri).build();
 
 		assertEquals("q=1USD=?EUR", result.getQuery());
 		assertEquals("1USD=?EUR", result.getQueryParamsMap().get("q").get(0));
@@ -217,22 +220,22 @@ public class UriComponentsBuilderTests {
 
 	@Test // SPR-10539
 	public void fromUriStringIPv6Host() throws URISyntaxException {
-		UriComponents result = UriComponentsBuilder
+		UriComponentsBase result = UriComponentsBuilder
 				.fromUriString("http://[1abc:2abc:3abc::5ABC:6abc]:8080/resource").build().encode();
 		assertEquals("[1abc:2abc:3abc::5ABC:6abc]", result.getHost());
 
-		UriComponents resultWithScopeId = UriComponentsBuilder
+		UriComponentsBase resultWithScopeId = UriComponentsBuilder
 				.fromUriString("http://[1abc:2abc:3abc::5ABC:6abc%eth0]:8080/resource").build().encode();
 		assertEquals("[1abc:2abc:3abc::5ABC:6abc%25eth0]", resultWithScopeId.getHost());
 
-		UriComponents resultIPv4compatible = UriComponentsBuilder
+		UriComponentsBase resultIPv4compatible = UriComponentsBuilder
 				.fromUriString("http://[::192.168.1.1]:8080/resource").build().encode();
 		assertEquals("[::192.168.1.1]", resultIPv4compatible.getHost());
 	}
 
 	@Test // SPR-11970
 	public void fromUriStringNoPathWithReservedCharInQuery() {
-		UriComponents result = fromUriString("http://example.com?foo=bar@baz").build();
+		UriComponentsBase result = fromUriString("http://example.com?foo=bar@baz").build();
 		assertTrue(StringUtils.isEmpty(result.getUserInfo()));
 		assertEquals("example.com", result.getHost());
 		assertTrue(result.getQueryParams().containsKey("foo"));
@@ -249,7 +252,7 @@ public class UriComponentsBuilderTests {
 		request.setRequestURI("/path");
 		request.setQueryString("a=1");
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 		assertEquals("http", result.getScheme());
 		assertEquals("localhost", result.getHost());
 		assertEquals(-1, result.getPort());
@@ -268,7 +271,7 @@ public class UriComponentsBuilderTests {
 		request.setServerPort(80);
 		request.setRequestURI("/rest/mobile/users/1");
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("https", result.getScheme());
 		assertEquals("84.198.58.199", result.getHost());
@@ -285,7 +288,7 @@ public class UriComponentsBuilderTests {
 		request.setRequestURI("/mvc-showcase");
 		request.addHeader(FORWARDED.headerName(), "host=192.168.0.1");
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("http://192.168.0.1/mvc-showcase", result.toString());
 	}
@@ -299,7 +302,7 @@ public class UriComponentsBuilderTests {
 		request.setRequestURI("/mvc-showcase");
 		request.addHeader(FORWARDED.headerName(), "host=[1abc:2abc:3abc::5ABC:6abc]");
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("http://[1abc:2abc:3abc::5ABC:6abc]/mvc-showcase", result.toString());
 	}
@@ -313,7 +316,7 @@ public class UriComponentsBuilderTests {
 		request.setRequestURI("/mvc-showcase");
 		request.addHeader(X_FORWARDED_HOST.headerName(), "[1abc:2abc:3abc::5ABC:6abc]");
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("http://[1abc:2abc:3abc::5ABC:6abc]/mvc-showcase", result.toString());
 	}
@@ -327,7 +330,7 @@ public class UriComponentsBuilderTests {
 		request.setRequestURI("/mvc-showcase");
 		request.addHeader(X_FORWARDED_HOST.headerName(), "[1abc:2abc:3abc::5ABC:6abc]:8080");
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("http://[1abc:2abc:3abc::5ABC:6abc]:8080/mvc-showcase", result.toString());
 	}
@@ -342,7 +345,7 @@ public class UriComponentsBuilderTests {
 		request.setRequestURI("/mvc-showcase");
 		request.addHeader(X_FORWARDED_HOST.headerName(), "anotherHost");
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("http://anotherHost/mvc-showcase", result.toString());
 	}
@@ -357,7 +360,7 @@ public class UriComponentsBuilderTests {
 		request.addHeader(X_FORWARDED_HOST.headerName(), "webtest.foo.bar.com:443");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("webtest.foo.bar.com", result.getHost());
 		assertEquals(443, result.getPort());
@@ -372,7 +375,7 @@ public class UriComponentsBuilderTests {
 		request.addHeader(X_FORWARDED_HOST.headerName(), "a.example.org, b.example.org, c.example.org");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("a.example.org", result.getHost());
 		assertEquals(-1, result.getPort());
@@ -388,7 +391,7 @@ public class UriComponentsBuilderTests {
 		request.addHeader(X_FORWARDED_PORT.headerName(), "9090");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("foobarhost", result.getHost());
 		assertEquals(9090, result.getPort());
@@ -403,7 +406,7 @@ public class UriComponentsBuilderTests {
 		request.addHeader(X_FORWARDED_HOST.headerName(), "example.org");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("example.org", result.getHost());
 		assertEquals(-1, result.getPort());
@@ -420,7 +423,7 @@ public class UriComponentsBuilderTests {
 		request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("example.org", result.getHost());
 		assertEquals("https", result.getScheme());
@@ -439,7 +442,7 @@ public class UriComponentsBuilderTests {
 		request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("https://84.198.58.199/mvc-showcase", result.toString());
 	}
@@ -455,7 +458,7 @@ public class UriComponentsBuilderTests {
 		request.addHeader(X_FORWARDED_PORT.headerName(), "80,52022");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("http://a.example.org/mvc-showcase", result.toString());
 	}
@@ -472,22 +475,22 @@ public class UriComponentsBuilderTests {
 		request.addHeader(X_FORWARDED_PROTO.headerName(), "https,https");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("https://a.example.org/mvc-showcase", result.toString());
 	}
 
 	@Test // SPR-12742
 	public void fromHttpRequestWithTrailingSlash() throws Exception {
-		UriComponents before = UriComponentsBuilder.fromPath("/foo/").build();
-		UriComponents after = UriComponentsBuilder.newInstance().uriComponents(before).build();
+		UriComponentsBase before = UriComponentsBuilder.fromPath("/foo/").build();
+		UriComponentsBase after = UriComponentsBuilder.newInstance().uriComponents(before).build();
 		assertEquals("/foo/", after.getPath());
 	}
 
 	@Test
 	public void path() throws URISyntaxException {
 		UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/foo/bar");
-		UriComponents result = builder.build();
+		UriComponentsBase result = builder.build();
 
 		assertEquals("/foo/bar", result.getPath());
 		assertEquals(Arrays.asList("foo", "bar"), result.getPathSegments());
@@ -496,7 +499,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void pathSegments() throws URISyntaxException {
 		UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
-		UriComponents result = builder.pathSegment("foo").pathSegment("bar").build();
+		UriComponentsBase result = builder.pathSegment("foo").pathSegment("bar").build();
 
 		assertEquals("/foo/bar", result.getPath());
 		assertEquals(Arrays.asList("foo", "bar"), result.getPathSegments());
@@ -505,7 +508,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void pathThenPath() {
 		UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/foo/bar").path("ba/z");
-		UriComponents result = builder.build().encode();
+		UriComponentsBase result = builder.build().encode();
 
 		assertEquals("/foo/barba/z", result.getPath());
 		assertEquals(Arrays.asList("foo", "barba", "z"), result.getPathSegments());
@@ -514,7 +517,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void pathThenPathSegments() {
 		UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/foo/bar").pathSegment("ba/z");
-		UriComponents result = builder.build().encode();
+		UriComponentsBase result = builder.build().encode();
 
 		assertEquals("/foo/bar/ba%2Fz", result.getPath());
 		assertEquals(Arrays.asList("foo", "bar", "ba%2Fz"), result.getPathSegments());
@@ -523,7 +526,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void pathSegmentsThenPathSegments() {
 		UriComponentsBuilder builder = UriComponentsBuilder.newInstance().pathSegment("foo").pathSegment("bar");
-		UriComponents result = builder.build();
+		UriComponentsBase result = builder.build();
 
 		assertEquals("/foo/bar", result.getPath());
 		assertEquals(Arrays.asList("foo", "bar"), result.getPathSegments());
@@ -532,7 +535,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void pathSegmentsThenPath() {
 		UriComponentsBuilder builder = UriComponentsBuilder.newInstance().pathSegment("foo").path("/");
-		UriComponents result = builder.build();
+		UriComponentsBase result = builder.build();
 
 		assertEquals("/foo/", result.getPath());
 		assertEquals(Collections.singletonList("foo"), result.getPathSegments());
@@ -541,7 +544,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void pathSegmentsSomeEmpty() {
 		UriComponentsBuilder builder = UriComponentsBuilder.newInstance().pathSegment("", "foo", "", "bar");
-		UriComponents result = builder.build();
+		UriComponentsBase result = builder.build();
 
 		assertEquals("/foo/bar", result.getPath());
 		assertEquals(Arrays.asList("foo", "bar"), result.getPathSegments());
@@ -549,7 +552,7 @@ public class UriComponentsBuilderTests {
 
 	@Test // SPR-12398
 	public void pathWithDuplicateSlashes() throws URISyntaxException {
-		UriComponents uriComponents = UriComponentsBuilder.fromPath("/foo/////////bar").build();
+		UriComponentsBase uriComponents = UriComponentsBuilder.fromPath("/foo/////////bar").build();
 		assertEquals("/foo/bar", uriComponents.getPath());
 	}
 
@@ -557,7 +560,7 @@ public class UriComponentsBuilderTests {
 	public void replacePath() {
 		UriComponentsBuilder builder = fromUriString("http://www.ietf.org/rfc/rfc2396.txt");
 		builder.replacePath("/rfc/rfc3986.txt");
-		UriComponents result = builder.build();
+		UriComponentsBase result = builder.build();
 
 		assertEquals("http://www.ietf.org/rfc/rfc3986.txt", result.toUriString());
 
@@ -572,7 +575,7 @@ public class UriComponentsBuilderTests {
 	public void replaceQuery() {
 		UriComponentsBuilder builder = fromUriString("http://example.com/foo?foo=bar&baz=qux");
 		builder.replaceQuery("baz=42");
-		UriComponents result = builder.build();
+		UriComponentsBase result = builder.build();
 
 		assertEquals("http://example.com/foo?baz=42", result.toUriString());
 
@@ -586,7 +589,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void queryParams() throws URISyntaxException {
 		UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
-		UriComponents result = builder.queryParam("baz", "qux", 42).build();
+		UriComponentsBase result = builder.queryParam("baz", "qux", 42).build();
 
 		assertEquals("baz=qux&baz=42", result.getQuery());
 		ArrayListValuedHashMap<String, String> expectedQueryParams = new ArrayListValuedHashMap<>(2);
@@ -598,7 +601,7 @@ public class UriComponentsBuilderTests {
 	@Test
 	public void emptyQueryParam() throws URISyntaxException {
 		UriComponentsBuilder builder = UriComponentsBuilder.newInstance();
-		UriComponents result = builder.queryParam("baz").build();
+		UriComponentsBase result = builder.queryParam("baz").build();
 
 		assertEquals("baz", result.getQuery());
 		MultiValuedMap<String, String> expectedQueryParams = new ArrayListValuedHashMap<>(2);
@@ -610,7 +613,7 @@ public class UriComponentsBuilderTests {
 	public void replaceQueryParam() {
 		UriComponentsBuilder builder = UriComponentsBuilder.newInstance().queryParam("baz", "qux", 42);
 		builder.replaceQueryParam("baz", "xuq", 24);
-		UriComponents result = builder.build();
+		UriComponentsBase result = builder.build();
 
 		assertEquals("baz=xuq&baz=24", result.getQuery());
 
@@ -623,7 +626,7 @@ public class UriComponentsBuilderTests {
 
 	@Test
 	public void buildAndExpandHierarchical() {
-		UriComponents result = UriComponentsBuilder.fromPath("/{foo}").buildAndExpand("fooValue");
+		UriComponentsBase result = UriComponentsBuilder.fromPath("/{foo}").buildAndExpand("fooValue");
 		assertEquals("/fooValue", result.toUriString());
 
 		Map<String, String> values = new HashMap<>();
@@ -635,7 +638,7 @@ public class UriComponentsBuilderTests {
 
 	@Test
 	public void buildAndExpandOpaque() {
-		UriComponents result = fromUriString("mailto:{user}@{domain}")
+		UriComponentsBase result = fromUriString("mailto:{user}@{domain}")
 				.buildAndExpand("foo", "example.com");
 		assertEquals("mailto:foo@example.com", result.toUriString());
 
@@ -648,21 +651,21 @@ public class UriComponentsBuilderTests {
 
 	@Test
 	public void queryParamWithValueWithEquals() throws Exception {
-		UriComponents uriComponents = fromUriString("http://example.com/foo?bar=baz").build();
+		UriComponentsBase uriComponents = fromUriString("http://example.com/foo?bar=baz").build();
 		assertThat(uriComponents.toUriString()).isEqualTo("http://example.com/foo?bar=baz");
 		assertThat(uriComponents.getQueryParamsMap().get("bar").get(0)).isEqualTo("baz");
 	}
 
 	@Test
 	public void queryParamWithoutValueWithEquals() throws Exception {
-		UriComponents uriComponents = fromUriString("http://example.com/foo?bar=").build();
+		UriComponentsBase uriComponents = fromUriString("http://example.com/foo?bar=").build();
 		assertThat(uriComponents.toUriString()).isEqualTo("http://example.com/foo?bar=");
 		assertThat(uriComponents.getQueryParamsMap().get("bar").get(0)).isEqualTo("");
 	}
 
 	@Test
 	public void queryParamWithoutValueWithoutEquals() throws Exception {
-		UriComponents uriComponents = fromUriString("http://example.com/foo?bar").build();
+		UriComponentsBase uriComponents = fromUriString("http://example.com/foo?bar").build();
 		assertThat(uriComponents.toUriString()).isEqualTo("http://example.com/foo?bar");
 
 		// TODO [SPR-13537] Change equalTo(null) to equalTo("").
@@ -694,14 +697,14 @@ public class UriComponentsBuilderTests {
 
 	@Test
 	public void parsesEmptyFragment() {
-		UriComponents components = fromUriString("/example#").build();
+		UriComponentsBase components = fromUriString("/example#").build();
 		assertThat(components.getFragment()).isNull();
 		assertThat(components.toString()).isEqualTo("/example");
 	}
 
 	@Test  // SPR-13257
 	public void parsesEmptyUri() {
-		UriComponents components = fromUriString("").build();
+		UriComponentsBase components = fromUriString("").build();
 		assertThat(components.toString()).isEqualTo("");
 	}
 
@@ -713,14 +716,14 @@ public class UriComponentsBuilderTests {
 		UriComponentsBuilder builder2 = new UriComponentsBuilder(builder1);
 		builder2.scheme("https").host("e2.com").path("p2").pathSegment("ps2").queryParam("q2").fragment("f2");
 
-		UriComponents result1 = builder1.build();
+		UriComponentsBase result1 = builder1.build();
 		assertEquals("http", result1.getScheme());
 		assertEquals("e1.com", result1.getHost());
 		assertEquals("/p1/ps1", result1.getPath());
 		assertEquals("q1", result1.getQuery());
 		assertEquals("f1", result1.getFragment());
 
-		UriComponents result2 = builder2.build();
+		UriComponentsBase result2 = builder2.build();
 		assertEquals("https", result2.getScheme());
 		assertEquals("e2.com", result2.getHost());
 		assertEquals("/p1/ps1/p2/ps2", result2.getPath());
@@ -737,7 +740,7 @@ public class UriComponentsBuilderTests {
 		request.setRequestURI("/rest/mobile/users/1");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("https", result.getScheme());
 		assertEquals("84.198.58.199", result.getHost());
@@ -753,7 +756,7 @@ public class UriComponentsBuilderTests {
 		request.setRequestURI("/rest/mobile/users/1");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("https", result.getScheme());
 		assertEquals("84.198.58.199", result.getHost());
@@ -770,7 +773,7 @@ public class UriComponentsBuilderTests {
 		request.setRequestURI("/rest/mobile/users/1");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("https", result.getScheme());
 		assertEquals("84.198.58.199", result.getHost());
@@ -786,7 +789,7 @@ public class UriComponentsBuilderTests {
 		request.setRequestURI("/rest/mobile/users/1");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("https", result.getScheme());
 		assertEquals("84.198.58.199", result.getHost());
@@ -802,7 +805,7 @@ public class UriComponentsBuilderTests {
 		request.setRequestURI("/rest/mobile/users/1");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("https", result.getScheme());
 		assertEquals("84.198.58.199", result.getHost());
@@ -821,7 +824,7 @@ public class UriComponentsBuilderTests {
 		request.setRequestURI("/rest/mobile/users/1");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("https", result.getScheme());
 		assertEquals("84.198.58.199", result.getHost());
@@ -840,7 +843,7 @@ public class UriComponentsBuilderTests {
 		request.setRequestURI("/rest/mobile/users/1");
 
 
-		UriComponents result = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase result = UriComponentsBuilder.fromHttpRequest(request).build();
 
 		assertEquals("https", result.getScheme());
 		assertEquals("84.198.58.199", result.getHost());

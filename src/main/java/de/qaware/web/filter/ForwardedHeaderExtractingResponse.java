@@ -50,7 +50,7 @@ class ForwardedHeaderExtractingResponse extends HttpServletResponseWrapper {
 		super.sendRedirect(result);
 	}
 
-	public static String applyRelativePath(String path, String relativePath) {
+	private static String applyRelativePath(String path, String relativePath) {
 		int separatorIndex = path.lastIndexOf(FOLDER_SEPARATOR);
 		if (separatorIndex != -1) {
 			String newPath = path.substring(0, separatorIndex);

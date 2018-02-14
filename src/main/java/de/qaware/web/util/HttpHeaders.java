@@ -20,7 +20,13 @@ package de.qaware.web.util;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.lang3.Validate;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -70,7 +76,7 @@ public class HttpHeaders implements Map<String, List<String>> {
 	 * Constructs a new, empty instance of the {@code HttpHeaders} object.
 	 */
 	public HttpHeaders() {
-		this(new CaseInsensitiveMap<>(8), false);
+		this(new CaseInsensitiveMap<>(), false);
 	}
 
 	/**
@@ -92,8 +98,8 @@ public class HttpHeaders implements Map<String, List<String>> {
 
 
 	/**
-	 * Set the length of the body in bytes, as specified by the
-	 * {@code Content-Length} header.
+	 * Set the length of the body in bytes, as specified by the {@code Content-Length} header.
+	 * @param contentLength length of the body in bytes, as specified by the {@code Content-Length} header.
 	 */
 	public void setContentLength(long contentLength) {
 		set(CONTENT_LENGTH, Long.toString(contentLength));
@@ -102,7 +108,8 @@ public class HttpHeaders implements Map<String, List<String>> {
 	/**
 	 * Return the length of the body in bytes, as specified by the
 	 * {@code Content-Length} header.
-	 * <p>Returns -1 when the content-length is unknown.
+	 *
+	 * @return -1 when the content-length is unknown.
 	 */
 	public long getContentLength() {
 		String value = getFirst(CONTENT_LENGTH);
@@ -116,7 +123,6 @@ public class HttpHeaders implements Map<String, List<String>> {
 	 * @param headerName the header name
 	 * @return the first header value, or {@code null} if none
 	 */
-	/*@Nullable*/
 	public String getFirst(String headerName) {
 		List<String> headerValues = this.headers.get(headerName);
 		return (headerValues != null ? headerValues.get(0) : null);
@@ -135,13 +141,22 @@ public class HttpHeaders implements Map<String, List<String>> {
 		headerValues.add(headerValue);
 	}
 
-	public void addAll(String key, List<? extends String> values) {
-		List<String> currentValues = this.headers.computeIfAbsent(key, k -> new LinkedList<>());
-		currentValues.addAll(values);
+	/**
+	 * Add the given header with multiple values under the given name.
+	 * @param headerName the header name
+	 * @param headerValues the header values
+	 */
+	public void addAll(String headerName, List<? extends String> headerValues) {
+		List<String> currentValues = this.headers.computeIfAbsent(headerName, k -> new LinkedList<>());
+		currentValues.addAll(headerValues);
 	}
 
-	public void addAll(Map<String, List<String>> values) {
-		for (Entry<String, List<String>> entry : values.entrySet()) {
+	/**
+	 * Bulk add header values
+	 * @param headerValues the values
+	 */
+	public void addAll(Map<String, List<String>> headerValues) {
+		for (Entry<String, List<String>> entry : headerValues.entrySet()) {
 			addAll(entry.getKey(), entry.getValue());
 		}
 	}

@@ -1,12 +1,11 @@
 package de.qaware.web.util.uri;
 
 /**
- *
+ * Builder Interface
  */
 interface PathComponentBuilder {
 
-	/*@Nullable*/
-	HierarchicalUriComponents.PathComponent build();
+	PathComponent build();
 
 	PathComponentBuilder cloneBuilder();
 }

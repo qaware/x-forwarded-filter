@@ -27,11 +27,7 @@ import javax.servlet.ServletRequest;
  * @author Juergen Hoeller
  * @author Sebastien Deleuze
  */
-public class WebUtilsConstants {
-
-	private WebUtilsConstants() {
-		//utility class
-	}
+final public class WebUtilsConstants {
 
 	/**
 	 * {@code 303 See Other}.
@@ -59,5 +55,8 @@ public class WebUtilsConstants {
 	 */
 	public static final String DEFAULT_CHARACTER_ENCODING = "ISO-8859-1";
 
+	private WebUtilsConstants() {
+		//utility class
+	}
 
 }

@@ -46,31 +46,31 @@ public class HttpHeadersTests {
 
 	@Test
 	public void addAllMap() {
-		List<String> expected=Arrays.asList("max-age=1000, public","s-maxage=1000");
-		headers.addAll(Collections.singletonMap("Cache-Control",expected));
+		List<String> expected = Arrays.asList("max-age=1000, public", "s-maxage=1000");
+		headers.addAll(Collections.singletonMap("Cache-Control", expected));
 		assertThat(headers.getFirst("Cache-Control")).isEqualTo("max-age=1000, public");
 		assertThat(headers.get("Cache-Control")).isEqualTo(expected);
 	}
 
 	@Test
 	public void addAllList() {
-		List<String> expected=Arrays.asList("max-age=1000, public","s-maxage=1000");
-		headers.addAll("Cache-Control",expected);
+		List<String> expected = Arrays.asList("max-age=1000, public", "s-maxage=1000");
+		headers.addAll("Cache-Control", expected);
 		assertThat(headers.getFirst("Cache-Control")).isEqualTo("max-age=1000, public");
 		assertThat(headers.get("Cache-Control")).isEqualTo(expected);
 	}
 
 	@Test
 	public void putAllMap() {
-		List<String> expected=Arrays.asList("max-age=1000, public","s-maxage=1000");
-		headers.putAll(Collections.singletonMap("Cache-Control",expected));
+		List<String> expected = Arrays.asList("max-age=1000, public", "s-maxage=1000");
+		headers.putAll(Collections.singletonMap("Cache-Control", expected));
 		assertThat(headers.getFirst("Cache-Control")).isEqualTo("max-age=1000, public");
 		assertThat(headers.get("Cache-Control")).isEqualTo(expected);
 	}
 
 	@Test
 	public void put() {
-		List<String> expected=Arrays.asList("max-age=1000, public","s-maxage=1000");
+		List<String> expected = Arrays.asList("max-age=1000, public", "s-maxage=1000");
 		headers.add("Cache-Control", "max-age=1000, public");
 		headers.add("Cache-Control", "s-maxage=1000");
 		assertThat(headers.getFirst("Cache-Control")).isEqualTo("max-age=1000, public");

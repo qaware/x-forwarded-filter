@@ -30,10 +30,9 @@ import java.io.IOException;
  * @author Rossen Stoyanchev
  * @since 4.3.10
  */
-class RelativeRedirectResponseWrapper extends HttpServletResponseWrapper {
+final class RelativeRedirectResponseWrapper extends HttpServletResponseWrapper {
 
 	private final int redirectStatus;
-
 
 	private RelativeRedirectResponseWrapper(HttpServletResponse response, int redirectStatus) {
 		super(response);
@@ -41,6 +40,15 @@ class RelativeRedirectResponseWrapper extends HttpServletResponseWrapper {
 		this.redirectStatus = redirectStatus;
 	}
 
+	/**
+	 * Wrapps the response if the https status code is 3xx. Prevents wrapping the same response multiple times.
+	 * @param response the response to be wrapped
+	 * @param redirectStatus http status code
+	 * @return the wrapped response
+	 */
+	public static HttpServletResponse wrapIfNecessary(HttpServletResponse response, int redirectStatus) {
+		return hasWrapper(response) ? response : new RelativeRedirectResponseWrapper(response, redirectStatus);
+	}
 
 	@Override
 	public void sendRedirect(String location) throws IOException {
@@ -48,10 +56,6 @@ class RelativeRedirectResponseWrapper extends HttpServletResponseWrapper {
 		setHeader(HttpHeaders.LOCATION, location);
 	}
 
-
-	public static HttpServletResponse wrapIfNecessary(HttpServletResponse response, int redirectStatus) {
-		return hasWrapper(response) ? response : new RelativeRedirectResponseWrapper(response, redirectStatus);
-	}
 
 	private static boolean hasWrapper(ServletResponse response) {
 		if (response instanceof RelativeRedirectResponseWrapper) {

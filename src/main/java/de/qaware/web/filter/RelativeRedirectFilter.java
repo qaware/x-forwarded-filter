@@ -34,6 +34,7 @@ import java.io.IOException;
  * <p>
  * <p><strong>Note:</strong> While relative redirects are more efficient they
  * may not work with reverse proxies under some configurations.
+ *
  * @author Michael Frank
  * @author Rob Winch
  * @author Rossen Stoyanchev
@@ -51,8 +52,14 @@ public class RelativeRedirectFilter extends OncePerRequestFilter {
 	 * @param status the 3xx redirect status to use
 	 */
 	public void setRedirectStatus(int status) {
-		Validate.isTrue((status / 100) == 3, "Not a redirect status code: %s", status);
+
+		Validate.isTrue(isRedirect(status), "Not a redirect status code: %s", status);
 		this.redirectStatus = status;
+	}
+
+	@SuppressWarnings("squid:S0109") //MagicNumbers: Alternatives would be even more ugly
+	private static boolean isRedirect(int status) {
+		return (status / 100) == 3;
 	}
 
 

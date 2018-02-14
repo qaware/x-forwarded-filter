@@ -2,14 +2,14 @@ package de.qaware.web.filter;
 
 import de.qaware.web.util.HttpServletRequestUtil;
 import de.qaware.web.util.UrlPathHelper;
-import de.qaware.web.util.uri.UriComponents;
+import de.qaware.web.util.uri.UriComponentsBase;
 import de.qaware.web.util.uri.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
 import static de.qaware.web.util.ForwardedHeader.X_FORWARDED_PREFIX;
-import static de.qaware.web.util.uri.UriComponents.PATH_DELIMITER_STRING;
+import static de.qaware.web.util.uri.UriComponentsBase.PATH_DELIMITER_STRING;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
@@ -17,6 +17,8 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  */
 class ForwardedHeaderExtractingRequest extends HttpServletRequestWrapper {
 
+	private static final int HTTPS_PORT = 443;
+	private static final int HTTP_PORT = 80;
 	/*@Nullable*/
 	private final String scheme;
 
@@ -41,18 +43,18 @@ class ForwardedHeaderExtractingRequest extends HttpServletRequestWrapper {
 		pathHelper.setUrlDecode(false);
 		pathHelper.setRemoveSemicolonContent(false);
 
-		UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponentsBase uriComponents = UriComponentsBuilder.fromHttpRequest(request).build();
 		int portFromUri = uriComponents.getPort();
 
 		this.scheme = uriComponents.getScheme();
 		this.secure = "https".equals(scheme);
 		this.host = uriComponents.getHost();
-		this.port = (portFromUri == -1 ? (this.secure ? 443 : 80) : portFromUri);
+		this.port = (portFromUri == -1 ? (this.secure ? HTTPS_PORT : HTTP_PORT) : portFromUri);
 
 		this.contextPath = adaptFromXForwaredPrefix(request, prefixStrategy);
 
 		this.requestUri = this.contextPath + pathHelper.getPathWithinApplication(request);
-		this.requestUrl = this.scheme + "://" + this.host + (portFromUri == -1 ? "" : ":" + portFromUri) + this.requestUri;
+		this.requestUrl = this.scheme + "://" + this.host + (portFromUri == -1 ? "" : (":" + portFromUri)) + this.requestUri;
 	}
 
 	private static String adaptFromXForwaredPrefix(HttpServletRequest request, XForwardedPrefixStrategy prefixStrategy) {

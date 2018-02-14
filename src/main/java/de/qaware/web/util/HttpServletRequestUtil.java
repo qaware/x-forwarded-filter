@@ -10,7 +10,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 /**
  * Helper Class containing methods to extract information from HttpServletRequest's
  */
-public class HttpServletRequestUtil {
+final public class HttpServletRequestUtil {
 
 	private HttpServletRequestUtil() {
 		//utility class
@@ -44,6 +44,11 @@ public class HttpServletRequestUtil {
 	}
 
 
+	/**
+	 * Extract headers from the given request
+	 * @param servletRequest  {@see HttpServletRequest}
+	 * @return  {@see HttpHeaders} extracted from {@see HttpServletRequest}
+	 */
 	public static HttpHeaders getHeaders(HttpServletRequest servletRequest) {
 		HttpHeaders headers = new HttpHeaders();
 		setHeaderNames(headers, servletRequest);
