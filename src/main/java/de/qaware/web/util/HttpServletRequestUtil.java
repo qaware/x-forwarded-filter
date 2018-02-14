@@ -10,7 +10,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 /**
  * Helper Class containing methods to extract information from HttpServletRequest's
  */
-final public class HttpServletRequestUtil {
+public final class HttpServletRequestUtil {
 
 	private HttpServletRequestUtil() {
 		//utility class

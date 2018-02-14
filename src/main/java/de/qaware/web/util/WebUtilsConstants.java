@@ -27,7 +27,7 @@ import javax.servlet.ServletRequest;
  * @author Juergen Hoeller
  * @author Sebastien Deleuze
  */
-final public class WebUtilsConstants {
+public final class WebUtilsConstants {
 
 	/**
 	 * {@code 303 See Other}.
