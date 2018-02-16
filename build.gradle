@@ -59,6 +59,7 @@ sonarqube {
         property "sonar.host.url", System.env.SONAR_URL
         property "sonar.login", System.env.SONAR_TOKEN
         property "sonar.exclusions", ""
+        property "sonar.test.exclusions", "**/test/*"
         property "sonar.projectName", "x-forwarded-filter"
     }
 }

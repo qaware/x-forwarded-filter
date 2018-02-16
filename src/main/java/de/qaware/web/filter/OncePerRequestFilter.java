@@ -98,8 +98,8 @@ public abstract class OncePerRequestFilter implements Filter {
 		HttpServletRequest httpRequest = (HttpServletRequest) request;
 		HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-		String alreadFilteredAttribute = getAlreadyFilteredAttributeName();
-		boolean hasAlreadyFilteredAttribute = request.getAttribute(alreadFilteredAttribute) != null;
+		String alreadyFilteredAttribute = getAlreadyFilteredAttributeName();
+		boolean hasAlreadyFilteredAttribute = request.getAttribute(alreadyFilteredAttribute) != null;
 
 		if (hasAlreadyFilteredAttribute || skipDispatch(httpRequest) || shouldNotFilter(httpRequest)) {
 
@@ -107,12 +107,12 @@ public abstract class OncePerRequestFilter implements Filter {
 			filterChain.doFilter(request, response);
 		} else {
 			// Do invoke this filter...
-			request.setAttribute(alreadFilteredAttribute, Boolean.TRUE);
+			request.setAttribute(alreadyFilteredAttribute, Boolean.TRUE);
 			try {
 				doFilterInternal(httpRequest, httpResponse, filterChain);
 			} finally {
 				// Remove the "already filtered" request attribute for this request.
-				request.removeAttribute(alreadFilteredAttribute);
+				request.removeAttribute(alreadyFilteredAttribute);
 			}
 		}
 	}

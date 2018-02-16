@@ -6,6 +6,8 @@ package de.qaware.web.util.uri;
  *
  * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986</a>
  */
+@SuppressWarnings("squid:S1067")
+//number of condition operators
 enum URIComponentType {
 
 	SCHEME {
@@ -84,6 +86,7 @@ enum URIComponentType {
 	/**
 	 * Indicates whether the given character is allowed in this URI component.
 	 *
+	 * @param c character to check
 	 * @return {@code true} if the character is allowed; {@code false} otherwise
 	 */
 	public abstract boolean isAllowedCharacter(int c);
@@ -91,15 +94,25 @@ enum URIComponentType {
 	/**
 	 * Indicates whether the given character is in the {@code ALPHA} set.
 	 *
+	 * @param c character to check
 	 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
 	 */
 	protected boolean isAlpha(int c) {
-		return (c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z');
+		return isLowerCaseAtoZ(c) || isUpperCaseAtoZ(c);
+	}
+
+	private boolean isUpperCaseAtoZ(int c) {
+		return c >= 'A' && c <= 'Z';
+	}
+
+	private boolean isLowerCaseAtoZ(int c) {
+		return c >= 'a' && c <= 'z';
 	}
 
 	/**
 	 * Indicates whether the given character is in the {@code DIGIT} set.
 	 *
+	 * @param c character to check
 	 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
 	 */
 	protected boolean isDigit(int c) {
@@ -109,6 +122,7 @@ enum URIComponentType {
 	/**
 	 * Indicates whether the given character is in the {@code gen-delims} set.
 	 *
+	 * @param c character to check
 	 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
 	 */
 	protected boolean isGenericDelimiter(int c) {
@@ -118,6 +132,7 @@ enum URIComponentType {
 	/**
 	 * Indicates whether the given character is in the {@code sub-delims} set.
 	 *
+	 * @param c character to check
 	 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
 	 */
 	protected boolean isSubDelimiter(int c) {
@@ -128,6 +143,7 @@ enum URIComponentType {
 	/**
 	 * Indicates whether the given character is in the {@code reserved} set.
 	 *
+	 * @param c character to check
 	 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
 	 */
 	protected boolean isReserved(int c) {
@@ -137,6 +153,7 @@ enum URIComponentType {
 	/**
 	 * Indicates whether the given character is in the {@code unreserved} set.
 	 *
+	 * @param c character to check
 	 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
 	 */
 	protected boolean isUnreserved(int c) {
@@ -146,6 +163,7 @@ enum URIComponentType {
 	/**
 	 * Indicates whether the given character is in the {@code pchar} set.
 	 *
+	 * @param c character to check
 	 * @see <a href="http://www.ietf.org/rfc/rfc3986.txt">RFC 3986, appendix A</a>
 	 */
 	protected boolean isPchar(int c) {

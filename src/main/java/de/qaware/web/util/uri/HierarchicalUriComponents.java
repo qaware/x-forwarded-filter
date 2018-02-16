@@ -50,6 +50,16 @@ import java.util.Objects;
 @SuppressWarnings({"serial"})
 final class HierarchicalUriComponents extends UriComponentsBase {
 
+	private static final long serialVersionUID = 1;
+
+	private static final String FOLDER_SEPARATOR = "/";
+
+	private static final String WINDOWS_FOLDER_SEPARATOR = "\\";
+
+	private static final String TOP_PATH = "..";
+
+	private static final String CURRENT_PATH = ".";
+
 	/*@Nullable*/
 	private final String userInfo;
 
@@ -80,7 +90,8 @@ final class HierarchicalUriComponents extends UriComponentsBase {
 	 * @param encoded     whether the components are already encoded
 	 * @param verify      whether the components need to be checked for illegal characters
 	 */
-	@SuppressWarnings("squid:S00107")//copy constructor
+	@SuppressWarnings("squid:S00107")
+//copy constructor
 	HierarchicalUriComponents(/*@Nullable*/ String scheme, /*@Nullable*/ String fragment, /*@Nullable*/ String userInfo,
 			/*@Nullable*/ String host, /*@Nullable*/ String port, /*@Nullable*/ PathComponent path,
 			/*@Nullable*/ MultiValuedMap<String, String> queryParams, boolean encoded, boolean verify) {
@@ -156,23 +167,27 @@ final class HierarchicalUriComponents extends UriComponentsBase {
 		for (Map.Entry<String, Collection<String>> entry : this.queryParams.asMap().entrySet()) {
 			String name = entry.getKey();
 			Collection<String> values = entry.getValue();
-			if (CollectionUtils.isEmpty(values)) {
-				appendQueryParamName(queryBuilder, name);
-			} else {
-				for (Object value : values) {
-					appendQueryParamName(queryBuilder, name);
-
-					if (value != null) {
-						queryBuilder.append('=');
-						queryBuilder.append(value.toString());
-					}
-				}
-			}
+			appendQueryParam(queryBuilder, name, values);
 		}
 		return queryBuilder.toString();
 	}
 
-	private void appendQueryParamName(StringBuilder queryBuilder, String name) {
+	private static void appendQueryParam(StringBuilder queryBuilder, String name, Collection<String> values) {
+		if (CollectionUtils.isEmpty(values)) {
+			appendQueryParamName(queryBuilder, name);
+		} else {
+			for (Object value : values) {
+				appendQueryParamName(queryBuilder, name);
+
+				if (value != null) {
+					queryBuilder.append('=');
+					queryBuilder.append(value.toString());
+				}
+			}
+		}
+	}
+
+	private static void appendQueryParamName(StringBuilder queryBuilder, String name) {
 		if (queryBuilder.length() != 0) {
 			queryBuilder.append('&');
 		}
@@ -274,11 +289,11 @@ final class HierarchicalUriComponents extends UriComponentsBase {
 		return (changed ? bufferToString(charset, bos) : source);
 	}
 
-	private static String bufferToString(Charset charset, ByteArrayOutputStream bos)  {
+	private static String bufferToString(Charset charset, ByteArrayOutputStream bos) {
 		try {
 			return bos.toString(charset.name());
 		} catch (UnsupportedEncodingException e) {
-			throw new AssertionError("Existing charsets cannot be unsupported",e);
+			throw new AssertionError("Existing charsets cannot be unsupported", e);
 		}
 	}
 
@@ -357,14 +372,6 @@ final class HierarchicalUriComponents extends UriComponentsBase {
 	}
 
 
-	private static final String FOLDER_SEPARATOR = "/";
-
-	private static final String WINDOWS_FOLDER_SEPARATOR = "\\";
-
-	private static final String TOP_PATH = "..";
-
-	private static final String CURRENT_PATH = ".";
-
 	/**
 	 * Normalize the path by suppressing sequences like "path/.." and
 	 * inner simple dots.
@@ -400,7 +407,7 @@ final class HierarchicalUriComponents extends UriComponentsBase {
 			prefix = prefix + FOLDER_SEPARATOR;
 			pathToUse = pathToUse.substring(1);
 		}
-		//normalize path by spliting into distinct path tokens
+		//normalize path by splitting into distinct path tokens
 		List<String> pathElements = splitIntoPathElements(pathToUse);
 		return prefix + String.join(FOLDER_SEPARATOR, pathElements);
 	}
@@ -490,22 +497,22 @@ final class HierarchicalUriComponents extends UriComponentsBase {
 	@Override
 	public URI toUri() {
 		try {
-			if (this.encoded) {
-				return new URI(toString());
-			} else {
-				String lPath = getPath();
-				// Only prefix the path delimiter if something exists before it
-				if (StringUtils.isNotEmpty(lPath)  //
-						&& lPath.charAt(0) != PATH_DELIMITER//
-						&& (getScheme() != null || getUserInfo() != null || getHost() != null || getPort() != -1)) {
-						lPath = PATH_DELIMITER + lPath;
-				}
-				return new URI(getScheme(), getUserInfo(), getHost(), getPort(), lPath, getQuery(),
-						getFragment());
-			}
+			return this.encoded ? new URI(toString()) : toUriFromComponents();
 		} catch (URISyntaxException ex) {
 			throw new IllegalStateException("Could not create URI object: " + ex.getMessage(), ex);
 		}
+	}
+
+	private URI toUriFromComponents() throws URISyntaxException {
+		String lPath = getPath();
+		// Only prefix the path delimiter if something exists before it
+		if (StringUtils.isNotEmpty(lPath)  //
+				&& lPath.charAt(0) != PATH_DELIMITER//
+				&& (getScheme() != null || getUserInfo() != null || getHost() != null || getPort() != -1)) {
+			lPath = PATH_DELIMITER + lPath;
+		}
+		return new URI(getScheme(), getUserInfo(), getHost(), getPort(), lPath, getQuery(),
+				getFragment());
 	}
 
 	@Override
@@ -533,6 +540,7 @@ final class HierarchicalUriComponents extends UriComponentsBase {
 	}
 
 
+	@SuppressWarnings("squid:S1067")//number of conditional operators > 3 -> very clear intent as it is
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -562,7 +570,6 @@ final class HierarchicalUriComponents extends UriComponentsBase {
 		result = 31 * result + Objects.hashCode(getFragment());
 		return result;
 	}
-
 
 
 }

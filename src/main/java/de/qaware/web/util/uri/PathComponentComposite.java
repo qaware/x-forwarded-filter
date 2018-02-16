@@ -11,10 +11,13 @@ import java.util.List;
  */
 final class PathComponentComposite implements PathComponent {
 
+	private static final long serialVersionUID = 1;
+
 	private final List<PathComponent> pathComponents;
 
 	/**
 	 * Mutable - Composite path from list of path components
+	 *
 	 * @param pathComponents components
 	 */
 	PathComponentComposite(List<PathComponent> pathComponents) {

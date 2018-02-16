@@ -9,7 +9,7 @@ final class MapTemplateVariables extends UriTemplateVariables {
 
 	private final Map<String, ?> uriVariables;
 
-	 MapTemplateVariables(Map<String, ?> uriVariables) {
+	MapTemplateVariables(Map<String, ?> uriVariables) {
 		this.uriVariables = uriVariables;
 	}
 

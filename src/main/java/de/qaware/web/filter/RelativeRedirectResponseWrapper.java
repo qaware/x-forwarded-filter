@@ -26,6 +26,7 @@ import java.io.IOException;
 /**
  * A response wrapper used for the implementation of
  * {@link RelativeRedirectFilter} also shared with {@link ForwardedHeaderFilter}.
+ *
  * @author Michael Frank
  * @author Rossen Stoyanchev
  * @since 4.3.10
@@ -41,8 +42,9 @@ final class RelativeRedirectResponseWrapper extends HttpServletResponseWrapper {
 	}
 
 	/**
-	 * Wrapps the response if the https status code is 3xx. Prevents wrapping the same response multiple times.
-	 * @param response the response to be wrapped
+	 * Wraps the response if the https status code is 3xx. Prevents wrapping the same response multiple times.
+	 *
+	 * @param response       the response to be wrapped
 	 * @param redirectStatus http status code
 	 * @return the wrapped response
 	 */
@@ -62,8 +64,8 @@ final class RelativeRedirectResponseWrapper extends HttpServletResponseWrapper {
 			return true;
 		}
 		while (response instanceof HttpServletResponseWrapper) {
-			ServletResponse unwrapedResponse = ((HttpServletResponseWrapper) response).getResponse();
-			if (unwrapedResponse instanceof RelativeRedirectResponseWrapper) {
+			ServletResponse unwrappedResponse = ((HttpServletResponseWrapper) response).getResponse();
+			if (unwrappedResponse instanceof RelativeRedirectResponseWrapper) {
 				return true;
 			}
 		}

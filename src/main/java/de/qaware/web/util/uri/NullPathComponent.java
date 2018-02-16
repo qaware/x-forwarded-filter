@@ -8,6 +8,9 @@ import java.util.List;
  *
  */
 final class NullPathComponent implements PathComponent {
+
+	private static final long serialVersionUID = 1;
+
 	private static final NullPathComponent INSTANCE = new NullPathComponent();
 
 	private NullPathComponent() {
@@ -15,7 +18,7 @@ final class NullPathComponent implements PathComponent {
 	}
 
 	/**
-	 *  Instance of this immutable class
+	 * Instance of this immutable class
 	 *
 	 * @return Instance
 	 */

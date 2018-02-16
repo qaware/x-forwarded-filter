@@ -62,24 +62,25 @@ public class ForwardedHeaderFilter extends OncePerRequestFilter {
 	 */
 	public static final String ENABLE_RELATIVE_REDIRECTS_INIT_PARAM = "enableRelativeRedirects";
 
-	/**--
+	/**
+	 * --
 	 * Different processing strategies:
 	 * <ul>
-	 *   <li>EVAL_AND_KEEP: Evaluate headers remove afterwards so they will be visible to downstream
-	 *       filters and the application.
-	 *   </li>
-	 *   <li>EVAL_AND_REMOVE: Evaluate headers remove afterwards so they wont be visible to downstream
-	 *       filters and the application.
-	 *   </li>
-	 *   <li>DONT_EVAL_AND_REMOVE: Enables mode in which any "Forwarded" or "X-Forwarded-*" headers
-	 *       are removed only and the information in them ignored.
-	 *   </li>
+	 * <li>EVAL_AND_KEEP: Evaluate headers remove afterwards so they will be visible to downstream
+	 * filters and the application.
+	 * </li>
+	 * <li>EVAL_AND_REMOVE: Evaluate headers remove afterwards so they wont be visible to downstream
+	 * filters and the application.
+	 * </li>
+	 * <li>DONT_EVAL_AND_REMOVE: Enables mode in which any "Forwarded" or "X-Forwarded-*" headers
+	 * are removed only and the information in them ignored.
+	 * </li>
 	 * </ul>
 	 */
 	public static final String HEADER_PROCESSING_STRATEGY = "headerProcessingStrategy";
 
 	/**
-	 *  selects processing mode how to handle the x-forwarded-proto header.
+	 * selects processing mode how to handle the x-forwarded-proto header.
 	 */
 	public static final String X_FORWARDED_PREFIX_STRATEGY = "xForwardedProtoStrategy";
 
@@ -117,7 +118,7 @@ public class ForwardedHeaderFilter extends OncePerRequestFilter {
 		HttpServletRequest request = originalRequest;
 		HttpServletResponse response = originalResponse;
 
-		if(headerProcessingStrategy.isEvaluateHeaders()){
+		if (headerProcessingStrategy.isEvaluateHeaders()) {
 			request = new ForwardedHeaderExtractingRequest(request, prefixStrategy);
 			if (relativeRedirects) {
 				response = RelativeRedirectResponseWrapper.wrapIfNecessary(response, WebUtilsConstants.SEE_OTHER);
@@ -126,11 +127,11 @@ public class ForwardedHeaderFilter extends OncePerRequestFilter {
 			}
 		}
 
-		if(headerProcessingStrategy.isRemoveHeaders()){
-			request=new ForwardedHeaderRemovingRequest(request);
+		if (headerProcessingStrategy.isRemoveHeaders()) {
+			request = new ForwardedHeaderRemovingRequest(request);
 		}
 
-		filterChain.doFilter(request,response);
+		filterChain.doFilter(request, response);
 
 	}
 

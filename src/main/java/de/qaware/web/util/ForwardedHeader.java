@@ -22,11 +22,12 @@ public enum ForwardedHeader {
 	private static Map<String, ForwardedHeader> headerLookup = generateLookup();
 
 	ForwardedHeader(String httpHeaderName) {
-		this.httpHeaderName =httpHeaderName;
+		this.httpHeaderName = httpHeaderName;
 	}
 
 	/**
 	 * ForwardedHeader for name (ignores case). null if header name is not a supported forwarded header
+	 *
 	 * @param name the name
 	 * @return ForwardedHeader for name (ignores case). null if header name is not a supported forwarded header
 	 */
@@ -38,16 +39,18 @@ public enum ForwardedHeader {
 	 * Checks if the provided  header name is a supported. Same as{@see forName}!=null
 	 *
 	 * @param name headerName
-	 * @return
+	 * @return true if given header is a "forwarded" header
 	 */
 	public static boolean isForwardedHeader(String name) {
 		return headerLookup.containsKey(StringUtils.defaultString(name).toLowerCase(Locale.ENGLISH));
 	}
+
 	/**
 	 * Http header name represented by this enum
+	 *
 	 * @return the name of the header
 	 */
-	public String headerName(){
+	public String headerName() {
 		return httpHeaderName;
 	}
 

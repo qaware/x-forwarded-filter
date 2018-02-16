@@ -39,7 +39,7 @@ public class ForwardedHeaderTest {
 	}
 
 	@Test
-	public void isForwaredHeader() {
+	public void isForwardedHeader() {
 		for (String header : supportedHeaders) {
 			boolean fromCamelCase = ForwardedHeader.isForwardedHeader(header);
 			boolean fromLowerCase = ForwardedHeader.isForwardedHeader(header.toLowerCase(Locale.ENGLISH));

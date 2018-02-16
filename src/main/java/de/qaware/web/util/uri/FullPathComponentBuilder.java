@@ -9,7 +9,8 @@ final class FullPathComponentBuilder implements PathComponentBuilder {
 
 	/**
 	 * Append path to this builder
-	 * @param  path to append
+	 *
+	 * @param path to append
 	 */
 	public void append(String path) {
 		this.pathBuilder.append(path);
@@ -32,7 +33,7 @@ final class FullPathComponentBuilder implements PathComponentBuilder {
 	}
 
 	/**
-	 * if theres a '/' at the end, strip it,
+	 * if there's a '/' at the end, strip it,
 	 */
 	void removeTrailingSlash() {
 		int index = this.pathBuilder.length() - 1;

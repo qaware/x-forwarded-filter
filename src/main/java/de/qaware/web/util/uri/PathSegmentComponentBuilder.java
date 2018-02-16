@@ -12,6 +12,11 @@ final class PathSegmentComponentBuilder implements PathComponentBuilder {
 
 	private final List<String> pathSegments = new LinkedList<>();
 
+	/**
+	 * Append pathSegments to this builder
+	 *
+	 * @param pathSegments to append
+	 */
 	public void append(String... pathSegments) {
 		for (String pathSegment : pathSegments) {
 			if (StringUtils.isNotBlank(pathSegment)) {

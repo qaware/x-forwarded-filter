@@ -13,10 +13,13 @@ import java.util.List;
  */
 final class PathSegmentComponent implements PathComponent {
 
+	private static final long serialVersionUID = 1;
+
 	private final List<String> pathSegments;
 
 	/**
 	 * (Immutable) PathSegment Component form list of path segments
+	 *
 	 * @param pathSegments segments
 	 */
 	PathSegmentComponent(List<String> pathSegments) {

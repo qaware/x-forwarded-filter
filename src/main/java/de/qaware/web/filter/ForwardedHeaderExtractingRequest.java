@@ -51,13 +51,13 @@ class ForwardedHeaderExtractingRequest extends HttpServletRequestWrapper {
 		this.host = uriComponents.getHost();
 		this.port = (portFromUri == -1 ? (this.secure ? HTTPS_PORT : HTTP_PORT) : portFromUri);
 
-		this.contextPath = adaptFromXForwaredPrefix(request, prefixStrategy);
+		this.contextPath = adaptFromXForwardedPrefix(request, prefixStrategy);
 
 		this.requestUri = this.contextPath + pathHelper.getPathWithinApplication(request);
 		this.requestUrl = this.scheme + "://" + this.host + (portFromUri == -1 ? "" : (":" + portFromUri)) + this.requestUri;
 	}
 
-	private static String adaptFromXForwaredPrefix(HttpServletRequest request, XForwardedPrefixStrategy prefixStrategy) {
+	private static String adaptFromXForwardedPrefix(HttpServletRequest request, XForwardedPrefixStrategy prefixStrategy) {
 		String prefix = getForwardedPrefix(request);
 		if (prefix == null) {
 			return request.getContextPath();

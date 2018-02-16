@@ -12,10 +12,13 @@ import java.util.List;
  */
 final class FullPathComponent implements PathComponent {
 
+	private static final long serialVersionUID = 1;
+
 	private final String path;
 
 	/**
 	 * Full path component from path
+	 *
 	 * @param path path
 	 */
 	FullPathComponent(String path) {

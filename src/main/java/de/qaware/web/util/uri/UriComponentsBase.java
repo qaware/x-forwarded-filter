@@ -51,6 +51,7 @@ public abstract class UriComponentsBase implements Serializable {
 	 * Captures URI template variable names
 	 */
 	private static final Pattern NAMES_PATTERN = Pattern.compile("\\{([^/]+?)\\}");
+	private static final int HEY_RADIX = 16;
 
 
 	/*@Nullable*/
@@ -132,6 +133,8 @@ public abstract class UriComponentsBase implements Serializable {
 		return expandInternal(uriVariables);
 	}
 
+	//squid:S881  (increment < length) is a standard loop construct
+	@SuppressWarnings({"squid:S881"})
 	static void verifyUriComponent(/*@Nullable*/ String source, URIComponentType type) {
 		if (source == null) {
 			return;
@@ -139,26 +142,39 @@ public abstract class UriComponentsBase implements Serializable {
 		int length = source.length();
 		int pos = -1;
 		while (++pos < length) {
-			char ch = source.charAt(pos);
-			if (ch == '%') {
-				if ((pos + 2) < length) {
-					char hex1 = source.charAt(pos + 1);
-					char hex2 = source.charAt(pos + 2);
-					int u = Character.digit(hex1, 16);
-					int l = Character.digit(hex2, 16);
-					if (u == -1 || l == -1) {
-						throw new IllegalArgumentException("Invalid encoded sequence \"" +
-								source.substring(pos) + "\"");
-					}
-					pos += 2;
-				} else {
-					throw new IllegalArgumentException("Invalid encoded sequence \"" +
-							source.substring(pos) + "\"");
-				}
-			} else if (!type.isAllowedCharacter(ch)) {
-				throw new IllegalArgumentException("Invalid character '" + ch + "' for " +
+			char currentChar = source.charAt(pos);
+			if (currentChar == '%') {
+				pos = verifyPercentEncodeSequence(source, length, pos);
+			} else if (!type.isAllowedCharacter(currentChar)) {
+				throw new IllegalArgumentException("Invalid character '" + currentChar + "' for " +
 						type.name() + " in \"" + source + "\"");
 			}
+		}
+	}
+
+	//squid:S109: "magic number"  required for decoder logic
+	@SuppressWarnings({"squid:S109"})
+	private static int verifyPercentEncodeSequence(String source, int length, int pos) {
+		if ((pos + 2) < length) {
+			verifyPercentEncodedChar(source, pos);
+			pos += 2;
+		} else {
+			throw new IllegalArgumentException("Invalid encoded sequence \"" +
+					source.substring(pos) + "\"");
+		}
+		return pos;
+	}
+
+	//squid:S109: "magic number"  required for decoder logic
+	@SuppressWarnings({"squid:S109"})
+	private static void verifyPercentEncodedChar(String source, int pos) {
+		char hex1 = source.charAt(pos + 1);
+		char hex2 = source.charAt(pos + 2);
+		int u = Character.digit(hex1, HEY_RADIX);
+		int l = Character.digit(hex2, HEY_RADIX);
+		if (u == -1 || l == -1) {
+			throw new IllegalArgumentException("Invalid encoded sequence \"" +
+					source.substring(pos) + "\"");
 		}
 	}
 
@@ -188,7 +204,7 @@ public abstract class UriComponentsBase implements Serializable {
 
 	/*@Nullable*/
 	static String expandUriComponent(/*@Nullable*/ String source, UriTemplateVariables uriVariables) {
-		String checkedSource=source;
+		String checkedSource = source;
 		if (checkedSource == null) {
 			return null;
 		}
@@ -309,16 +325,22 @@ public abstract class UriComponentsBase implements Serializable {
 	 * Normalize the path removing sequences like "path/..". Note that calling this method will
 	 * combine all path segments into a full path before doing the actual normalisation, i.e.
 	 * individual path segments will not be normalized individually.
+	 *
+	 * @return Normalized version
 	 */
 	public abstract UriComponentsBase normalize();
 
 	/**
 	 * Return a URI String from this {@code UriComponents} instance.
+	 *
+	 * @return URI String
 	 */
 	public abstract String toUriString();
 
 	/**
 	 * Return a {@code URI} from this {@code UriComponents} instance.
+	 *
+	 * @return {@code URI}
 	 */
 	public abstract URI toUri();
 }

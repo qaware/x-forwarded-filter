@@ -64,6 +64,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * @see #fromUri(URI)
  * @since 3.1
  */
+@SuppressWarnings("squid:S1448")//to many methods -> URI's are complex
 public class UriComponentsBuilder {
 
 	private static final Pattern QUERY_PARAM_PATTERN = Pattern.compile("([^&=]+)(=?)([^&]+)?");
@@ -413,6 +414,7 @@ public class UriComponentsBuilder {
 	 * to {@link #build()}, then {@link UriComponentsBase#encode()} and finally
 	 * {@link UriComponentsBase#toUriString()}.
 	 *
+	 * @return {@see UriComponentsBase#toUriString}
 	 * @see UriComponentsBase#toUriString()
 	 * @since 4.1
 	 */
@@ -545,7 +547,7 @@ public class UriComponentsBuilder {
 
 	/**
 	 * Set the URI port. Use this method only when the port needs to be
-	 * parameterized with a URI variable. Otherwise use {@link #port(int)}.
+	 * parametrized with a URI variable. Otherwise use {@link #port(int)}.
 	 * Passing {@code null} will clear the port of this builder.
 	 *
 	 * @param port the URI port
@@ -811,11 +813,11 @@ public class UriComponentsBuilder {
 	}
 
 	private boolean isHttp() {
-		return scheme != null && scheme.equals("http") && "80".equals(this.port);
+		return scheme != null && "http".equals(scheme) && "80".equals(this.port);
 	}
 
 	private boolean isHttps() {
-		return scheme != null && scheme.equals("https") && "443".equals(this.port);
+		return scheme != null && "https".equals(scheme) && "443".equals(this.port);
 	}
 
 

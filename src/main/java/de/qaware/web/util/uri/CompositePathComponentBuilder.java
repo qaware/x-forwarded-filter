@@ -17,7 +17,7 @@ final class CompositePathComponentBuilder implements PathComponentBuilder {
 	private final LinkedList<PathComponentBuilder> builders = new LinkedList<>();
 
 	/**
-	 * Adds path semgments to this builder
+	 * Adds path segments to this builder
 	 *
 	 * @param pathSegments segments to add
 	 */

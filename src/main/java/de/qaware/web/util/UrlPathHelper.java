@@ -55,14 +55,14 @@ public class UrlPathHelper {
 
 	/**
 	 * Whether the context path and request URI should be decoded -- both of
-	 * which are returned <i>undecoded</i> by the Servlet API, in contrast to
+	 * which are returned <i>un-decoded</i> by the Servlet API, in contrast to
 	 * the servlet path.
 	 * <p>Either the request encoding or the default Servlet spec encoding
 	 * (ISO-8859-1) is used when set to "true".
 	 * <p>By default this is set to {@literal true}.
 	 * <p><strong>Note:</strong> Be aware the servlet path will not match when
 	 * compared to encoded paths. Therefore use of {@code urlDecode=false} is
-	 * not compatible with a prefix-based Servlet mappping and likewise implies
+	 * not compatible with a prefix-based Servlet mapping and likewise implies
 	 * also setting {@code alwaysUseFullPath=true}.
 	 *
 	 * @see #getContextPath
@@ -133,7 +133,7 @@ public class UrlPathHelper {
 	 * Match the given "mapping" to the start of the "requestUri" and if there
 	 * is a match return the extra part. This method is needed because the
 	 * context path and the servlet path returned by the HttpServletRequest are
-	 * stripped of semicolon content unlike the requesUri.
+	 * stripped of semicolon content unlike the requestUri.
 	 */
 	private String getRemainingPath(String requestUri, String mapping, boolean ignoreCase) {
 		int index1 = 0;
@@ -281,8 +281,11 @@ public class UrlPathHelper {
 	 * @see java.net.URLDecoder#decode(String, String)
 	 * @since 5.0
 	 */
-	@SuppressWarnings("squid:S109")
-//"magic number"  required for decoder logic
+
+
+	//squid:S109: "magic number"  required for decoder logic
+	//squid:S881  (increment < length) is a standard loop construct
+	@SuppressWarnings({"squid:S109", "squid:S881"})
 	String uriDecode(String source, String charset) {
 		Validate.notNull(charset, "Charset must not be null");
 
@@ -293,8 +296,8 @@ public class UrlPathHelper {
 
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(length);
 		boolean changed = false;
-		int pos = 0;
-		while (pos < length) {
+		int pos = -1;
+		while (++pos < length) {
 			char currentChar = source.charAt(pos);
 			//format: %xy
 			if (currentChar == '%') {
@@ -305,7 +308,6 @@ public class UrlPathHelper {
 			} else {
 				bos.write(currentChar);
 			}
-			++pos;
 		}
 
 		return (changed ? decodeToString(source, bos, charset) : source);
@@ -340,20 +342,20 @@ public class UrlPathHelper {
 		int high4Bits = Character.digit(hex1, HEX_RADIX);
 		int low4Bits = Character.digit(hex2, HEX_RADIX);
 		if (high4Bits == -1 || low4Bits == -1) {
-			throw illegalEncodingSecuence(source, pos);
+			throw illegalEncodingSequence(source, pos);
 		}
-		//reverse the '%xy' encoding to reconstruct the oringinal char
+		//reverse the '%xy' encoding to reconstruct the original char
 		return (char) ((high4Bits << 4) + low4Bits);
 	}
 
 
 	private static void checkBoundsOfSequence(String source, int pos) {
 		if (pos >= source.length()) {
-			throw illegalEncodingSecuence(source, pos);
+			throw illegalEncodingSequence(source, pos);
 		}
 	}
 
-	private static IllegalArgumentException illegalEncodingSecuence(String source, int pos) {
+	private static IllegalArgumentException illegalEncodingSequence(String source, int pos) {
 		return new IllegalArgumentException("Invalid encoded sequence \"" + source.substring(pos) + "\"");
 	}
 
@@ -379,7 +381,7 @@ public class UrlPathHelper {
 	/**
 	 * Remove ";" (semicolon) content from the given request URI if the
 	 * {@linkplain #setRemoveSemicolonContent(boolean) removeSemicolonContent}
-	 * property is set to "true". Note that "jssessionid" is always removed.
+	 * property is set to "true". Note that "jsessionid" is always removed.
 	 *
 	 * @param requestUri the request URI string to remove ";" content from
 	 * @return the updated URI string

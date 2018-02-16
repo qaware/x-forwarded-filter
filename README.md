@@ -4,7 +4,7 @@
 
 Standalone (x-)forwarded* Filter.
 
-The (x-)forwarded*  Http Headers are a Pseudostandard with varying and mostly lacking support in most products.
+The (x-)forwarded*  Http Headers are a pseudo standard with varying and mostly lacking support in most products.
 
 Supported Http Headers:
 -  `Forwarded` [as of RFC 7239](http://tools.ietf.org/html/rfc7239)
@@ -95,7 +95,7 @@ Disable [trustedHeaderOrigin](https://www.ibm.com/support/knowledgecenter/beta/S
 `<httpDispatcher trustedHeaderOrigin="none" />`
 
 #### Spring
- 1. Dont register the org.springframework.web.filter.ForwardedHeaderFilter
+ 1. Don't register the org.springframework.web.filter.ForwardedHeaderFilter
  2. `server.use-forward-headers=false` generically turns off the forward engine in the underlying webserver! (e.g. tomcat) see: ["howto-use-tomcat-behind-a-proxy-server"](https://docs.spring.io/spring-boot/docs/current/reference/html/howto-embedded-servlet-containers.html#howto-use-tomcat-behind-a-proxy-server")
 
 #### Tomcat
@@ -105,7 +105,7 @@ TODO
 Based on [Springs ForwardedHeaderFilter](https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/main/java/org/springframework/web/filter/ForwardedHeaderFilter.java) but
  - without Spring dependency -> easily integrable into many projects
  - has toogle to NOT remove the evaluated headers from the request 
-   - allows using this filter inside a Proxy to forward/append to these headers to downstram services (e.g. Zuul)
+   - allows using this filter inside a Proxy to forward/append to these headers to downstream services (e.g. Zuul)
  - Selectable processing strategy for `X-Forwarded-Prefix`  
    - `PREPEND` the Context-Path of the Application with the (first) value from `X-forwarded-Prefix`
      -  example:

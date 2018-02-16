@@ -57,7 +57,7 @@ public class RelativeRedirectFilter extends OncePerRequestFilter {
 		this.redirectStatus = status;
 	}
 
-	@SuppressWarnings("squid:S0109") //MagicNumbers: Alternatives would be even more ugly
+	@SuppressWarnings("squid:S109") //MagicNumbers: Alternatives would be even more ugly
 	private static boolean isRedirect(int status) {
 		return (status / 100) == 3;
 	}

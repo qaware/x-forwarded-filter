@@ -46,8 +46,9 @@ public final class HttpServletRequestUtil {
 
 	/**
 	 * Extract headers from the given request
-	 * @param servletRequest  {@see HttpServletRequest}
-	 * @return  {@see HttpHeaders} extracted from {@see HttpServletRequest}
+	 *
+	 * @param servletRequest {@see HttpServletRequest}
+	 * @return {@see HttpHeaders} extracted from {@see HttpServletRequest}
 	 */
 	public static HttpHeaders getHeaders(HttpServletRequest servletRequest) {
 		HttpHeaders headers = new HttpHeaders();
@@ -80,12 +81,12 @@ public final class HttpServletRequestUtil {
 	 * Returns first token only. e.g: value="123, 345, 678"  with delim="," will return "123"
 	 * or more formally: return value.substring(0,value.indexOf(delim));
 	 *
-	 * @param value value to be split
+	 * @param value     value to be split
 	 * @param delimiter delimiter
 	 * @return first token or the original string
 	 */
 	public static String getFirstValueToken(String value, String delimiter) {
-		if(value == null){
+		if (value == null) {
 			return null;
 		}
 		int pos = value.indexOf(delimiter);
