@@ -2,6 +2,9 @@
 ### Gradle template
 .gradle
 /build/
+.idea/**/gradle.xml
+.idea/**/libraries
+/gradle.properties
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -32,9 +35,7 @@ gradle-app.setting
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
 
-# Gradle:
-.idea/**/gradle.xml
-.idea/**/libraries
+
 
 # Mongo Explorer plugin:
 .idea/**/mongoSettings.xml
@@ -94,4 +95,5 @@ buildNumber.properties
 
 # Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
 !/.mvn/wrapper/maven-wrapper.jar
+
 
