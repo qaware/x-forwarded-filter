@@ -20,6 +20,7 @@ final class PathComponentComposite implements PathComponent {
 	 *
 	 * @param pathComponents components
 	 */
+	@SuppressWarnings("squid:S2384")//Mutable member is ok - internal workings
 	PathComponentComposite(List<PathComponent> pathComponents) {
 		Validate.notNull(pathComponents, "PathComponent List must not be null");
 		this.pathComponents = pathComponents;

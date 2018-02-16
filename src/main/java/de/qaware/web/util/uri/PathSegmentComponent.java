@@ -42,6 +42,7 @@ final class PathSegmentComponent implements PathComponent {
 	}
 
 	@Override
+	@SuppressWarnings("squid:S2384")//Mutable members - ok inner workings
 	public List<String> getPathSegments() {
 		return this.pathSegments;
 	}
