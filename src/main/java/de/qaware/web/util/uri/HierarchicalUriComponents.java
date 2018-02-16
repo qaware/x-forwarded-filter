@@ -502,8 +502,8 @@ final class HierarchicalUriComponents extends UriComponentsBase {
 			throw new IllegalStateException("Could not create URI object: " + ex.getMessage(), ex);
 		}
 	}
-
-	private URI toUriFromComponents() throws URISyntaxException {
+    @SuppressWarnings("squid:S1067")//number of conditional operators > 3 -> very clear intent as it is
+    private URI toUriFromComponents() throws URISyntaxException {
 		String lPath = getPath();
 		// Only prefix the path delimiter if something exists before it
 		if (StringUtils.isNotEmpty(lPath)  //
