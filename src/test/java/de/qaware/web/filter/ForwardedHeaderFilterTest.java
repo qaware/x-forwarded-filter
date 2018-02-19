@@ -55,7 +55,7 @@ import static org.junit.Assert.assertTrue;
  * @author Eddú Meléndez
  * @author Rob Winch
  */
-public class ForwardedHeaderFilterTests {
+public class ForwardedHeaderFilterTest {
 
 	public static final String UNIT_TEST_FORWARED_FILTER = "unitTestForwardedFilter";
 

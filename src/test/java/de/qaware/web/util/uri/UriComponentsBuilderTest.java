@@ -49,7 +49,7 @@ import static org.junit.Assert.assertNull;
  * @author David Eckel
  * @author Sam Brannen
  */
-public class UriComponentsBuilderTests {
+public class UriComponentsBuilderTest {
 
 	@Test
 	public void plain() throws URISyntaxException {

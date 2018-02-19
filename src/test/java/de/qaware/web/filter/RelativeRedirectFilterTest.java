@@ -37,7 +37,7 @@ import static org.junit.Assert.assertSame;
  * @author Rob Winch
  * @author Juergen Hoeller
  */
-public class RelativeRedirectFilterTests {
+public class RelativeRedirectFilterTest {
 
 	private RelativeRedirectFilter filter = new RelativeRedirectFilter();
 

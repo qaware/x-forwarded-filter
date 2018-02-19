@@ -30,7 +30,7 @@ import static org.junit.Assert.assertEquals;
  * @author Juergen Hoeller
  * @author Costin Leau
  */
-public class UrlPathHelperTests {
+public class UrlPathHelperTest {
 
 	private static final String WEBSPHERE_URI_ATTRIBUTE = "com.ibm.websphere.servlet.uri_non_decoded";
 

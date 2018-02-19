@@ -36,7 +36,7 @@ import static org.junit.Assert.assertEquals;
  * @author Arjen Poutsma
  * @author Phillip Webb
  */
-public class UriComponentsTests {
+public class UriComponentsTest {
 
 	@Test
 	public void encode() {

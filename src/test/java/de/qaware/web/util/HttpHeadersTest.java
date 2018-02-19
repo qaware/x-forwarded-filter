@@ -32,7 +32,7 @@ import static org.junit.Assert.assertEquals;
  * @author Sebastien Deleuze
  * @author Brian Clozel
  */
-public class HttpHeadersTests {
+public class HttpHeadersTest {
 
 	private final HttpHeaders headers = new HttpHeaders();
 
