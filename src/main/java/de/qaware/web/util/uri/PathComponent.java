@@ -50,7 +50,7 @@ public interface PathComponent extends Serializable {
 	 * Set all components of the given UriComponentsBuilder.
 	 *
 	 * @since 4.2
-	 * @param builder{@see UriComponentsBuilder}
+	 * @param builder {@see UriComponentsBuilder} to copy to
 	 */
 	void copyToUriComponentsBuilder(UriComponentsBuilder builder);
 }
