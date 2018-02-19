@@ -90,8 +90,7 @@ final class HierarchicalUriComponents extends UriComponentsBase {
 	 * @param encoded     whether the components are already encoded
 	 * @param verify      whether the components need to be checked for illegal characters
 	 */
-	@SuppressWarnings("squid:S00107")
-//copy constructor
+	@SuppressWarnings("squid:S00107")// long parameter list-> is copy constructor
 	HierarchicalUriComponents(/*@Nullable*/ String scheme, /*@Nullable*/ String fragment, /*@Nullable*/ String userInfo,
 			/*@Nullable*/ String host, /*@Nullable*/ String port, /*@Nullable*/ PathComponent path,
 			/*@Nullable*/ MultiValuedMap<String, String> queryParams, boolean encoded, boolean verify) {

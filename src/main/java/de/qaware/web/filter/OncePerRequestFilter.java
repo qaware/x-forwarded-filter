@@ -146,7 +146,7 @@ public abstract class OncePerRequestFilter implements Filter {
 	 * @return whether the given request should <i>not</i> be filtered
 	 * @throws ServletException in case of errors
 	 */
-	@SuppressWarnings("squid:S1172")//default implementation for subclasses
+	@SuppressWarnings("squid:S1172")//Unused parameters - default implementation for subclasses
 	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
 		return false;
 	}
