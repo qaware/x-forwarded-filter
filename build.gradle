@@ -104,6 +104,7 @@ sonarqube {
 license {
     mapping {
         java = 'SLASHSTAR_STYLE'
+
     }
     header rootProject.file('LICENSE_HEADER')
     strictCheck true
@@ -211,7 +212,7 @@ publishing {
 bintray {
     user = project.hasProperty('bintrayUsername') ? project.bintrayUsername : 'unknown'
     key = project.hasProperty('bintrayApiKey') ? project.bintrayApiKey : 'unknown'
-    publications = ['x-forwarded-filter']
+    publications = ['xForwardedFilter']
     dryRun = false
     publish = true
     pkg {
