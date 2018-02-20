@@ -73,6 +73,36 @@ Add this filter and it will transparently take care of these concerns for you by
 ## Usage
 You probably should disable all other x-forwarded processing code - like done by your underlying webserver.
 
+## Dependencies
+
+The JARs are available via Maven Central and JCenter. 
+
+If you are using Maven to build your project, add the following to the `pom.xml` file.
+
+```XML
+<!-- https://mvnrepository.com/artifact/de.qaware.majx/majx -->
+<dependency>
+    <groupId>de.qaware.xff</groupId>
+    <artifactId>x-forwarded-filter</artifactId>
+    <version>1.0</version>
+</dependency>
+```
+
+In case you are using Gradle to build your project, add the following to the `build.gradle` file:
+
+```groovy
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/de.qaware.xff/x-forwarded-filter
+    compile group: 'de.qaware.xff', name: 'x-forwarded-filter', version: '1.0'
+}
+```
+
+
 ### SpringBoot
 ```java
 import de.qaware.web.filter.ForwardedHeaderFilter;
@@ -154,3 +184,12 @@ execute:
 | X-Proxied-Https        | ? |
 | X-Forwarded-SSL        | ? |
 
+
+
+# Maintainer
+
+Michael Frank, <michael.frank@qaware.de>.
+
+# License
+
+This software is provided under the Apache2.0 open source license, read the `LICENSE` file for details.

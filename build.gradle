@@ -1,3 +1,16 @@
+//Control properties:
+//Maven: // set the properties via -P to publish to your company repo
+//Maven:
+//nexusUrl
+//nexusUsernamem
+//nexusPassword
+//
+//bintrayUsername
+//bintrayApiKey
+//
+//sonar.host.url
+//sonar.login
+
 buildscript {
     repositories {
         mavenCentral()
@@ -6,16 +19,23 @@ buildscript {
 }
 plugins {
     id "org.sonarqube" version "2.6.2"
+    id 'com.github.hierynomus.license' version '0.14.0'
+    id 'distribution'
+    id 'maven-publish'
+    id 'com.jfrog.bintray' version '1.7.3'
+    id 'com.github.kt3k.coveralls' version '2.6.3'
+    id 'net.researchgate.release' version '2.6.0'
 }
 
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'jacoco'
 
-group = 'de.qaware'
-version = '1.0-SNAPSHOT'
 
+group = 'de.qaware.xff'
+version = '1.0-SNAPSHOT'
 description = """"""
+
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -25,6 +45,7 @@ tasks.withType(JavaCompile) {
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
@@ -42,6 +63,22 @@ dependencies {
     testCompile group: 'org.mockito', name: 'mockito-core', version:'2.13.0'
 }
 
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+
 jacoco {
     toolVersion = "0.8.0"
 }
@@ -54,13 +91,163 @@ jacocoTestReport {
     }
 }
 
+
 sonarqube {
     properties {
         property "sonar.host.url", System.env.SONAR_URL
         property "sonar.login", System.env.SONAR_TOKEN
-        //property "sonar.exclusions", "**/test/**/*"
-        //property "sonar.test.exclusions", "**/test/**/*, **/*Test.*"
         property "sonar.projectName", "x-forwarded-filter"
     }
 }
 
+//com.github.hierynomus.license
+license {
+    mapping {
+        java = 'SLASHSTAR_STYLE'
+    }
+    header rootProject.file('LICENSE_HEADER')
+    strictCheck true
+    include '**/*.kt'
+    include '**/*.java'
+}
+
+release {
+    preTagCommitMessage = '[#1] Gradle Release Plugin - pre tag commit: '
+    tagCommitMessage = '[#1] Gradle Release Plugin - creating tag: '
+    newVersionCommitMessage = '[#1] Gradle Release Plugin - new version: '
+    tagTemplate = 'v${version}'
+    buildTasks = ['clean', 'build']
+}
+
+task updateVersionInReadme {
+    description = "Update the versions in the README to the current version"
+    group = "release"
+    doFirst {
+        println "Updating version in README.md to ${version}."
+        def newReadme = file('README.md').text
+                .replaceAll(/<version>[\d.]+<\/version>/, "<version>${version}</version>")
+                .replaceAll(
+                /compile group: 'de\.qaware\.xff', name: 'x-forwarded-filter', version: '[\d.]+'/,
+                "compile group: 'de.qaware.xff', name: 'x-forwarded-filter', version: '${version}'")
+
+        file('README.md').write(newReadme)
+    }
+}
+
+// Update versions in README before committing the release version
+confirmReleaseVersion.dependsOn updateVersionInReadme
+
+afterReleaseBuild.dependsOn bintrayUpload
+
+def pomConfig = {
+
+    inceptionYear '2018'
+
+    scm {
+        connection "scm:git:${project.scmUrl}"
+        developerConnection "scm:git:${project.scmUrl}"
+        url project.websiteUrl
+    }
+
+    issueManagement {
+        system 'GitHub'
+        url project.issueTrackerUrl
+    }
+
+    licenses {
+        license([:]) {
+            name ' Apache-2.0'
+            url 'https://opensource.org/licenses/Apache-2.0'
+            distribution 'repo'
+        }
+    }
+
+    organisation {
+        name 'QAware GmbH'
+        url 'https://www.qaware.de'
+    }
+
+    developers {
+        developer {
+            id 'Michael-Frank'
+            name 'Michael Frank'
+            email 'michael.frank@qaware.de'
+            organization 'QAware GmbH'
+            organizationUrl 'https://www.qaware.de'
+            roles { role 'Developer' }
+        }
+    }
+}
+
+publishing {
+    publications {
+        xForwardedFilter(MavenPublication) {
+            from components.java
+            artifact javadocJar
+            artifact sourcesJar
+
+            pom.withXml {
+                asNode().appendNode('packaging', 'jar')
+                asNode().appendNode('name', project.fullName)
+                asNode().appendNode('description', project.description)
+                asNode().appendNode('url', project.websiteUrl)
+
+                asNode().children().last() + pomConfig
+            }
+        }
+    }
+    repositories {
+        // set the properties via -P to publish to your company repo
+        maven {
+            url = project.hasProperty('nexusUrl') ? project.nexusUrl : ''
+            credentials {
+                username = project.hasProperty('nexusUsername') ? project.nexusUsername : ''
+                password = project.hasProperty('nexusPassword') ? project.nexusPassword : ''
+            }
+        }
+    }
+}
+
+bintray {
+    user = project.hasProperty('bintrayUsername') ? project.bintrayUsername : 'unknown'
+    key = project.hasProperty('bintrayApiKey') ? project.bintrayApiKey : 'unknown'
+    publications = ['x-forwarded-filter']
+    dryRun = false
+    publish = true
+    pkg {
+        repo = project.bintrayRepo
+        name = project.name
+        desc = project.description
+        licenses = ['Apache-2.0']
+        labels = ['forwarded', 'RFC7239', 'x-forwarded', 'x-forwarded-host', 'x-forwarded-proto', 'x-forwarded-port', 'x-forwarded-prefix', 'servletfilter'  ]
+        websiteUrl = project.websiteUrl
+        issueTrackerUrl = project.issueTrackerUrl
+        vcsUrl = project.scmUrl
+        publicDownloadNumbers = true
+        version {
+            name = project.version
+            desc = project.description
+            released = new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSSZZ")
+            vcsTag = "v${project.version}"
+            mavenCentralSync {
+                sync = true
+            }
+        }
+    }
+}
+
+distributions {
+    release {
+        contents {
+            from ('build/libs') {
+                include '*.jar'
+            }
+            from 'README.md'
+            from 'LICENSE'
+        }
+    }
+}
+
+// Make sure the sources jar is there when packaging the
+// distribution archives.
+jar.finalizedBy sourcesJar
