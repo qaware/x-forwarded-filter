@@ -1,7 +1,5 @@
 # (x-)forwarded*  Filter
 
-:warning:  Work in progress
-
 Standalone (x-)forwarded* Filter.
 
 The (x-)forwarded*  Http Headers are a pseudo standard with varying and mostly lacking support in most products.
@@ -38,10 +36,11 @@ Features:
 # TOC
   - [Why would i use this filter?](#why-would-i-use-this-filter)
   - [What this filter is not](#what-this-filter-is-not)
-  -  [Usage](#usage)
+  - [Dependencies Maven](#dependencies)
+  - [Usage](#usage)
     - [SpringBoot](#springboot)
-      - [Websphere liberty]()
-    - [Disable other (x-)forwarded* header processing in various products]()
+    - [Websphere liberty]()
+    - [Disable other (x-)forwarded* header processing in various products](#disable-other-x-forwarded-header-processing-in-various-products)
       - [Websphere liberty](#websphere-liberty)
       - [Spring](#spring)
       - [Tomcat](#tomcat)
@@ -70,9 +69,6 @@ Add this filter and it will transparently take care of these concerns for you by
 ## What this filter is not
 - no support for "client identification" with x-forwarded-for
  
-## Usage
-You probably should disable all other x-forwarded processing code - like done by your underlying webserver.
-
 ## Dependencies
 
 The JARs are available via Maven Central and JCenter. 
@@ -101,7 +97,9 @@ dependencies {
     compile group: 'de.qaware.xff', name: 'x-forwarded-filter', version: '1.0'
 }
 ```
-
+ 
+## Usage
+You probably should disable all other x-forwarded processing code - like done by your underlying webserver.
 
 ### SpringBoot
 ```java
@@ -116,11 +114,11 @@ FilterRegistrationBean forwardedHeaderFilter() {
 }
 ```
 
-#### Websphere liberty:
+### Websphere liberty
 TODO
 
 ### Disable other (x-)forwarded* header processing in various products
-#### Websphere liberty:
+#### Websphere liberty
 Disable [trustedHeaderOrigin](https://www.ibm.com/support/knowledgecenter/beta/SSEQTJ_8.5.5/com.ibm.websphere.wlp.nd.doc/ae/rwlp_config_httpDispatcher.html#rwlp_config_httpDispatcher__trustedHeaderOrigin) inside server.xml 
 `<httpDispatcher trustedHeaderOrigin="none" />`
 
@@ -188,7 +186,7 @@ execute:
 
 # Maintainer
 
-Michael Frank, <michael.frank@qaware.de>.
+Michael Frank, <michael.frank@qaware.de>
 
 # License
 
