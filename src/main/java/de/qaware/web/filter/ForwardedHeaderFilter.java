@@ -1,5 +1,5 @@
-package de.qaware.web.filter;/*
- * Copyright 2002-2017 the original author or authors.
+/*
+ * Copyright 2002-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@ package de.qaware.web.filter;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package de.qaware.web.filter;
 
 import de.qaware.web.util.ForwardedHeader;
 import de.qaware.web.util.WebUtilsConstants;
