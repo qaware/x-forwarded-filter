@@ -1,4 +1,6 @@
 language: java
+sudo: false
+install: true
 
 jdk:
   - oraclejdk8
@@ -11,13 +13,23 @@ before_cache:
 
 cache:
   directories:
-  - $HOME/.gradle/caches/
-  - $HOME/.gradle/wrapper/
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - '$HOME/.m2/repository'
+    - '$HOME/.sonar/cache'
+    - '$HOME/.gradle'
+    - '.gradle'
 
 before_install:
 - chmod +x gradlew
 
-script: ./gradlew build
+addons:
+  sonarcloud:
+    organization: "michael-frank-github" # the key of the org you chose at step #3
+
+
+script:
+  - ./gradlew sonarqube
 
 after_success:
 - ./gradlew jacocoTestReport coveralls
