@@ -53,7 +53,6 @@ ext.versions = [
         commonsCollections4: '4.1',
         commonsLang3Version: '3.7',
         slf4JVersion       : '1.7.25',
-        log4jVersion       : '2.10.0',
         //Test dependencies
         springVersion      : '5.0.4.RELEASE'
 ]
