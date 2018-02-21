@@ -72,6 +72,15 @@ dependencies {
     testCompile group: 'org.mockito', name: 'mockito-core', version:'2.13.0'
 }
 
+jar {
+    manifest {
+        attributes(
+                "Automatic-Module-Name": "de.qaware.xff"
+        )
+    }
+}
+
+
 sourceSets {
     test.compileClasspath += configurations.compileOnly
     test.runtimeClasspath += configurations.compileOnly
