@@ -21,7 +21,7 @@ Features:
 - Supports adapting the scheme, host, port and prefix(contextPath) of `HttpServletRequest`'s by replacing them transparently using the information from the (x-)forwarded* header(s).
 - Supports `HttpServletResponse.sendRedirect(location)` by rewriting them accordingly
 - Processing of headers and extracting parts (e.g. form `Forwarded` ) is case insensitive
-  - valid: X-Forwarded-Host, x-forwarded-host, X-FORWARED-HOST,..
+  - valid: X-Forwarded-Host, x-forwarded-host, X-forwarded-HOST,..
 - Supports multiple headers of same name in request -> use Find-First-Strategy
   - e.g.<br/>
     X-Forwarded-Host: "hostA"<br/>
@@ -39,6 +39,7 @@ Features:
    
 
 # TOC
+  - [Why do i need (x-)forwarded](#why-do-i-needx-forwarded-headers)
   - [Why would i use this filter?](#why-would-i-use-this-filter)
   - [What this filter is not](#what-this-filter-is-not)
   - [Dependencies Maven](#dependencies)
@@ -53,7 +54,8 @@ Features:
   - [How to Build](#how-to-build)
   - [(x-)forwarded* support in various products](#x-forwarded-support-in-various-products)
 
-## Why would i use this filter?
+## Why do i need (x-)forwarded
+
 1. Imagine your applications sits behind a proxy or a chain of proxies
 2. Imagine your application is reachable over different DNS names 
  
@@ -71,6 +73,14 @@ Unfortunately many frameworks and webservers have very bad support for these (ps
 
 Add this filter and it will transparently take care of these concerns for you by wrapping the `HttpServletRequest` which will overwrite various methods to return the correct information.
  
+## Why do i use THIS filter
+ 
+Because most libraries and webservers have very varying and mostly lacking support.
+The best Filter we could find was the [Spring ForwardedHeaderFilter](https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/main/java/org/springframework/web/filter/ForwardedHeaderFilter.java)
+But
+  - it requires the complete spring-web as dendency (fine if your are allready using spring - not so fine for a single filter)
+  - it lacks support for PREPEND the value in X-Forwarded-Prefix instead of REPLACE (which is crucial for us)
+  
 ## What this filter is not
 - no support for "client identification" with x-forwarded-for
  
@@ -192,6 +202,11 @@ execute:
 # Maintainer
 
 Michael Frank, <michael.frank@qaware.de>
+
+# Credits
+
+Code was taken from Spring 5.0.4 
+Thanks to all Contributors who made that possible.
 
 # License
 

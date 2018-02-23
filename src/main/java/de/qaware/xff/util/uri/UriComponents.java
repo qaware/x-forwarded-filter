@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
  * @since 3.1
  */
 @SuppressWarnings("serial")
-public abstract class UriComponentsBase implements Serializable {
+public abstract class UriComponents implements Serializable {
 
 	public static final char PATH_DELIMITER = '/';
 	public static final String PATH_DELIMITER_STRING = "/";
@@ -61,7 +61,7 @@ public abstract class UriComponentsBase implements Serializable {
 	private final String fragment;
 
 
-	protected UriComponentsBase(/*@Nullable*/ String scheme, /*@Nullable*/ String fragment) {
+	protected UriComponents(/*@Nullable*/ String scheme, /*@Nullable*/ String fragment) {
 		this.scheme = scheme;
 		this.fragment = fragment;
 	}
@@ -92,7 +92,7 @@ public abstract class UriComponentsBase implements Serializable {
 	 *
 	 * @return the encoded URI components
 	 */
-	public final UriComponentsBase encode() {
+	public final UriComponents encode() {
 		return encode(StandardCharsets.UTF_8);
 	}
 
@@ -104,7 +104,7 @@ public abstract class UriComponentsBase implements Serializable {
 	 * @param uriVariables the map of URI variables
 	 * @return the expanded URI components
 	 */
-	public final UriComponentsBase expand(Map<String, ?> uriVariables) {
+	public final UriComponents expand(Map<String, ?> uriVariables) {
 		Validate.notNull(uriVariables, "'uriVariables' must not be null");
 		return expandInternal(new MapTemplateVariables(uriVariables));
 	}
@@ -116,7 +116,7 @@ public abstract class UriComponentsBase implements Serializable {
 	 * @param uriVariableValues the URI variable values
 	 * @return the expanded URI components
 	 */
-	public final UriComponentsBase expand(Object... uriVariableValues) {
+	public final UriComponents expand(Object... uriVariableValues) {
 		Validate.notNull(uriVariableValues, "'uriVariableValues' must not be null");
 		return expandInternal(new VarArgsTemplateVariables(uriVariableValues));
 	}
@@ -128,7 +128,7 @@ public abstract class UriComponentsBase implements Serializable {
 	 * @param uriVariables the URI template values
 	 * @return the expanded URI components
 	 */
-	public final UriComponentsBase expand(UriTemplateVariables uriVariables) {
+	public final UriComponents expand(UriTemplateVariables uriVariables) {
 		Validate.notNull(uriVariables, "'uriVariables' must not be null");
 		return expandInternal(uriVariables);
 	}
@@ -185,7 +185,7 @@ public abstract class UriComponentsBase implements Serializable {
 	 * @param uriVariables URI template values
 	 * @return the expanded URI components
 	 */
-	abstract UriComponentsBase expandInternal(UriTemplateVariables uriVariables);
+	abstract UriComponents expandInternal(UriTemplateVariables uriVariables);
 
 	@Override
 	public final String toString() {
@@ -319,7 +319,7 @@ public abstract class UriComponentsBase implements Serializable {
 	 * @param charset the encoding of the values contained in this map
 	 * @return the encoded URI components
 	 */
-	public abstract UriComponentsBase encode(Charset charset);
+	public abstract UriComponents encode(Charset charset);
 
 	/**
 	 * Normalize the path removing sequences like "path/..". Note that calling this method will
@@ -328,7 +328,7 @@ public abstract class UriComponentsBase implements Serializable {
 	 *
 	 * @return Normalized version
 	 */
-	public abstract UriComponentsBase normalize();
+	public abstract UriComponents normalize();
 
 	/**
 	 * Return a URI String from this {@code UriComponents} instance.

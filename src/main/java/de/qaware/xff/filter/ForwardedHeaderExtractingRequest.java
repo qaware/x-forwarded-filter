@@ -17,14 +17,14 @@ package de.qaware.xff.filter;
 
 import de.qaware.xff.util.HttpServletRequestUtil;
 import de.qaware.xff.util.UrlPathHelper;
-import de.qaware.xff.util.uri.UriComponentsBase;
+import de.qaware.xff.util.uri.UriComponents;
 import de.qaware.xff.util.uri.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
 import static de.qaware.xff.util.ForwardedHeader.X_FORWARDED_PREFIX;
-import static de.qaware.xff.util.uri.UriComponentsBase.PATH_DELIMITER_STRING;
+import static de.qaware.xff.util.uri.UriComponents.PATH_DELIMITER_STRING;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
@@ -58,7 +58,7 @@ class ForwardedHeaderExtractingRequest extends HttpServletRequestWrapper {
 		pathHelper.setUrlDecode(false);
 		pathHelper.setRemoveSemicolonContent(false);
 
-		UriComponentsBase uriComponents = UriComponentsBuilder.fromHttpRequest(request).build();
+		UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request).build();
 		int portFromUri = uriComponents.getPort();
 
 		this.scheme = uriComponents.getScheme();

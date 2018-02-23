@@ -28,17 +28,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 
 /**
- * Extension of {@link UriComponentsBase} for hierarchical URIs.
+ * Extension of {@link UriComponents} for hierarchical URIs.
  *
  * @author Arjen Poutsma
  * @author Juergen Hoeller
@@ -48,7 +42,7 @@ import java.util.Objects;
  * @since 3.1.3
  */
 @SuppressWarnings({"serial"})
-final class HierarchicalUriComponents extends UriComponentsBase {
+final class HierarchicalUriComponents extends UriComponents {
 
 	private static final long serialVersionUID = 1;
 
@@ -364,8 +358,8 @@ final class HierarchicalUriComponents extends UriComponentsBase {
 	 * Normalize the path removing sequences like "path/..".
 	 */
 	@Override
-	public UriComponentsBase normalize() {
-		String normalizedPath = cleanPath(getPath());
+    public UriComponents normalize() {
+        String normalizedPath = cleanPath(getPath());
 		return new HierarchicalUriComponents(getScheme(), getFragment(), this.userInfo, this.host, this.port,
 				new FullPathComponent(normalizedPath), this.queryParams, this.encoded, false);
 	}

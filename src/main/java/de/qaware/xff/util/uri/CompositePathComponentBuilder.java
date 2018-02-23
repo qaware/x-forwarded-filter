@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import static de.qaware.xff.util.uri.UriComponentsBase.PATH_DELIMITER_STRING;
+import static de.qaware.xff.util.uri.UriComponents.PATH_DELIMITER_STRING;
 
 /**
  *

@@ -47,8 +47,8 @@ final class FullPathComponent implements PathComponent {
 
 	@Override
 	public List<String> getPathSegments() {
-		List<String> segments = tokenizeTrimIgnoreEmpty(this.path, UriComponentsBase.PATH_DELIMITER_STRING);
-		return Collections.unmodifiableList(segments);
+        List<String> segments = tokenizeTrimIgnoreEmpty(this.path, UriComponents.PATH_DELIMITER_STRING);
+        return Collections.unmodifiableList(segments);
 	}
 
 	private static List<String> tokenizeTrimIgnoreEmpty(String path, String pathDelimiterString) {
@@ -74,13 +74,13 @@ final class FullPathComponent implements PathComponent {
 
 	@Override
 	public void verify() {
-		UriComponentsBase.verifyUriComponent(this.path, URIComponentType.PATH);
-	}
+        UriComponents.verifyUriComponent(this.path, URIComponentType.PATH);
+    }
 
 	@Override
 	public PathComponent expand(UriTemplateVariables uriVariables) {
-		String expandedPath = UriComponentsBase.expandUriComponent(getPath(), uriVariables);
-		return new FullPathComponent(expandedPath);
+        String expandedPath = UriComponents.expandUriComponent(getPath(), uriVariables);
+        return new FullPathComponent(expandedPath);
 	}
 
 	@Override

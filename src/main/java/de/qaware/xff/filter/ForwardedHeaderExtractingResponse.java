@@ -27,54 +27,75 @@ import java.io.IOException;
  */
 class ForwardedHeaderExtractingResponse extends HttpServletResponseWrapper {
 
-	private static final String FOLDER_SEPARATOR = "/";
+    private static final String FOLDER_SEPARATOR = "/";
 
-	private final HttpServletRequest request;
+    private final HttpServletRequest request;
 
-	public ForwardedHeaderExtractingResponse(HttpServletResponse response, HttpServletRequest request) {
-		super(response);
-		this.request = request;
-	}
+    public ForwardedHeaderExtractingResponse(HttpServletResponse response, HttpServletRequest request) {
+        super(response);
+        this.request = request;
+    }
 
-	@Override
-	public void sendRedirect(String location) throws IOException {
-		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(location);
+    @Override
+    public void sendRedirect(String location) throws IOException {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(location);
 
-		// Absolute location
-		if (builder.build().getScheme() != null) {
-			super.sendRedirect(location);
-			return;
-		}
+        // Absolute location
+        if (builder.build().getScheme() != null) {
+            super.sendRedirect(location);
+            return;
+        }
 
-		// Network-path reference
-		if (location.startsWith("//")) {
-			String scheme = this.request.getScheme();
-			super.sendRedirect(builder.scheme(scheme).toUriString());
-			return;
-		}
+        // Network-path reference
+        if (location.startsWith("//")) {
+            String scheme = this.request.getScheme();
+            super.sendRedirect(builder.scheme(scheme).toUriString());
+            return;
+        }
 
-		// Relative to Servlet container root or to current request
-		String path = (location.startsWith(FOLDER_SEPARATOR) ? location :
-				applyRelativePath(this.request.getRequestURI(), location));
 
-		String result = UriComponentsBuilder
-				.fromHttpRequest(this.request)
-				.replacePath(path)
-				.build().normalize().toUriString();
+        String fragment = null;
+        int fragmentIndex = location.indexOf('#');
+        if (fragmentIndex != -1) {
+            if (location.length() > fragmentIndex) {
+                fragment = location.substring(fragmentIndex + 1);
+            }
+            location = location.substring(0, fragmentIndex);
+        }
 
-		super.sendRedirect(result);
-	}
+        String query = null;
+        int queryIndex = location.indexOf('?');
+        if (queryIndex != -1) {
+            if (location.length() > queryIndex) {
+                query = location.substring(queryIndex + 1);
+            }
+            location = location.substring(0, queryIndex);
+        }
 
-	private static String applyRelativePath(String path, String relativePath) {
-		int separatorIndex = path.lastIndexOf(FOLDER_SEPARATOR);
-		if (separatorIndex != -1) {
-			String newPath = path.substring(0, separatorIndex);
-			if (!relativePath.startsWith(FOLDER_SEPARATOR)) {
-				newPath += FOLDER_SEPARATOR;
-			}
-			return newPath + relativePath;
-		} else {
-			return relativePath;
-		}
-	}
+        // Relative to Servlet container root or to current request
+        String path = (location.startsWith(FOLDER_SEPARATOR) ? location :
+                applyRelativePath(this.request.getRequestURI(), location));
+
+        String result = UriComponentsBuilder
+                .fromHttpRequest(this.request)
+                .replacePath(path)
+                .replaceQuery(query)
+                .fragment(fragment)
+                .build().normalize().toUriString();
+
+        super.sendRedirect(result);
+    }
+
+    private static String applyRelativePath(String path, String relativePath) {
+        int separatorIndex = path.lastIndexOf(FOLDER_SEPARATOR);
+        if (separatorIndex != -1) {
+            String newPath = path.substring(0, separatorIndex);
+            if (!relativePath.startsWith(FOLDER_SEPARATOR)) {
+                newPath += FOLDER_SEPARATOR;
+            }
+            return newPath + relativePath;
+        } else {
+            return relativePath;
+        }
+    }
 }

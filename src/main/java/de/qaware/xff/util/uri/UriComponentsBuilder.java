@@ -31,16 +31,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static de.qaware.xff.util.ForwardedHeader.FORWARDED;
-import static de.qaware.xff.util.ForwardedHeader.X_FORWARDED_HOST;
-import static de.qaware.xff.util.ForwardedHeader.X_FORWARDED_PORT;
-import static de.qaware.xff.util.ForwardedHeader.X_FORWARDED_PROTO;
+import static de.qaware.xff.util.ForwardedHeader.*;
 import static de.qaware.xff.util.HttpServletRequestUtil.getFirstValueToken;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 
 /**
- * Builder for {@link UriComponentsBase}.
+ * Builder for {@link UriComponents}.
  * <p>
  * <p>Typical usage involves:
  * <ol>
@@ -50,7 +47,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * {@link #userInfo(String)}, {@link #host(String)}, {@link #port(int)}, {@link #path(String)},
  * {@link #pathSegment(String...)}, {@link #queryParam(String, Object...)}, and
  * {@link #fragment(String)}.</li>
- * <li>Build the {@link UriComponentsBase} instance with the {@link #build()} method.</li>
+ * <li>Build the {@link UriComponents} instance with the {@link #build()} method.</li>
  * </ol>
  *
  * @author Arjen Poutsma
@@ -58,6 +55,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * @author Phillip Webb
  * @author Oliver Gierke
  * @author Brian Clozel
+ * @author Sebastien Deleuze
  * @see #newInstance()
  * @see #fromPath(String)
  * @see #fromUri(URI)
@@ -339,7 +337,7 @@ public class UriComponentsBuilder {
 	 *
 	 * @return the URI components
 	 */
-	public UriComponentsBase build() {
+	public UriComponents build() {
 		return build(false);
 	}
 
@@ -351,7 +349,7 @@ public class UriComponentsBuilder {
 	 *                encoded ({@code true}) or not ({@code false})
 	 * @return the URI components
 	 */
-	public UriComponentsBase build(boolean encoded) {
+	public UriComponents build(boolean encoded) {
 		if (this.ssp != null) {
 			return new OpaqueUriComponents(this.scheme, this.ssp, this.fragment);
 		} else {
@@ -363,24 +361,24 @@ public class UriComponentsBuilder {
 	/**
 	 * Build a {@code UriComponents} instance and replaces URI template variables
 	 * with the values from a map. This is a shortcut method which combines
-	 * calls to {@link #build()} and then {@link UriComponentsBase#expand(Map)}.
+	 * calls to {@link #build()} and then {@link UriComponents#expand(Map)}.
 	 *
 	 * @param uriVariables the map of URI variables
 	 * @return the URI components with expanded values
 	 */
-	public UriComponentsBase buildAndExpand(Map<String, ?> uriVariables) {
+	public UriComponents buildAndExpand(Map<String, ?> uriVariables) {
 		return build(false).expand(uriVariables);
 	}
 
 	/**
 	 * Build a {@code UriComponents} instance and replaces URI template variables
 	 * with the values from an array. This is a shortcut method which combines
-	 * calls to {@link #build()} and then {@link UriComponentsBase#expand(Object...)}.
+	 * calls to {@link #build()} and then {@link UriComponents#expand(Object...)}.
 	 *
 	 * @param uriVariableValues URI variable values
 	 * @return the URI components with expanded values
 	 */
-	public UriComponentsBase buildAndExpand(Object... uriVariableValues) {
+	public UriComponents buildAndExpand(Object... uriVariableValues) {
 		return build(false).expand(uriVariableValues);
 	}
 
@@ -410,11 +408,11 @@ public class UriComponentsBuilder {
 
 	/**
 	 * Build a URI String. This is a shortcut method which combines calls
-	 * to {@link #build()}, then {@link UriComponentsBase#encode()} and finally
-	 * {@link UriComponentsBase#toUriString()}.
+	 * to {@link #build()}, then {@link UriComponents#encode()} and finally
+	 * {@link UriComponents#toUriString()}.
 	 *
-	 * @return {@see UriComponentsBase#toUriString}
-	 * @see UriComponentsBase#toUriString()
+	 * @return {@see UriComponents#toUriString}
+	 * @see UriComponents#toUriString()
 	 * @since 4.1
 	 */
 	public String toUriString() {
@@ -464,7 +462,7 @@ public class UriComponentsBuilder {
 
 	/**
 	 * Set or append individual URI components of this builder from the values
-	 * of the given {@link UriComponentsBase} instance.
+	 * of the given {@link UriComponents} instance.
 	 * <p>For the semantics of each component (i.e. set vs append) check the
 	 * builder methods on this class. For example {@link #host(String)} sets
 	 * while {@link #path(String)} appends.
@@ -472,7 +470,7 @@ public class UriComponentsBuilder {
 	 * @param uriComponents the UriComponents to copy from
 	 * @return this UriComponentsBuilder
 	 */
-	public UriComponentsBuilder uriComponents(UriComponentsBase uriComponents) {
+	public UriComponentsBuilder uriComponents(UriComponents uriComponents) {
 		Validate.notNull(uriComponents, "UriComponents must not be null");
 		uriComponents.copyToUriComponentsBuilder(this);
 		return this;
@@ -755,9 +753,9 @@ public class UriComponentsBuilder {
 		if (isNotBlank(forwardedHeader)) {
 			adaptForwardedHeader(forwardedHeader);
 		} else {
+			adaptXForwardedProto(headers);
 			adaptXForwardedHost(headers);
 			adaptXForwardedPort(headers);
-			adaptXForwardedProto(headers);
 		}
 
 		if (isHttp() || isHttps()) {
@@ -769,13 +767,15 @@ public class UriComponentsBuilder {
 
 	private void adaptForwardedHeader(String forwardedHeader) {
 		String forwardedToUse = getFirstValueToken(forwardedHeader, ",");
-		Matcher matcher = FORWARDED_HOST_PATTERN.matcher(forwardedToUse);
-		if (matcher.find()) {
-			adaptForwardedHost(matcher.group(1).trim());
-		}
-		matcher = FORWARDED_PROTO_PATTERN.matcher(forwardedToUse);
+
+		Matcher matcher = FORWARDED_PROTO_PATTERN.matcher(forwardedToUse);
 		if (matcher.find()) {
 			scheme(matcher.group(1).trim());
+			port(null);
+		}
+		matcher = FORWARDED_HOST_PATTERN.matcher(forwardedToUse);
+		if (matcher.find()) {
+			adaptForwardedHost(matcher.group(1).trim());
 		}
 	}
 
@@ -794,6 +794,7 @@ public class UriComponentsBuilder {
 		String protocolHeader = headers.getFirst(X_FORWARDED_PROTO.headerName());
 		if (isNotBlank(protocolHeader)) {
 			scheme(getFirstValueToken(protocolHeader, ","));
+			port(null);
 		}
 	}
 

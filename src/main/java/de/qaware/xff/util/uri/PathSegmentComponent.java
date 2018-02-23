@@ -45,13 +45,13 @@ final class PathSegmentComponent implements PathComponent {
 	@Override
 	public String getPath() {
 		StringBuilder pathBuilder = new StringBuilder();
-		pathBuilder.append(UriComponentsBase.PATH_DELIMITER);
-		for (Iterator<String> iterator = this.pathSegments.iterator(); iterator.hasNext(); ) {
+        pathBuilder.append(UriComponents.PATH_DELIMITER);
+        for (Iterator<String> iterator = this.pathSegments.iterator(); iterator.hasNext(); ) {
 			String pathSegment = iterator.next();
 			pathBuilder.append(pathSegment);
 			if (iterator.hasNext()) {
-				pathBuilder.append(UriComponentsBase.PATH_DELIMITER);
-			}
+                pathBuilder.append(UriComponents.PATH_DELIMITER);
+            }
 		}
 		return pathBuilder.toString();
 	}
@@ -76,8 +76,8 @@ final class PathSegmentComponent implements PathComponent {
 	@Override
 	public void verify() {
 		for (String pathSegment : getPathSegments()) {
-			UriComponentsBase.verifyUriComponent(pathSegment, URIComponentType.PATH_SEGMENT);
-		}
+            UriComponents.verifyUriComponent(pathSegment, URIComponentType.PATH_SEGMENT);
+        }
 	}
 
 	@Override
@@ -85,8 +85,8 @@ final class PathSegmentComponent implements PathComponent {
 		List<String> lPathSegments = getPathSegments();
 		List<String> expandedPathSegments = new ArrayList<>(lPathSegments.size());
 		for (String pathSegment : lPathSegments) {
-			String expandedPathSegment = UriComponentsBase.expandUriComponent(pathSegment, uriVariables);
-			expandedPathSegments.add(expandedPathSegment);
+            String expandedPathSegment = UriComponents.expandUriComponent(pathSegment, uriVariables);
+            expandedPathSegments.add(expandedPathSegment);
 		}
 		return new PathSegmentComponent(expandedPathSegments);
 	}

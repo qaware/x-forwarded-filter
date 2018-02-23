@@ -33,19 +33,9 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map;
 
-import static de.qaware.xff.filter.ForwardedHeaderFilter.ENABLE_RELATIVE_REDIRECTS_INIT_PARAM;
-import static de.qaware.xff.filter.ForwardedHeaderFilter.HEADER_PROCESSING_STRATEGY;
-import static de.qaware.xff.filter.ForwardedHeaderFilter.X_FORWARDED_PREFIX_STRATEGY;
-import static de.qaware.xff.util.ForwardedHeader.FORWARDED;
-import static de.qaware.xff.util.ForwardedHeader.X_FORWARDED_HOST;
-import static de.qaware.xff.util.ForwardedHeader.X_FORWARDED_PORT;
-import static de.qaware.xff.util.ForwardedHeader.X_FORWARDED_PREFIX;
-import static de.qaware.xff.util.ForwardedHeader.X_FORWARDED_PROTO;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static de.qaware.xff.filter.ForwardedHeaderFilter.*;
+import static de.qaware.xff.util.ForwardedHeader.*;
+import static org.junit.Assert.*;
 
 /**
  * Unit tests for {@link ForwardedHeaderFilter}.
@@ -56,7 +46,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class ForwardedHeaderFilterTest {
 
-	public static final String UNIT_TEST_FORWARED_FILTER = "unitTestForwardedFilter";
+	public static final String UNIT_TEST_FORWARDED_FILTER = "unitTestForwardedFilter";
 
 	private ForwardedHeaderFilter filter;
 
@@ -68,7 +58,7 @@ public class ForwardedHeaderFilterTest {
 	@SuppressWarnings("serial")
 	public void setup() throws Exception {
 		this.filter = new ForwardedHeaderFilter();
-		initFilter(UNIT_TEST_FORWARED_FILTER, null);
+		initFilter(UNIT_TEST_FORWARDED_FILTER, null);
 		this.request = new MockHttpServletRequest();
 		this.request.setScheme("http");
 		this.request.setServerName("localhost");
@@ -353,7 +343,7 @@ public class ForwardedHeaderFilterTest {
 		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
 
 		//Set HEADER_PROCESSING_STRATEGY
-		this.filter = initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(HEADER_PROCESSING_STRATEGY, HeaderProcessingStrategy.DONT_EVAL_AND_REMOVE.name()));
+		this.filter = initFilter(UNIT_TEST_FORWARDED_FILTER, Collections.singletonMap(HEADER_PROCESSING_STRATEGY, HeaderProcessingStrategy.DONT_EVAL_AND_REMOVE.name()));
 
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
@@ -376,7 +366,7 @@ public class ForwardedHeaderFilterTest {
 		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
 
 		//Set HEADER_PROCESSING_STRATEGY
-		this.filter = initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(HEADER_PROCESSING_STRATEGY, HeaderProcessingStrategy.EVAL_AND_KEEP.name()));
+		this.filter = initFilter(UNIT_TEST_FORWARDED_FILTER, Collections.singletonMap(HEADER_PROCESSING_STRATEGY, HeaderProcessingStrategy.EVAL_AND_KEEP.name()));
 
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
@@ -414,7 +404,7 @@ public class ForwardedHeaderFilterTest {
 		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
 
 		//Set HEADER_PROCESSING_STRATEGY
-		this.filter = initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(HEADER_PROCESSING_STRATEGY, HeaderProcessingStrategy.DONT_EVAL_AND_REMOVE.name()));
+		this.filter = initFilter(UNIT_TEST_FORWARDED_FILTER, Collections.singletonMap(HEADER_PROCESSING_STRATEGY, HeaderProcessingStrategy.DONT_EVAL_AND_REMOVE.name()));
 
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
@@ -434,7 +424,7 @@ public class ForwardedHeaderFilterTest {
 		this.request.addHeader("notToBeRemoved", "notToBeRemoved");
 
 		//Set HEADER_PROCESSING_STRATEGY
-		this.filter = initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(HEADER_PROCESSING_STRATEGY, HeaderProcessingStrategy.EVAL_AND_KEEP.name()));
+		this.filter = initFilter(UNIT_TEST_FORWARDED_FILTER, Collections.singletonMap(HEADER_PROCESSING_STRATEGY, HeaderProcessingStrategy.EVAL_AND_KEEP.name()));
 
 		this.filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 		HttpServletRequest actual = (HttpServletRequest) this.filterChain.getRequest();
@@ -505,7 +495,7 @@ public class ForwardedHeaderFilterTest {
 	@Test
 	public void requestUriWithForwardedPrefix() throws Exception {
 		//Assume default processing strategy is {@link XForwardedPrefixStrategy#REPLACE}
-		initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(X_FORWARDED_PREFIX_STRATEGY, null));
+		initFilter(UNIT_TEST_FORWARDED_FILTER, Collections.singletonMap(X_FORWARDED_PREFIX_STRATEGY, null));
 
 		this.request.setContextPath("/shouldBeReplaced");
 		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
@@ -522,7 +512,7 @@ public class ForwardedHeaderFilterTest {
 		this.request.setContextPath("/shouldBePrependedByPrefix");
 		this.request.addHeader(X_FORWARDED_PREFIX.headerName(), "/prefix");
 		this.request.setRequestURI("/mvc-showcase");
-		initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(X_FORWARDED_PREFIX_STRATEGY, XForwardedPrefixStrategy.PREPEND.name()));
+		initFilter(UNIT_TEST_FORWARDED_FILTER, Collections.singletonMap(X_FORWARDED_PREFIX_STRATEGY, XForwardedPrefixStrategy.PREPEND.name()));
 
 		HttpServletRequest actual = filterAndGetWrappedRequest();
 		assertEquals("/prefix/shouldBePrependedByPrefix", actual.getContextPath());
@@ -663,7 +653,7 @@ public class ForwardedHeaderFilterTest {
 		this.request.addHeader(X_FORWARDED_HOST.headerName(), "example.com");
 		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
 
-		initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(ENABLE_RELATIVE_REDIRECTS_INIT_PARAM, "true"));
+		initFilter(UNIT_TEST_FORWARDED_FILTER, Collections.singletonMap(ENABLE_RELATIVE_REDIRECTS_INIT_PARAM, "true"));
 		filter.doFilter(this.request, new MockHttpServletResponse(), this.filterChain);
 
 		String location = sendRedirect("/a");
@@ -673,11 +663,23 @@ public class ForwardedHeaderFilterTest {
 
 	@Test
 	public void sendRedirectWhenRequestOnlyAndNoXForwardedThenUsesRelativeRedirects() throws Exception {
-		initFilter(UNIT_TEST_FORWARED_FILTER, Collections.singletonMap(ENABLE_RELATIVE_REDIRECTS_INIT_PARAM, "true"));
+		initFilter(UNIT_TEST_FORWARDED_FILTER, Collections.singletonMap(ENABLE_RELATIVE_REDIRECTS_INIT_PARAM, "true"));
 
 		String location = sendRedirect("/a");
 
 		assertEquals("/a", location);
+	}
+
+
+	@Test // SPR-16506
+	public void sendRedirectWithAbsolutePathQueryParamAndFragment() throws Exception {
+		this.request.addHeader(X_FORWARDED_PROTO.headerName(), "https");
+		this.request.addHeader(X_FORWARDED_HOST.headerName(), "example.com");
+		this.request.addHeader(X_FORWARDED_PORT.headerName(), "443");
+		this.request.setQueryString("oldqp=1");
+
+		String redirectedUrl = sendRedirect("/foo/bar?newqp=2#fragment");
+		assertEquals("https://example.com/foo/bar?newqp=2#fragment", redirectedUrl);
 	}
 
 	private void assertHeadersAREProcessed(HttpServletRequest actual) {
