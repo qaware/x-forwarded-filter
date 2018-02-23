@@ -32,9 +32,12 @@ apply plugin: 'maven'
 apply plugin: 'jacoco'
 
 
-group = 'de.qaware.xff'
-version = '1.0-SNAPSHOT'
-description = """"""
+// Version depends on the Git branch
+def branchName = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim() ?: 'dev'
+def lastTagName = 'git describe --abbrev=0 --tags'.execute().text.trim() ?: '0.1'
+version = branchName == "master" ? lastTagName
+        : branchName == "dev"? "${lastTagName}-SNAPSHOT"
+        : "${lastTagName}-SNAPSHOT-${branchName}"
 
 
 sourceCompatibility = 1.8
