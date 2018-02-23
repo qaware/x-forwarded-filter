@@ -39,8 +39,8 @@ Features:
    
 
 # TOC
-  - [Why do i need (x-)forwarded](#why-do-i-needx-forwarded-headers)
-  - [Why would i use this filter?](#why-would-i-use-this-filter)
+  - [Why do i need (x-)forwarded](#why-do-i-need-x-forwarded)
+  - [Why would i use this filter?](#why-do-i-use-this-filter)
   - [What this filter is not](#what-this-filter-is-not)
   - [Dependencies Maven](#dependencies)
   - [Usage](#usage)
