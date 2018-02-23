@@ -41,33 +41,33 @@ import java.io.IOException;
  */
 public class RelativeRedirectFilter extends OncePerRequestFilter {
 
-	private int redirectStatus = WebUtilsConstants.SEE_OTHER;
+    private int redirectStatus = WebUtilsConstants.SEE_OTHER;
 
 
-	/**
-	 * Set the default HTTP Status to use for redirects.
-	 * <p>By default this is {@link WebUtilsConstants#SEE_OTHER}.
-	 *
-	 * @param status the 3xx redirect status to use
-	 */
-	public void setRedirectStatus(int status) {
+    /**
+     * Set the default HTTP Status to use for redirects.
+     * <p>By default this is {@link WebUtilsConstants#SEE_OTHER}.
+     *
+     * @param status the 3xx redirect status to use
+     */
+    public void setRedirectStatus(int status) {
 
-		Validate.isTrue(isRedirect(status), "Not a redirect status code: %s", status);
-		this.redirectStatus = status;
-	}
+        Validate.isTrue(isRedirect(status), "Not a redirect status code: %s", status);
+        this.redirectStatus = status;
+    }
 
-	@SuppressWarnings("squid:S109") //MagicNumbers: Alternatives would be even more ugly
-	private static boolean isRedirect(int status) {
-		return (status / 100) == 3;
-	}
+    @SuppressWarnings("squid:S109") //MagicNumbers: Alternatives would be even more ugly
+    private static boolean isRedirect(int status) {
+        return (status / 100) == 3;
+    }
 
 
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-	                                FilterChain filterChain) throws ServletException, IOException {
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
 
-		HttpServletResponse wrappedResponse = RelativeRedirectResponseWrapper.wrapIfNecessary(response, this.redirectStatus);
-		filterChain.doFilter(request, wrappedResponse);
-	}
+        HttpServletResponse wrappedResponse = RelativeRedirectResponseWrapper.wrapIfNecessary(response, this.redirectStatus);
+        filterChain.doFilter(request, wrappedResponse);
+    }
 
 }

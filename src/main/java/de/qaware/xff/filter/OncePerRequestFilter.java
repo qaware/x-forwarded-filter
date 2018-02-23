@@ -17,12 +17,7 @@ package de.qaware.xff.filter;
 
 import de.qaware.xff.util.WebUtilsConstants;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -63,126 +58,126 @@ import java.util.Optional;
  */
 public abstract class OncePerRequestFilter implements Filter {
 
-	/**
-	 * Suffix that gets appended to the filter name for the
-	 * "already filtered" request attribute.
-	 *
-	 * @see #getAlreadyFilteredAttributeName
-	 */
-	public static final String ALREADY_FILTERED_SUFFIX = ".FILTERED";
+    /**
+     * Suffix that gets appended to the filter name for the
+     * "already filtered" request attribute.
+     *
+     * @see #getAlreadyFilteredAttributeName
+     */
+    public static final String ALREADY_FILTERED_SUFFIX = ".FILTERED";
 
-	private String alreadyFilteredAttributeName;
+    private String alreadyFilteredAttributeName;
 
-	@Override
-	public void init(FilterConfig filterConfig) throws ServletException {
-		this.alreadyFilteredAttributeName = Optional.ofNullable(filterConfig.getFilterName()).orElse(getClass().getName()) + ALREADY_FILTERED_SUFFIX;
-	}
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+        this.alreadyFilteredAttributeName = Optional.ofNullable(filterConfig.getFilterName()).orElse(getClass().getName()) + ALREADY_FILTERED_SUFFIX;
+    }
 
-	/**
-	 * This {@code doFilter} implementation stores a request attribute for
-	 * "already filtered", proceeding without filtering again if the
-	 * attribute is already there.
-	 *
-	 * @see #getAlreadyFilteredAttributeName
-	 * @see #shouldNotFilter
-	 * @see #doFilterInternal
-	 */
-	@Override
-	public final void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
-			throws ServletException, IOException {
+    /**
+     * This {@code doFilter} implementation stores a request attribute for
+     * "already filtered", proceeding without filtering again if the
+     * attribute is already there.
+     *
+     * @see #getAlreadyFilteredAttributeName
+     * @see #shouldNotFilter
+     * @see #doFilterInternal
+     */
+    @Override
+    public final void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
-		if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse)) {
-			throw new ServletException("OncePerRequestFilter just supports HTTP requests");
-		}
-		HttpServletRequest httpRequest = (HttpServletRequest) request;
-		HttpServletResponse httpResponse = (HttpServletResponse) response;
+        if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse)) {
+            throw new ServletException("OncePerRequestFilter just supports HTTP requests");
+        }
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-		String alreadyFilteredAttribute = getAlreadyFilteredAttributeName();
-		boolean hasAlreadyFilteredAttribute = request.getAttribute(alreadyFilteredAttribute) != null;
+        String alreadyFilteredAttribute = getAlreadyFilteredAttributeName();
+        boolean hasAlreadyFilteredAttribute = request.getAttribute(alreadyFilteredAttribute) != null;
 
-		if (hasAlreadyFilteredAttribute || skipDispatch(httpRequest) || shouldNotFilter(httpRequest)) {
+        if (hasAlreadyFilteredAttribute || skipDispatch(httpRequest) || shouldNotFilter(httpRequest)) {
 
-			// Proceed without invoking this filter...
-			filterChain.doFilter(request, response);
-		} else {
-			// Do invoke this filter...
-			request.setAttribute(alreadyFilteredAttribute, Boolean.TRUE);
-			try {
-				doFilterInternal(httpRequest, httpResponse, filterChain);
-			} finally {
-				// Remove the "already filtered" request attribute for this request.
-				request.removeAttribute(alreadyFilteredAttribute);
-			}
-		}
-	}
-
-
-	private boolean skipDispatch(HttpServletRequest request) {
-		return request.getAttribute(WebUtilsConstants.ERROR_REQUEST_URI_ATTRIBUTE) != null && shouldNotFilterErrorDispatch();
-	}
+            // Proceed without invoking this filter...
+            filterChain.doFilter(request, response);
+        } else {
+            // Do invoke this filter...
+            request.setAttribute(alreadyFilteredAttribute, Boolean.TRUE);
+            try {
+                doFilterInternal(httpRequest, httpResponse, filterChain);
+            } finally {
+                // Remove the "already filtered" request attribute for this request.
+                request.removeAttribute(alreadyFilteredAttribute);
+            }
+        }
+    }
 
 
-	/**
-	 * Return the name of the request attribute that identifies that a request
-	 * is already filtered.
-	 * <p>The default implementation takes the configured name of the concrete filter
-	 * instance and appends ".FILTERED". If the filter is not fully initialized,
-	 * it falls back to its class name.
-	 *
-	 * @see #ALREADY_FILTERED_SUFFIX
-	 */
-	protected String getAlreadyFilteredAttributeName() {
-		return alreadyFilteredAttributeName;
-	}
+    private boolean skipDispatch(HttpServletRequest request) {
+        return request.getAttribute(WebUtilsConstants.ERROR_REQUEST_URI_ATTRIBUTE) != null && shouldNotFilterErrorDispatch();
+    }
 
 
-	/**
-	 * Can be overridden in subclasses for custom filtering control,
-	 * returning {@code true} to avoid filtering of the given request.
-	 * <p>The default implementation always returns {@code false}.
-	 *
-	 * @param request current HTTP request
-	 * @return whether the given request should <i>not</i> be filtered
-	 * @throws ServletException in case of errors
-	 */
-	@SuppressWarnings("squid:S1172")//Unused parameters - default implementation for subclasses
-	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-		return false;
-	}
-
-	/**
-	 * Whether to filter error dispatches such as when the servlet container
-	 * processes and error mapped in {@code web.xml}. The default return value
-	 * is "true", which means the filter will not be invoked in case of an error
-	 * dispatch.
-	 *
-	 * @since 3.2
-	 */
-	protected boolean shouldNotFilterErrorDispatch() {
-		return true;
-	}
+    /**
+     * Return the name of the request attribute that identifies that a request
+     * is already filtered.
+     * <p>The default implementation takes the configured name of the concrete filter
+     * instance and appends ".FILTERED". If the filter is not fully initialized,
+     * it falls back to its class name.
+     *
+     * @see #ALREADY_FILTERED_SUFFIX
+     */
+    protected String getAlreadyFilteredAttributeName() {
+        return alreadyFilteredAttributeName;
+    }
 
 
-	/**
-	 * Same contract as for {@code doFilter}, but guaranteed to be
-	 * just invoked once per request within a single request thread.
-	 * See  for details.
-	 * <p>Provides HttpServletRequest and HttpServletResponse arguments instead of the
-	 * default ServletRequest and ServletResponse ones.
-	 */
-	protected abstract void doFilterInternal(
-			HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-			throws ServletException, IOException;
+    /**
+     * Can be overridden in subclasses for custom filtering control,
+     * returning {@code true} to avoid filtering of the given request.
+     * <p>The default implementation always returns {@code false}.
+     *
+     * @param request current HTTP request
+     * @return whether the given request should <i>not</i> be filtered
+     * @throws ServletException in case of errors
+     */
+    @SuppressWarnings("squid:S1172")//Unused parameters - default implementation for subclasses
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        return false;
+    }
 
-	/**
-	 * Subclasses may override this to perform custom filter shutdown.
-	 * <p>Note: This method will be called from standard filter destruction
-	 * as well as filter bean destruction in a Spring application context.
-	 * <p>This default implementation is empty.
-	 */
-	@Override
-	public void destroy() {
-		// No action
-	}
+    /**
+     * Whether to filter error dispatches such as when the servlet container
+     * processes and error mapped in {@code web.xml}. The default return value
+     * is "true", which means the filter will not be invoked in case of an error
+     * dispatch.
+     *
+     * @since 3.2
+     */
+    protected boolean shouldNotFilterErrorDispatch() {
+        return true;
+    }
+
+
+    /**
+     * Same contract as for {@code doFilter}, but guaranteed to be
+     * just invoked once per request within a single request thread.
+     * See  for details.
+     * <p>Provides HttpServletRequest and HttpServletResponse arguments instead of the
+     * default ServletRequest and ServletResponse ones.
+     */
+    protected abstract void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException;
+
+    /**
+     * Subclasses may override this to perform custom filter shutdown.
+     * <p>Note: This method will be called from standard filter destruction
+     * as well as filter bean destruction in a Spring application context.
+     * <p>This default implementation is empty.
+     */
+    @Override
+    public void destroy() {
+        // No action
+    }
 
 }

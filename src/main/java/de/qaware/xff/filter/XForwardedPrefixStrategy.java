@@ -20,6 +20,6 @@ package de.qaware.xff.filter;
  * Prepend or Replace the the context path with the value from X-Forwarded-Prefix
  */
 public enum XForwardedPrefixStrategy {
-	PREPEND,
-	REPLACE
+    PREPEND,
+    REPLACE
 }

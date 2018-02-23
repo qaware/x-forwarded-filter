@@ -32,108 +32,108 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  */
 class ForwardedHeaderExtractingRequest extends HttpServletRequestWrapper {
 
-	private static final int HTTPS_PORT = 443;
-	private static final int HTTP_PORT = 80;
-	/*@Nullable*/
-	private final String scheme;
+    private static final int HTTPS_PORT = 443;
+    private static final int HTTP_PORT = 80;
+    /*@Nullable*/
+    private final String scheme;
 
-	private final boolean secure;
+    private final boolean secure;
 
-	/*@Nullable*/
-	private final String host;
+    /*@Nullable*/
+    private final String host;
 
-	private final int port;
+    private final int port;
 
-	private final String contextPath;
+    private final String contextPath;
 
-	private final String requestUri;
+    private final String requestUri;
 
-	private final String requestUrl;
+    private final String requestUrl;
 
-	@SuppressWarnings("squid:S3358")//nested ternary op is more readable in this case
-	public ForwardedHeaderExtractingRequest(HttpServletRequest request, XForwardedPrefixStrategy prefixStrategy) {
-		super(request);
+    @SuppressWarnings("squid:S3358")//nested ternary op is more readable in this case
+    public ForwardedHeaderExtractingRequest(HttpServletRequest request, XForwardedPrefixStrategy prefixStrategy) {
+        super(request);
 
-		UrlPathHelper pathHelper = new UrlPathHelper();
-		pathHelper.setUrlDecode(false);
-		pathHelper.setRemoveSemicolonContent(false);
+        UrlPathHelper pathHelper = new UrlPathHelper();
+        pathHelper.setUrlDecode(false);
+        pathHelper.setRemoveSemicolonContent(false);
 
-		UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request).build();
-		int portFromUri = uriComponents.getPort();
+        UriComponents uriComponents = UriComponentsBuilder.fromHttpRequest(request).build();
+        int portFromUri = uriComponents.getPort();
 
-		this.scheme = uriComponents.getScheme();
-		this.secure = "https".equals(scheme);
-		this.host = uriComponents.getHost();
-		this.port = (portFromUri == -1 ? (this.secure ? HTTPS_PORT : HTTP_PORT) : portFromUri);
+        this.scheme = uriComponents.getScheme();
+        this.secure = "https".equals(scheme);
+        this.host = uriComponents.getHost();
+        this.port = (portFromUri == -1 ? (this.secure ? HTTPS_PORT : HTTP_PORT) : portFromUri);
 
-		this.contextPath = adaptFromXForwardedPrefix(request, prefixStrategy);
+        this.contextPath = adaptFromXForwardedPrefix(request, prefixStrategy);
 
-		this.requestUri = this.contextPath + pathHelper.getPathWithinApplication(request);
-		this.requestUrl = this.scheme + "://" + this.host + (portFromUri == -1 ? "" : (":" + portFromUri)) + this.requestUri;
-	}
+        this.requestUri = this.contextPath + pathHelper.getPathWithinApplication(request);
+        this.requestUrl = this.scheme + "://" + this.host + (portFromUri == -1 ? "" : (":" + portFromUri)) + this.requestUri;
+    }
 
-	private static String adaptFromXForwardedPrefix(HttpServletRequest request, XForwardedPrefixStrategy prefixStrategy) {
-		String prefix = getForwardedPrefix(request);
-		if (prefix == null) {
-			return request.getContextPath();
-		}
-		switch (prefixStrategy) {
-			case PREPEND:
-				return prefix + request.getContextPath();
-			case REPLACE:
-				return prefix;
-			default:
-				throw new UnsupportedOperationException("Implementation for enum case is missing: " + prefixStrategy);
-		}
+    private static String adaptFromXForwardedPrefix(HttpServletRequest request, XForwardedPrefixStrategy prefixStrategy) {
+        String prefix = getForwardedPrefix(request);
+        if (prefix == null) {
+            return request.getContextPath();
+        }
+        switch (prefixStrategy) {
+            case PREPEND:
+                return prefix + request.getContextPath();
+            case REPLACE:
+                return prefix;
+            default:
+                throw new UnsupportedOperationException("Implementation for enum case is missing: " + prefixStrategy);
+        }
 
-	}
+    }
 
-	/*@Nullable*/
-	private static String getForwardedPrefix(HttpServletRequest request) {
-		String prefix = HttpServletRequestUtil.getHeaders(request).getFirst(X_FORWARDED_PREFIX.headerName());
-		if (isNotBlank(prefix)) {
-			prefix = HttpServletRequestUtil.getFirstValueToken(prefix, ",");
-			while (prefix.endsWith(PATH_DELIMITER_STRING)) {
-				prefix = prefix.substring(0, prefix.length() - 1);
-			}
-		}
-		return prefix;
-	}
+    /*@Nullable*/
+    private static String getForwardedPrefix(HttpServletRequest request) {
+        String prefix = HttpServletRequestUtil.getHeaders(request).getFirst(X_FORWARDED_PREFIX.headerName());
+        if (isNotBlank(prefix)) {
+            prefix = HttpServletRequestUtil.getFirstValueToken(prefix, ",");
+            while (prefix.endsWith(PATH_DELIMITER_STRING)) {
+                prefix = prefix.substring(0, prefix.length() - 1);
+            }
+        }
+        return prefix;
+    }
 
-	@Override
-	/*@Nullable*/
-	public String getScheme() {
-		return this.scheme;
-	}
+    @Override
+    /*@Nullable*/
+    public String getScheme() {
+        return this.scheme;
+    }
 
-	@Override
-	/*@Nullable*/
-	public String getServerName() {
-		return this.host;
-	}
+    @Override
+    /*@Nullable*/
+    public String getServerName() {
+        return this.host;
+    }
 
-	@Override
-	public int getServerPort() {
-		return this.port;
-	}
+    @Override
+    public int getServerPort() {
+        return this.port;
+    }
 
-	@Override
-	public boolean isSecure() {
-		return this.secure;
-	}
+    @Override
+    public boolean isSecure() {
+        return this.secure;
+    }
 
-	@Override
-	public String getContextPath() {
-		return this.contextPath;
-	}
+    @Override
+    public String getContextPath() {
+        return this.contextPath;
+    }
 
-	@Override
-	public String getRequestURI() {
-		return this.requestUri;
-	}
+    @Override
+    public String getRequestURI() {
+        return this.requestUri;
+    }
 
-	@Override
-	public StringBuffer getRequestURL() {
-		return new StringBuffer(this.requestUrl);
-	}
+    @Override
+    public StringBuffer getRequestURL() {
+        return new StringBuffer(this.requestUrl);
+    }
 }

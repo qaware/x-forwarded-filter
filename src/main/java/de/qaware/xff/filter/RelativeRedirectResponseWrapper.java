@@ -34,43 +34,43 @@ import java.io.IOException;
  */
 final class RelativeRedirectResponseWrapper extends HttpServletResponseWrapper {
 
-	private final int redirectStatus;
+    private final int redirectStatus;
 
-	private RelativeRedirectResponseWrapper(HttpServletResponse response, int redirectStatus) {
-		super(response);
-		Validate.notNull(redirectStatus, "'redirectStatus' is required");
-		this.redirectStatus = redirectStatus;
-	}
+    private RelativeRedirectResponseWrapper(HttpServletResponse response, int redirectStatus) {
+        super(response);
+        Validate.notNull(redirectStatus, "'redirectStatus' is required");
+        this.redirectStatus = redirectStatus;
+    }
 
-	/**
-	 * Wraps the response if the https status code is 3xx. Prevents wrapping the same response multiple times.
-	 *
-	 * @param response       the response to be wrapped
-	 * @param redirectStatus http status code
-	 * @return the wrapped response
-	 */
-	public static HttpServletResponse wrapIfNecessary(HttpServletResponse response, int redirectStatus) {
-		return hasWrapper(response) ? response : new RelativeRedirectResponseWrapper(response, redirectStatus);
-	}
+    /**
+     * Wraps the response if the https status code is 3xx. Prevents wrapping the same response multiple times.
+     *
+     * @param response       the response to be wrapped
+     * @param redirectStatus http status code
+     * @return the wrapped response
+     */
+    public static HttpServletResponse wrapIfNecessary(HttpServletResponse response, int redirectStatus) {
+        return hasWrapper(response) ? response : new RelativeRedirectResponseWrapper(response, redirectStatus);
+    }
 
-	@Override
-	public void sendRedirect(String location) throws IOException {
-		setStatus(this.redirectStatus);
-		setHeader(HttpHeaders.LOCATION, location);
-	}
+    @Override
+    public void sendRedirect(String location) throws IOException {
+        setStatus(this.redirectStatus);
+        setHeader(HttpHeaders.LOCATION, location);
+    }
 
 
-	private static boolean hasWrapper(ServletResponse response) {
-		if (response instanceof RelativeRedirectResponseWrapper) {
-			return true;
-		}
-		while (response instanceof HttpServletResponseWrapper) {
-			ServletResponse unwrappedResponse = ((HttpServletResponseWrapper) response).getResponse();
-			if (unwrappedResponse instanceof RelativeRedirectResponseWrapper) {
-				return true;
-			}
-		}
-		return false;
-	}
+    private static boolean hasWrapper(ServletResponse response) {
+        if (response instanceof RelativeRedirectResponseWrapper) {
+            return true;
+        }
+        while (response instanceof HttpServletResponseWrapper) {
+            ServletResponse unwrappedResponse = ((HttpServletResponseWrapper) response).getResponse();
+            if (unwrappedResponse instanceof RelativeRedirectResponseWrapper) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 }

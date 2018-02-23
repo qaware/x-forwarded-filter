@@ -20,11 +20,10 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Arjen Poutsma
@@ -32,74 +31,74 @@ import static org.junit.Assert.assertTrue;
 public class HttpServletRequestUtilTest {
 
 
-	private MockHttpServletRequest mockRequest;
+    private MockHttpServletRequest mockRequest;
 
 
-	@Before
-	public void create() throws Exception {
-		mockRequest = new MockHttpServletRequest();
-	}
+    @Before
+    public void create() {
+        mockRequest = new MockHttpServletRequest();
+    }
 
 
-	@Test
-	public void getURI() throws Exception {
-		URI uri = new URI("http://example.com/path?query");
-		mockRequest.setServerName(uri.getHost());
-		mockRequest.setServerPort(uri.getPort());
-		mockRequest.setRequestURI(uri.getPath());
-		mockRequest.setQueryString(uri.getQuery());
-		assertEquals("Invalid uri", uri, HttpServletRequestUtil.getURI(mockRequest));
-	}
+    @Test
+    public void getURI() throws URISyntaxException {
+        URI uri = new URI("http://example.com/path?query");
+        mockRequest.setServerName(uri.getHost());
+        mockRequest.setServerPort(uri.getPort());
+        mockRequest.setRequestURI(uri.getPath());
+        mockRequest.setQueryString(uri.getQuery());
+        assertEquals("Invalid uri", uri, HttpServletRequestUtil.getURI(mockRequest));
+    }
 
-	@Test  // SPR-13876
-	public void getUriWithEncoding() throws Exception {
-		URI uri = new URI("https://example.com/%E4%B8%AD%E6%96%87" +
-				"?redirect=https%3A%2F%2Fgithub.com%2Fspring-projects%2Fspring-framework");
-		mockRequest.setScheme(uri.getScheme());
-		mockRequest.setServerName(uri.getHost());
-		mockRequest.setServerPort(uri.getPort());
-		mockRequest.setRequestURI(uri.getRawPath());
-		mockRequest.setQueryString(uri.getRawQuery());
-		assertEquals("Invalid uri", uri, HttpServletRequestUtil.getURI(mockRequest));
-	}
+    @Test  // SPR-13876
+    public void getUriWithEncoding() throws URISyntaxException {
+        URI uri = new URI("https://example.com/%E4%B8%AD%E6%96%87" +
+                "?redirect=https%3A%2F%2Fgithub.com%2Fspring-projects%2Fspring-framework");
+        mockRequest.setScheme(uri.getScheme());
+        mockRequest.setServerName(uri.getHost());
+        mockRequest.setServerPort(uri.getPort());
+        mockRequest.setRequestURI(uri.getRawPath());
+        mockRequest.setQueryString(uri.getRawQuery());
+        assertEquals("Invalid uri", uri, HttpServletRequestUtil.getURI(mockRequest));
+    }
 
-	@Test
-	public void getHeaders() throws Exception {
-		String headerName = "MyHeader";
-		String headerValue1 = "value1";
-		String headerValue2 = "value2";
-		mockRequest.addHeader(headerName, headerValue1);
-		mockRequest.addHeader(headerName, headerValue2);
-		mockRequest.setContentType("text/plain");
-		mockRequest.setCharacterEncoding("UTF-8");
+    @Test
+    public void getHeaders() {
+        String headerName = "MyHeader";
+        String headerValue1 = "value1";
+        String headerValue2 = "value2";
+        mockRequest.addHeader(headerName, headerValue1);
+        mockRequest.addHeader(headerName, headerValue2);
+        mockRequest.setContentType("text/plain");
+        mockRequest.setCharacterEncoding("UTF-8");
 
-		HttpHeaders headers = HttpServletRequestUtil.getHeaders(mockRequest);
-		assertNotNull("No HttpHeaders returned", headers);
-		assertTrue("Invalid headers returned", headers.containsKey(headerName));
-		List<String> headerValues = headers.get(headerName);
-		assertEquals("Invalid header values returned", 2, headerValues.size());
-		assertTrue("Invalid header values returned", headerValues.contains(headerValue1));
-		assertTrue("Invalid header values returned", headerValues.contains(headerValue2));
-	}
+        HttpHeaders headers = HttpServletRequestUtil.getHeaders(mockRequest);
+        assertNotNull("No HttpHeaders returned", headers);
+        assertTrue("Invalid headers returned", headers.containsKey(headerName));
+        List<String> headerValues = headers.get(headerName);
+        assertEquals("Invalid header values returned", 2, headerValues.size());
+        assertTrue("Invalid header values returned", headerValues.contains(headerValue1));
+        assertTrue("Invalid header values returned", headerValues.contains(headerValue2));
+    }
 
-	@Test
-	public void getHeadersWithEmptyContentTypeAndEncoding() throws Exception {
-		String headerName = "MyHeader";
-		String headerValue1 = "value1";
-		String headerValue2 = "value2";
-		mockRequest.addHeader(headerName, headerValue1);
-		mockRequest.addHeader(headerName, headerValue2);
-		mockRequest.setContentType("");
-		mockRequest.setCharacterEncoding("");
+    @Test
+    public void getHeadersWithEmptyContentTypeAndEncoding() {
+        String headerName = "MyHeader";
+        String headerValue1 = "value1";
+        String headerValue2 = "value2";
+        mockRequest.addHeader(headerName, headerValue1);
+        mockRequest.addHeader(headerName, headerValue2);
+        mockRequest.setContentType("");
+        mockRequest.setCharacterEncoding("");
 
-		HttpHeaders headers = HttpServletRequestUtil.getHeaders(mockRequest);
-		assertNotNull("No HttpHeaders returned", headers);
-		assertTrue("Invalid headers returned", headers.containsKey(headerName));
-		List<String> headerValues = headers.get(headerName);
-		assertEquals("Invalid header values returned", 2, headerValues.size());
-		assertTrue("Invalid header values returned", headerValues.contains(headerValue1));
+        HttpHeaders headers = HttpServletRequestUtil.getHeaders(mockRequest);
+        assertNotNull("No HttpHeaders returned", headers);
+        assertTrue("Invalid headers returned", headers.containsKey(headerName));
+        List<String> headerValues = headers.get(headerName);
+        assertEquals("Invalid header values returned", 2, headerValues.size());
+        assertTrue("Invalid header values returned", headerValues.contains(headerValue1));
 
-	}
+    }
 
 
 }
