@@ -39,6 +39,7 @@ version = branchName == "master" ? lastTagName
         : branchName == "dev"? "${lastTagName}-SNAPSHOT"
         : "${lastTagName}-SNAPSHOT-${branchName}"
 
+println "building branch: ${branchName}  lastTagName: ${lastTagName} AutoVersion: ${version}"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
