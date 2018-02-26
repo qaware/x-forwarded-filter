@@ -39,8 +39,8 @@ Features:
    
 
 # TOC
-  - [Why do i need (x-)forwarded](#why-do-i-need-x-forwarded)
-  - [Why would i use this filter?](#why-do-i-use-this-filter)
+  - [Why do I need (x-)forwarded](#why-do-i-need-x-forwarded)
+  - [Why would I use this filter?](#why-do-i-use-this-filter)
   - [What this filter is not](#what-this-filter-is-not)
   - [Dependencies Maven](#dependencies)
   - [Usage](#usage)
@@ -54,7 +54,7 @@ Features:
   - [How to Build](#how-to-build)
   - [(x-)forwarded* support in various products](#x-forwarded-support-in-various-products)
 
-## Why do i need (x-)forwarded
+## Why do I need (x-)forwarded
 
 1. Imagine your applications sits behind a proxy or a chain of proxies
 2. Imagine your application is reachable over different DNS names 
@@ -73,7 +73,7 @@ Unfortunately many frameworks and webservers have very bad support for these (ps
 
 Add this filter and it will transparently take care of these concerns for you by wrapping the `HttpServletRequest` which will overwrite various methods to return the correct information.
  
-## Why do i use THIS filter
+## Why do I use THIS filter
  
 Because most libraries and webservers have very varying and mostly lacking support.
 The best Filter we could find was the [Spring ForwardedHeaderFilter](https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/main/java/org/springframework/web/filter/ForwardedHeaderFilter.java)
