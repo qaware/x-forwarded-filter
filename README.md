@@ -118,7 +118,7 @@ You probably should disable all other x-forwarded processing code - like done by
 
 ### SpringBoot
 ```java
-import de.qaware.web.filter.ForwardedHeaderFilter;
+import de.qaware.xff.filter.ForwardedHeaderFilter;  //warning! dont trust the autoimport as it will likley use org.springframework.web.filter.ForwardedHeaderFilter 
 //..
 @Bean
 FilterRegistrationBean forwardedHeaderFilter() {
