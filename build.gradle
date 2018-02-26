@@ -241,6 +241,9 @@ bintray {
     publications = ['xForwardedFilter']
     dryRun = false
     publish = true
+
+    println "Publish to bintray dryRun: ${dryRun} publish: ${publish}"
+
     pkg {
         repo = project.bintrayRepo
         name = project.name
