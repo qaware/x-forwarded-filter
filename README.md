@@ -91,7 +91,7 @@ The JARs are available via Maven Central and JCenter.
 If you are using Maven to build your project, add the following to the `pom.xml` file.
 
 ```XML
-<!-- https://mvnrepository.com/artifact/de.qaware.majx/majx -->
+<!-- https://mvnrepository.com/artifact/de.qaware.xff/x-forwarded-filter -->
 <dependency>
     <groupId>de.qaware.xff</groupId>
     <artifactId>x-forwarded-filter</artifactId>
