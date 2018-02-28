@@ -120,12 +120,20 @@ You probably should disable all other x-forwarded processing code - like done by
 ```java
 import de.qaware.xff.filter.ForwardedHeaderFilter;  //warning! dont trust the autoimport as it will likley use org.springframework.web.filter.ForwardedHeaderFilter 
 //..
-@Bean
-FilterRegistrationBean forwardedHeaderFilter() {
-  FilterRegistrationBean frb = new FilterRegistrationBean();
-  frb.setFilter(new ForwardedHeaderFilter());
-  frb.setOrder(Ordered.HIGHEST_PRECEDENCE);
-  return frb;
+@Configuration
+public class MyFilterConfig{
+    @Bean
+    FilterRegistrationBean forwardedHeaderFilter() {
+        FilterRegistrationBean frb = new FilterRegistrationBean();
+        frb.setFilter(new ForwardedHeaderFilter());
+        //must run as first filter
+        frb.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        //Configuration options and their defaults
+        frb.addInitParameter(ForwardedHeaderFilter.ENABLE_RELATIVE_REDIRECTS_INIT_PARAM, Boolean.FALSE.toString());//false is default
+        frb.addInitParameter(ForwardedHeaderFilter.HEADER_PROCESSING_STRATEGY, HeaderProcessingStrategy.EVAL_AND_REMOVE.name());//EVAL_AND_REMOVE is default
+        frb.addInitParameter(ForwardedHeaderFilter.X_FORWARDED_PREFIX_STRATEGY, XForwardedPrefixStrategy.REPLACE.name()); //Replace is default
+        return frb;
+    }
 }
 ```
 
