@@ -35,7 +35,7 @@ class QueryUriTemplateVariables extends UriTemplateVariables {
 		Object value = this.delegate.getValue(name);
 
 		if (isArray(value)) {
-			value = StringUtils.join(", ", toObjectArray(value));
+			value = StringUtils.join( toObjectArray(value),",");
 		}
 		return value;
 	}
