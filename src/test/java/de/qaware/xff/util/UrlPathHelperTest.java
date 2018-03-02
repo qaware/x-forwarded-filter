@@ -87,10 +87,7 @@ public class UrlPathHelperTest {
 		assertEquals("Incorrect path returned", "/foo bar", helper.getRequestUri(request));
 
 		request.setRequestURI("/foo+bar");
-		String expected = new org.springframework.web.util.UrlPathHelper().getRequestUri(request);
-		String myVersion = helper.getRequestUri(request);
-		System.out.println(expected);
-		System.out.println(myVersion);
+
 		assertEquals("Incorrect path returned", "/foo+bar", helper.getRequestUri(request));
 
 
@@ -149,7 +146,6 @@ public class UrlPathHelperTest {
 	public void badRequestEncodingWithCorrectDefault_silentFallback() throws UnsupportedEncodingException {
 		helper.setDefaultEncoding("UTF-8");
 		String uri = "/welcome.html?foo=" + URLEncoder.encode("äöü", "UTF-8") + ";jsessionid=asdf";
-		System.out.println(uri);
 		request.setContextPath("/asdf");
 		request.setRequestURI(uri);
 		request.setCharacterEncoding("fooBarCoding");
@@ -161,7 +157,6 @@ public class UrlPathHelperTest {
 	public void badRequestEncodingWithWrongDefault_silentFallback() throws UnsupportedEncodingException {
 		helper.setDefaultEncoding("ISO-8859-1");
 		String uri = "/welcome.html?foo=" + URLEncoder.encode("äöü", "UTF-8") + ";jsessionid=asdf";
-		System.out.println(uri);
 		request.setContextPath("/asdf");
 		request.setRequestURI(uri);
 		request.setCharacterEncoding("fooBarCoding");
@@ -175,7 +170,6 @@ public class UrlPathHelperTest {
 	public void noRequestEncodingAndWrongDefault() throws UnsupportedEncodingException {
 		helper.setDefaultEncoding("fooBarCoding");
 		String uri = "/welcome.html?foo=" + URLEncoder.encode("äöü", "UTF-8") + ";jsessionid=asdf";
-		System.out.println(uri);
 		request.setContextPath("/asdf");
 		request.setRequestURI(uri);
 		request.setCharacterEncoding("fooBarCoding");

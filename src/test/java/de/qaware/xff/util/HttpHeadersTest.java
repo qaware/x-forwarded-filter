@@ -91,6 +91,7 @@ public class HttpHeadersTest {
 		List<String> b = Collections.singletonList("bbb");
 		headers.add("A", "aaa"); //WILL OVERWRITE
 		headers.add("B", "bbb"); //WILL OVERWRITE
+		assertThat(headers).isNotEmpty().hasSize(2);
 		assertThat(headers.keySet()).containsExactly("a", "b");//case insensitive map!
 		assertThat(headers.values()).containsExactly(a, b);
 		assertThat(headers.entrySet()).contains(Pair.of("a", a), Pair.of("b", b));
@@ -100,7 +101,7 @@ public class HttpHeadersTest {
 	public void containsKey() {
 		headers.add("Cache-Control", "max-age=1000, public");
 		headers.add("Cache-Control", "s-maxage=1000");
-		assertThat(headers).isNotEmpty().hasSize(2);
+		assertThat(headers).isNotEmpty().hasSize(1);
 		assertThat(headers.containsKey("Cache-Control")).isTrue();
 		assertThat(headers.containsKey("Cache-ControlBAD")).isFalse();
 	}
