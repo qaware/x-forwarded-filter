@@ -28,8 +28,8 @@ Features:
     X-Forwarded-Host: "hostB"   => filter will use "hostA" 
 - Supports multiple COMMA-SPACE separated values inside a headers value ->use Find-First-Strategy
   - e.g. X-Forwarded-Host: "hostA, hostB"  => filter will use "hostA"
-- Configurable processing strategy for `X-Forwarded-Proto` =>  PREPEND or REPLACE the contextPath
-  `ForwardedFilter.xForwardedProtoStrategy=[PREPEND, REPLACE]`
+- Configurable processing strategy for `X-Forwarded-Prefix` =>  PREPEND or REPLACE the contextPath
+  `ForwardedFilter.xForwardedPrefixStrategy=[PREPEND, REPLACE]`
 - Configurable header processing and removal strategy
   `ForwardedFilter.headerProcessingStrategy=[EVAL_AND_KEEP, EVAL_AND_REMOVE, DONT_EVAL_AND_REMOVE]`
   - EVAL_AND_KEEP - process headers and keep them in the list of headers for downstream processing
@@ -137,8 +137,31 @@ public class MyFilterConfig{
 }
 ```
 
-### Websphere liberty
-TODO
+### web.xml (e.g. websphere liberty or Spring)
+
+<!--ForwardedHeaderFilter MUST be first filter in chain -->
+<filter>
+    <filter-name>ForwardedHeaderFilter</filter-name>
+    <filter-class>de.qaware.xff.filter.ForwardedHeaderFilter</filter-class>
+    <init-param>
+        <param-name>headerProcessingStrategy</param-name>
+        <param-value>EVAL_AND_REMOVE</param-value>
+    </init-param>
+    <init-param>
+        <param-name>xForwardedPrefixStrategy</param-name>
+        <param-value>REPLACE</param-value>
+    </init-param>
+    <!--
+    <init-param>
+        <param-name>enableRelativeRedirects</param-name>
+        <param-value>false</param-value>
+    </init-param>
+    -->
+</filter>
+<filter-mapping>
+    <filter-name>ForwardedHeaderFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
 
 ### Disable other (x-)forwarded* header processing in various products
 #### Websphere liberty
@@ -147,11 +170,19 @@ Disable [trustedHeaderOrigin](https://www.ibm.com/support/knowledgecenter/beta/S
 
 #### Spring
  1. Don't register the org.springframework.web.filter.ForwardedHeaderFilter
- 2. `server.use-forward-headers=false` generically turns off the forward engine in the underlying webserver! (e.g. tomcat) see: ["howto-use-tomcat-behind-a-proxy-server"](https://docs.spring.io/spring-boot/docs/current/reference/html/howto-embedded-servlet-containers.html#howto-use-tomcat-behind-a-proxy-server")
+ 2. Set `server.use-forward-headers=false` - generically turns off the forward header handling in the underlying webserver! (e.g. tomcat's RemoteIpValve) see: ["howto-use-tomcat-behind-a-proxy-server"](https://docs.spring.io/spring-boot/docs/current/reference/html/howto-embedded-servlet-containers.html#howto-use-tomcat-behind-a-proxy-server")
 
 #### Tomcat
-TODO
-  
+Don't register RemoteIpValve in TomcatEmbeddedServletContainerFactory
+```java
+void configureTomcatXForwardedHandling(TomcatEmbeddedServletContainerFactory factory){
+  if(xForwardedHandlingByTomcat){
+	RemoteIpValve remoteIpValve = new RemoteIpValve();
+	factory.addContextValves(remoteIpValve);
+  }
+}	 
+```  
+
 ## Implementation Details
 Based on [Springs ForwardedHeaderFilter](https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/main/java/org/springframework/web/filter/ForwardedHeaderFilter.java) but
  - without Spring dependency -> easily integrable into many projects
