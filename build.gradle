@@ -139,6 +139,7 @@ license {
 }
 
 release {
+    failOnUpdateNeeded = false //dont fail if current staged changes on master are not yet on origin - prepare release and push at once
     preTagCommitMessage = '[#1] Gradle Release Plugin - pre tag commit: '
     tagCommitMessage = '[#1] Gradle Release Plugin - creating tag: '
     newVersionCommitMessage = '[#1] Gradle Release Plugin - new version: '
