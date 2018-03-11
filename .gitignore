@@ -96,3 +96,6 @@ buildNumber.properties
 !/.mvn/wrapper/maven-wrapper.jar
 
 
+# local helper scripts
+bintrayUpload.bat
+runSonarCloudScan.bat
