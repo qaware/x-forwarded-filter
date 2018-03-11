@@ -19,6 +19,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -39,6 +41,11 @@ public class HttpServletRequestUtilTest {
         mockRequest = new MockHttpServletRequest();
     }
 
+    @Test
+    public void testConstructorIsPrivate() throws NoSuchMethodException, IllegalAccessException, InstantiationException {
+        Constructor<HttpServletRequestUtil> constructor = HttpServletRequestUtil.class.getDeclaredConstructor();
+        assertTrue(Modifier.isPrivate(constructor.getModifiers()));
+    }
 
     @Test
     public void getURI() throws URISyntaxException {
@@ -98,7 +105,15 @@ public class HttpServletRequestUtilTest {
         assertEquals("Invalid header values returned", 2, headerValues.size());
         assertTrue("Invalid header values returned", headerValues.contains(headerValue1));
 
+        mockRequest.setContent(new byte [2]);
+        assertEquals(2,HttpServletRequestUtil.getHeaders(mockRequest).getContentLength());
+
     }
 
-
+    @Test
+    public void getFirstToken(){
+        assertNull(HttpServletRequestUtil.getFirstValueToken(null,","));
+        assertEquals("a",HttpServletRequestUtil.getFirstValueToken("a,b",","));
+        assertEquals("a,b",HttpServletRequestUtil.getFirstValueToken("a,b","wrongDelim"));
+    }
 }

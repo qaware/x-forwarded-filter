@@ -15,6 +15,7 @@
  */
 package de.qaware.xff.util;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -33,69 +34,90 @@ import static org.junit.Assert.assertEquals;
  */
 public class HttpHeadersTest {
 
-    private final HttpHeaders headers = new HttpHeaders();
+	private final HttpHeaders headers = new HttpHeaders();
 
 
-    @Test
-    public void getFirst() {
-        headers.add("Cache-Control", "max-age=1000, public");
-        headers.add("Cache-Control", "s-maxage=1000");
-        assertThat(headers.getFirst("Cache-Control")).isEqualTo("max-age=1000, public");
-    }
+	@Test
+	public void getFirst() {
+		headers.add("Cache-Control", "max-age=1000, public");
+		headers.add("Cache-Control", "s-maxage=1000");
+		assertThat(headers.getFirst("Cache-Control")).isEqualTo("max-age=1000, public");
+	}
 
-    @Test
-    public void addAllMap() {
-        List<String> expected = Arrays.asList("max-age=1000, public", "s-maxage=1000");
-        headers.addAll(Collections.singletonMap("Cache-Control", expected));
-        assertThat(headers.getFirst("Cache-Control")).isEqualTo("max-age=1000, public");
-        assertThat(headers.get("Cache-Control")).isEqualTo(expected);
-    }
+	@Test
+	public void addAllMap() {
+		List<String> expected = Arrays.asList("max-age=1000, public", "s-maxage=1000");
+		headers.addAll(Collections.singletonMap("Cache-Control", expected));
+		assertThat(headers.getFirst("Cache-Control")).isEqualTo("max-age=1000, public");
+		assertThat(headers.get("Cache-Control")).isEqualTo(expected);
+	}
 
-    @Test
-    public void addAllList() {
-        List<String> expected = Arrays.asList("max-age=1000, public", "s-maxage=1000");
-        headers.addAll("Cache-Control", expected);
-        assertThat(headers.getFirst("Cache-Control")).isEqualTo("max-age=1000, public");
-        assertThat(headers.get("Cache-Control")).isEqualTo(expected);
-    }
+	@Test
+	public void addAllList() {
+		List<String> expected = Arrays.asList("max-age=1000, public", "s-maxage=1000");
+		headers.addAll("Cache-Control", expected);
+		assertThat(headers.getFirst("Cache-Control")).isEqualTo("max-age=1000, public");
+		assertThat(headers.get("Cache-Control")).isEqualTo(expected);
+	}
 
-    @Test
-    public void putAllMap() {
-        List<String> expected = Arrays.asList("max-age=1000, public", "s-maxage=1000");
-        headers.putAll(Collections.singletonMap("Cache-Control", expected));
-        assertThat(headers.getFirst("Cache-Control")).isEqualTo("max-age=1000, public");
-        assertThat(headers.get("Cache-Control")).isEqualTo(expected);
-    }
+	@Test
+	public void putAllMap() {
+		List<String> expected = Arrays.asList("max-age=1000, public", "s-maxage=1000");
+		headers.putAll(Collections.singletonMap("Cache-Control", expected));
+		assertThat(headers.getFirst("Cache-Control")).isEqualTo("max-age=1000, public");
+		assertThat(headers.get("Cache-Control")).isEqualTo(expected);
+	}
 
-    @Test
-    public void put() {
-        List<String> expected = Arrays.asList("max-age=1000, public", "s-maxage=1000");
-        headers.add("Cache-Control", "max-age=1000, public");
-        headers.add("Cache-Control", "s-maxage=1000");
-        assertThat(headers.getFirst("Cache-Control")).isEqualTo("max-age=1000, public");
-        assertThat(headers.get("Cache-Control")).isEqualTo(expected);
-    }
+	@Test
+	public void put() {
+		List<String> expected = Collections.singletonList("s-maxage=1000");
+		headers.put("Cache-Control", Collections.singletonList("max-age=1000, public"));
+		headers.put("Cache-Control", Collections.singletonList("s-maxage=1000")); //WILL OVERWRITE
+		assertThat(headers).isNotEmpty().hasSize(1);
+		assertThat(headers.getFirst("Cache-Control")).isEqualTo("s-maxage=1000");
+		assertThat(headers.get("Cache-Control")).isEqualTo(expected);
+	}
 
-    @Test
-    public void containsKey() {
-        headers.add("Cache-Control", "max-age=1000, public");
-        headers.add("Cache-Control", "s-maxage=1000");
-        assertThat(headers.containsKey("Cache-Control")).isTrue();
-        assertThat(headers.containsKey("Cache-ControlBAD")).isFalse();
-    }
+	@Test
+	public void clear() {
+		headers.put("Cache-Control", Collections.singletonList("s-maxage=1000")); //WILL OVERWRITE
+		headers.clear();
+		assertThat(headers).isEmpty();
+	}
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void containsValue() {
-        headers.containsValue(Collections.singletonList("foo"));
-    }
+	@Test
+	public void sets() {
+		List<String> a = Collections.singletonList("aaa");
+		List<String> b = Collections.singletonList("bbb");
+		headers.add("A", "aaa"); //WILL OVERWRITE
+		headers.add("B", "bbb"); //WILL OVERWRITE
+		assertThat(headers).isNotEmpty().hasSize(2);
+		assertThat(headers.keySet()).containsExactly("a", "b");//case insensitive map!
+		assertThat(headers.values()).containsExactly(a, b);
+		assertThat(headers.entrySet()).contains(Pair.of("a", a), Pair.of("b", b));
+	}
 
-    @Test
-    public void contentLength() {
-        long length = 42L;
-        headers.setContentLength(length);
-        assertEquals("Invalid Content-Length header", length, headers.getContentLength());
-        assertEquals("Invalid Content-Length header", "42", headers.getFirst("Content-Length"));
-    }
+	@Test
+	public void containsKey() {
+		headers.add("Cache-Control", "max-age=1000, public");
+		headers.add("Cache-Control", "s-maxage=1000");
+		assertThat(headers).isNotEmpty().hasSize(1);
+		assertThat(headers.containsKey("Cache-Control")).isTrue();
+		assertThat(headers.containsKey("Cache-ControlBAD")).isFalse();
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void containsValue() {
+		headers.containsValue(Collections.singletonList("foo"));
+	}
+
+	@Test
+	public void contentLength() {
+		long length = 42L;
+		headers.setContentLength(length);
+		assertEquals("Invalid Content-Length header", length, headers.getContentLength());
+		assertEquals("Invalid Content-Length header", "42", headers.getFirst("Content-Length"));
+	}
 
 
 }

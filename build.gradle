@@ -139,6 +139,7 @@ license {
 }
 
 release {
+    failOnUpdateNeeded = false //dont fail if current staged changes on master are not yet on origin - prepare release and push at once
     preTagCommitMessage = '[#1] Gradle Release Plugin - pre tag commit: '
     tagCommitMessage = '[#1] Gradle Release Plugin - creating tag: '
     newVersionCommitMessage = '[#1] Gradle Release Plugin - new version: '
@@ -152,11 +153,10 @@ task updateVersionInReadme {
     doFirst {
         println "Updating version in README.md to ${version}."
         def newReadme = file('README.md').text
-                .replaceAll(/<version>[\d.]+<\/version>/, "<version>${version}</version>")
-                .replaceAll(
-                /compile group: 'de\.qaware\.xff', name: 'x-forwarded-filter', version: '[\d.]+'/,
-                "compile group: 'de.qaware.xff', name: 'x-forwarded-filter', version: '${version}'")
-
+                .replaceAll(/<version>[\d.]+<\/version>/,
+                            "<version>${version}</version>")
+                .replaceAll(/compile group: 'de\.qaware\.xff', name: 'x-forwarded-filter', version: '[\d.]+'/,
+                            "compile group: 'de.qaware.xff', name: 'x-forwarded-filter', version: '${version}'")
         file('README.md').write(newReadme)
     }
 }
@@ -241,6 +241,9 @@ bintray {
     publications = ['xForwardedFilter']
     dryRun = false
     publish = true
+
+
+
     pkg {
         repo = project.bintrayRepo
         name = project.name
@@ -259,7 +262,10 @@ bintray {
             mavenCentralSync {
                 sync = true
             }
+
+            println "Publish to bintray dryRun: ${dryRun} publish: ${publish} {}version: \n\t${version.properties.toString().replace(", ", "\n\t")}"
         }
+
     }
 }
 

@@ -4,7 +4,6 @@
 /build/
 .idea/**/gradle.xml
 .idea/**/libraries
-/gradle.properties
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -97,3 +96,6 @@ buildNumber.properties
 !/.mvn/wrapper/maven-wrapper.jar
 
 
+# local helper scripts
+bintrayUpload.bat
+runSonarCloudScan.bat

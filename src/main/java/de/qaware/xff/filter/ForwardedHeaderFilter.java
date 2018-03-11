@@ -83,7 +83,7 @@ public class ForwardedHeaderFilter extends OncePerRequestFilter {
     /**
      * selects processing mode how to handle the x-forwarded-proto header.
      */
-    public static final String X_FORWARDED_PREFIX_STRATEGY = "xForwardedProtoStrategy";
+    public static final String X_FORWARDED_PREFIX_STRATEGY = "xForwardedPrefixStrategy";
 
 
     private boolean relativeRedirects;

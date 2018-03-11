@@ -214,10 +214,10 @@ public abstract class UriComponents implements Serializable {
 		if (checkedSource.indexOf(':') != -1) {
 			checkedSource = sanitizeSource(checkedSource);
 		}
-		Matcher matcher = NAMES_PATTERN.matcher(checkedSource);
+		Matcher variableNamesMatcher = NAMES_PATTERN.matcher(checkedSource);
 		StringBuffer sb = new StringBuffer();
-		while (matcher.find()) {
-			String match = matcher.group(1);
+		while (variableNamesMatcher.find()) {
+			String match = variableNamesMatcher.group(1);
 			String variableName = getVariableName(match);
 			Object variableValue = uriVariables.getValue(variableName);
 			if (UriTemplateVariables.SKIP_VALUE.equals(variableValue)) {
@@ -225,9 +225,9 @@ public abstract class UriComponents implements Serializable {
 			}
 			String variableValueString = getVariableValueAsString(variableValue);
 			String replacement = Matcher.quoteReplacement(variableValueString);
-			matcher.appendReplacement(sb, replacement);
+			variableNamesMatcher.appendReplacement(sb, replacement);
 		}
-		matcher.appendTail(sb);
+		variableNamesMatcher.appendTail(sb);
 		return sb.toString();
 	}
 

@@ -20,8 +20,6 @@ import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -75,24 +73,15 @@ public class HttpHeaders implements Map<String, List<String>> {
 	 * Constructs a new, empty instance of the {@code HttpHeaders} object.
 	 */
 	public HttpHeaders() {
-		this(new CaseInsensitiveMap<>(), false);
+		this(new CaseInsensitiveMap<>());
 	}
 
 	/**
 	 * Private constructor that can create read-only {@code HttpHeader} instances.
 	 */
-	private HttpHeaders(Map<String, List<String>> headers, boolean readOnly) {
+	private HttpHeaders(Map<String, List<String>> headers) {
 		Validate.notNull(headers, "'headers' must not be null");
-		if (readOnly) {
-			Map<String, List<String>> map = new HashMap<>(headers.size());
-			for (Entry<String, List<String>> entry : headers.entrySet()) {
-				List<String> values = Collections.unmodifiableList(entry.getValue());
-				map.put(entry.getKey(), values);
-			}
-			this.headers = Collections.unmodifiableMap(map);
-		} else {
-			this.headers = headers;
-		}
+        this.headers = headers;
 	}
 
 

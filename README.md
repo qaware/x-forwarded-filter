@@ -28,10 +28,10 @@ Features:
     X-Forwarded-Host: "hostB"   => filter will use "hostA" 
 - Supports multiple COMMA-SPACE separated values inside a headers value ->use Find-First-Strategy
   - e.g. X-Forwarded-Host: "hostA, hostB"  => filter will use "hostA"
-- Configurable processing strategy for `X-Forwarded-Proto` =>  PREPEND or REPLACE the contextPath
-  `ForwardedFilter.xForwardedProtoStrategy=[PREPEND, REPLACE]`
+- Configurable processing strategy for `X-Forwarded-Prefix` =>  PREPEND or REPLACE the contextPath
+  `ForwardedFilter.xForwardedPrefixStrategy=[PREPEND, REPLACE]`
 - Configurable header processing and removal strategy
-  `ForwardedFilter.headerProcessingStrategy=[USE_AND_KEEP, USE_AND_REMOVE, DONT_USE_AND_REMOVE]`
+  `ForwardedFilter.headerProcessingStrategy=[EVAL_AND_KEEP, EVAL_AND_REMOVE, DONT_EVAL_AND_REMOVE]`
   - EVAL_AND_KEEP - process headers and keep them in the list of headers for downstream processing
   - EVAL_AND_REMOVE - process headers and remove them. Wont be visible any more when accessing getHeader(s)
   - DONT_EVAL_AND_REMOVE - don't process the headers, just remove them.
@@ -39,8 +39,8 @@ Features:
    
 
 # TOC
-  - [Why do i need (x-)forwarded](#why-do-i-need-x-forwarded)
-  - [Why would i use this filter?](#why-do-i-use-this-filter)
+  - [Why do I need (x-)forwarded](#why-do-i-need-x-forwarded)
+  - [Why would I use this filter?](#why-do-i-use-this-filter)
   - [What this filter is not](#what-this-filter-is-not)
   - [Dependencies Maven](#dependencies)
   - [Usage](#usage)
@@ -54,7 +54,7 @@ Features:
   - [How to Build](#how-to-build)
   - [(x-)forwarded* support in various products](#x-forwarded-support-in-various-products)
 
-## Why do i need (x-)forwarded
+## Why do I need (x-)forwarded
 
 1. Imagine your applications sits behind a proxy or a chain of proxies
 2. Imagine your application is reachable over different DNS names 
@@ -73,7 +73,7 @@ Unfortunately many frameworks and webservers have very bad support for these (ps
 
 Add this filter and it will transparently take care of these concerns for you by wrapping the `HttpServletRequest` which will overwrite various methods to return the correct information.
  
-## Why do i use THIS filter
+## Why do I use THIS filter
  
 Because most libraries and webservers have very varying and mostly lacking support.
 The best Filter we could find was the [Spring ForwardedHeaderFilter](https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/main/java/org/springframework/web/filter/ForwardedHeaderFilter.java)
@@ -91,7 +91,7 @@ The JARs are available via Maven Central and JCenter.
 If you are using Maven to build your project, add the following to the `pom.xml` file.
 
 ```XML
-<!-- https://mvnrepository.com/artifact/de.qaware.majx/majx -->
+<!-- https://mvnrepository.com/artifact/de.qaware.xff/x-forwarded-filter -->
 <dependency>
     <groupId>de.qaware.xff</groupId>
     <artifactId>x-forwarded-filter</artifactId>
@@ -118,19 +118,50 @@ You probably should disable all other x-forwarded processing code - like done by
 
 ### SpringBoot
 ```java
-import de.qaware.web.filter.ForwardedHeaderFilter;
+import de.qaware.xff.filter.ForwardedHeaderFilter;  //warning! dont trust the autoimport as it will likley use org.springframework.web.filter.ForwardedHeaderFilter 
 //..
-@Bean
-FilterRegistrationBean forwardedHeaderFilter() {
-  FilterRegistrationBean frb = new FilterRegistrationBean();
-  frb.setFilter(new ForwardedHeaderFilter());
-  frb.setOrder(Ordered.HIGHEST_PRECEDENCE);
-  return frb;
+@Configuration
+public class MyFilterConfig{
+    @Bean
+    FilterRegistrationBean forwardedHeaderFilter() {
+        FilterRegistrationBean frb = new FilterRegistrationBean();
+        frb.setFilter(new ForwardedHeaderFilter());
+        //must run as first filter
+        frb.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        //Configuration options and their defaults
+        frb.addInitParameter(ForwardedHeaderFilter.ENABLE_RELATIVE_REDIRECTS_INIT_PARAM, Boolean.FALSE.toString());//false is default
+        frb.addInitParameter(ForwardedHeaderFilter.HEADER_PROCESSING_STRATEGY, HeaderProcessingStrategy.EVAL_AND_REMOVE.name());//EVAL_AND_REMOVE is default
+        frb.addInitParameter(ForwardedHeaderFilter.X_FORWARDED_PREFIX_STRATEGY, XForwardedPrefixStrategy.REPLACE.name()); //Replace is default
+        return frb;
+    }
 }
 ```
 
-### Websphere liberty
-TODO
+### web.xml (e.g. websphere liberty or Spring)
+
+<!--ForwardedHeaderFilter MUST be first filter in chain -->
+<filter>
+    <filter-name>ForwardedHeaderFilter</filter-name>
+    <filter-class>de.qaware.xff.filter.ForwardedHeaderFilter</filter-class>
+    <init-param>
+        <param-name>headerProcessingStrategy</param-name>
+        <param-value>EVAL_AND_REMOVE</param-value>
+    </init-param>
+    <init-param>
+        <param-name>xForwardedPrefixStrategy</param-name>
+        <param-value>REPLACE</param-value>
+    </init-param>
+    <!--
+    <init-param>
+        <param-name>enableRelativeRedirects</param-name>
+        <param-value>false</param-value>
+    </init-param>
+    -->
+</filter>
+<filter-mapping>
+    <filter-name>ForwardedHeaderFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
 
 ### Disable other (x-)forwarded* header processing in various products
 #### Websphere liberty
@@ -139,11 +170,19 @@ Disable [trustedHeaderOrigin](https://www.ibm.com/support/knowledgecenter/beta/S
 
 #### Spring
  1. Don't register the org.springframework.web.filter.ForwardedHeaderFilter
- 2. `server.use-forward-headers=false` generically turns off the forward engine in the underlying webserver! (e.g. tomcat) see: ["howto-use-tomcat-behind-a-proxy-server"](https://docs.spring.io/spring-boot/docs/current/reference/html/howto-embedded-servlet-containers.html#howto-use-tomcat-behind-a-proxy-server")
+ 2. Set `server.use-forward-headers=false` - generically turns off the forward header handling in the underlying webserver! (e.g. tomcat's RemoteIpValve) see: ["howto-use-tomcat-behind-a-proxy-server"](https://docs.spring.io/spring-boot/docs/current/reference/html/howto-embedded-servlet-containers.html#howto-use-tomcat-behind-a-proxy-server")
 
 #### Tomcat
-TODO
-  
+Don't register RemoteIpValve in TomcatEmbeddedServletContainerFactory
+```java
+void configureTomcatXForwardedHandling(TomcatEmbeddedServletContainerFactory factory){
+  if(xForwardedHandlingByTomcat){
+	RemoteIpValve remoteIpValve = new RemoteIpValve();
+	factory.addContextValves(remoteIpValve);
+  }
+}	 
+```  
+
 ## Implementation Details
 Based on [Springs ForwardedHeaderFilter](https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/main/java/org/springframework/web/filter/ForwardedHeaderFilter.java) but
  - without Spring dependency -> easily integrable into many projects
