@@ -152,11 +152,10 @@ task updateVersionInReadme {
     doFirst {
         println "Updating version in README.md to ${version}."
         def newReadme = file('README.md').text
-                .replaceAll(/<version>[\d.]+<\/version>/, "<version>${version}</version>")
-                .replaceAll(
-                /compile group: 'de\.qaware\.xff', name: 'x-forwarded-filter', version: '[\d.]+'/,
-                "compile group: 'de.qaware.xff', name: 'x-forwarded-filter', version: '${version}'")
-
+                .replaceAll(/<version>[\d.]+<\/version>/,
+                            "<version>${version}</version>")
+                .replaceAll(/compile group: 'de\.qaware\.xff', name: 'x-forwarded-filter', version: '[\d.]+'/,
+                            "compile group: 'de.qaware.xff', name: 'x-forwarded-filter', version: '${version}'")
         file('README.md').write(newReadme)
     }
 }
@@ -242,7 +241,7 @@ bintray {
     dryRun = false
     publish = true
 
-    println "Publish to bintray dryRun: ${dryRun} publish: ${publish}"
+
 
     pkg {
         repo = project.bintrayRepo
@@ -262,7 +261,10 @@ bintray {
             mavenCentralSync {
                 sync = true
             }
+
+            println "Publish to bintray dryRun: ${dryRun} publish: ${publish} {}version: \n\t${version.properties.toString().replace(", ", "\n\t")}"
         }
+
     }
 }
 
