@@ -137,6 +137,47 @@ public class MyFilterConfig{
 }
 ```
 
+Extended Configuration:
+```
+@Configuration
+@ConditionalOnProperty(value = "de.qaware.xff.enabled", havingValue = "true")
+public class FilterRegistrationConfiguration {
+
+	@Data
+	@Configuration
+	@ConfigurationProperties(prefix = "de.qaware.xff")
+	static class ForwardedHeaderFilterConfiguration{
+		private boolean enabled = true;
+		private boolean enableRelativeRedirects = false;
+		private HeaderProcessingStrategy headerProcessingStrategy = HeaderProcessingStrategy.EVAL_AND_KEEP;
+		private XForwardedPrefixStrategy xForwardedPrefixStrategy = XForwardedPrefixStrategy.PREPEND;
+	}
+
+
+	@Bean
+	FilterRegistrationBean forwardedHeaderFilter(ForwardedHeaderFilterConfiguration c) {
+		FilterRegistrationBean frb = new FilterRegistrationBean();
+		frb.setFilter(new ForwardedHeaderFilter());
+		frb.setOrder(Ordered.HIGHEST_PRECEDENCE);
+		frb.setEnabled(c.isEnabled());
+		frb.addInitParameter(ForwardedHeaderFilter.ENABLE_RELATIVE_REDIRECTS_INIT_PARAM,
+				Boolean.toString(c.isEnableRelativeRedirects()));
+		frb.addInitParameter(ForwardedHeaderFilter.HEADER_PROCESSING_STRATEGY, c.getHeaderProcessingStrategy().name());
+		frb.addInitParameter(ForwardedHeaderFilter.X_FORWARDED_PREFIX_STRATEGY, c.getXForwardedPrefixStrategy().name());
+		return frb;
+	}
+}
+```
+And then in application.yml:
+```yml
+de:
+  qaware:
+    xff:
+      enabled: true
+      #enableRelativeRedirects: false
+      #headerProcessingStrategy: EVAL_AND_KEEP  # EVAL_AND_KEEP, EVAL_AND_REMOVE, DONT_EVAL_AND_REMOVE , or disable the filter with enabled: false
+      #xForwardedPrefixStrategy: PREPEND # one of: PREPEND, REPLACE
+```
 ### web.xml (e.g. websphere liberty or Spring)
 ```xml
 <!--ForwardedHeaderFilter MUST be first filter in chain -->
