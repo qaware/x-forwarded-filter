@@ -117,11 +117,8 @@ dependencies {
 You probably should disable all other x-forwarded processing code - like done by your underlying webserver.
 
 ### SpringBoot
+Simple:
 ```java
-import de.qaware.xff.filter.ForwardedHeaderFilter;  //warning! dont trust the autoimport as it will likley use org.springframework.web.filter.ForwardedHeaderFilter 
-//..
-@Configuration
-public class MyFilterConfig{
     @Bean
     FilterRegistrationBean forwardedHeaderFilter() {
         FilterRegistrationBean frb = new FilterRegistrationBean();
@@ -138,7 +135,9 @@ public class MyFilterConfig{
 ```
 
 Extended Configuration:
-```
+```java
+import de.qaware.xff.filter.ForwardedHeaderFilter;  //warning! dont trust the autoimport as it will likley use org.springframework.web.filter.ForwardedHeaderFilter 
+//..
 @Configuration
 @ConditionalOnProperty(value = "de.qaware.xff.enabled", havingValue = "true")
 public class FilterRegistrationConfiguration {
