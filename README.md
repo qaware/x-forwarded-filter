@@ -138,7 +138,7 @@ public class MyFilterConfig{
 ```
 
 ### web.xml (e.g. websphere liberty or Spring)
-
+```xml
 <!--ForwardedHeaderFilter MUST be first filter in chain -->
 <filter>
     <filter-name>ForwardedHeaderFilter</filter-name>
@@ -151,7 +151,7 @@ public class MyFilterConfig{
         <param-name>xForwardedPrefixStrategy</param-name>
         <param-value>REPLACE</param-value>
     </init-param>
-    <!--
+    <!-- 
     <init-param>
         <param-name>enableRelativeRedirects</param-name>
         <param-value>false</param-value>
@@ -162,7 +162,7 @@ public class MyFilterConfig{
     <filter-name>ForwardedHeaderFilter</filter-name>
     <url-pattern>/*</url-pattern>
 </filter-mapping>
-
+```
 ### Disable other (x-)forwarded* header processing in various products
 #### Websphere liberty
 Disable [trustedHeaderOrigin](https://www.ibm.com/support/knowledgecenter/beta/SSEQTJ_8.5.5/com.ibm.websphere.wlp.nd.doc/ae/rwlp_config_httpDispatcher.html#rwlp_config_httpDispatcher__trustedHeaderOrigin) inside server.xml 
