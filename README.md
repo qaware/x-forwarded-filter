@@ -139,6 +139,7 @@ public class MyFilterConfig{
 
 ### web.xml (e.g. websphere liberty or Spring)
 
+```xml
 <!--ForwardedHeaderFilter MUST be first filter in chain -->
 <filter>
     <filter-name>ForwardedHeaderFilter</filter-name>
@@ -162,6 +163,7 @@ public class MyFilterConfig{
     <filter-name>ForwardedHeaderFilter</filter-name>
     <url-pattern>/*</url-pattern>
 </filter-mapping>
+```
 
 ### Disable other (x-)forwarded* header processing in various products
 #### Websphere liberty
