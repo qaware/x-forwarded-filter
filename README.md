@@ -117,11 +117,8 @@ dependencies {
 You probably should disable all other x-forwarded processing code - like done by your underlying webserver.
 
 ### SpringBoot
+Simple:
 ```java
-import de.qaware.xff.filter.ForwardedHeaderFilter;  //warning! dont trust the autoimport as it will likley use org.springframework.web.filter.ForwardedHeaderFilter 
-//..
-@Configuration
-public class MyFilterConfig{
     @Bean
     FilterRegistrationBean forwardedHeaderFilter() {
         FilterRegistrationBean frb = new FilterRegistrationBean();
@@ -137,8 +134,51 @@ public class MyFilterConfig{
 }
 ```
 
-### web.xml (e.g. websphere liberty or Spring)
+Extended Configuration:
+```java
+import de.qaware.xff.filter.ForwardedHeaderFilter;  //warning! dont trust the autoimport as it will likley use org.springframework.web.filter.ForwardedHeaderFilter 
+//..
+@Configuration
+@ConditionalOnProperty(value = "de.qaware.xff.enabled", havingValue = "true")
+public class FilterRegistrationConfiguration {
 
+	@Data
+	@Configuration
+	@ConfigurationProperties(prefix = "de.qaware.xff")
+	static class ForwardedHeaderFilterConfiguration{
+		private boolean enabled = true;
+		private boolean enableRelativeRedirects = false;
+		private HeaderProcessingStrategy headerProcessingStrategy = HeaderProcessingStrategy.EVAL_AND_KEEP;
+		private XForwardedPrefixStrategy xForwardedPrefixStrategy = XForwardedPrefixStrategy.PREPEND;
+	}
+
+
+	@Bean
+	FilterRegistrationBean forwardedHeaderFilter(ForwardedHeaderFilterConfiguration c) {
+		FilterRegistrationBean frb = new FilterRegistrationBean();
+		frb.setFilter(new ForwardedHeaderFilter());
+		frb.setOrder(Ordered.HIGHEST_PRECEDENCE);
+		frb.setEnabled(c.isEnabled());
+		frb.addInitParameter(ForwardedHeaderFilter.ENABLE_RELATIVE_REDIRECTS_INIT_PARAM,
+				Boolean.toString(c.isEnableRelativeRedirects()));
+		frb.addInitParameter(ForwardedHeaderFilter.HEADER_PROCESSING_STRATEGY, c.getHeaderProcessingStrategy().name());
+		frb.addInitParameter(ForwardedHeaderFilter.X_FORWARDED_PREFIX_STRATEGY, c.getXForwardedPrefixStrategy().name());
+		return frb;
+	}
+}
+```
+And then in application.yml:
+```yml
+de:
+  qaware:
+    xff:
+      enabled: true
+      #enableRelativeRedirects: false
+      #headerProcessingStrategy: EVAL_AND_KEEP  # EVAL_AND_KEEP, EVAL_AND_REMOVE, DONT_EVAL_AND_REMOVE , or disable the filter with enabled: false
+      #xForwardedPrefixStrategy: PREPEND # one of: PREPEND, REPLACE
+```
+### web.xml (e.g. websphere liberty or Spring)
+```xml
 <!--ForwardedHeaderFilter MUST be first filter in chain -->
 <filter>
     <filter-name>ForwardedHeaderFilter</filter-name>
@@ -151,7 +191,7 @@ public class MyFilterConfig{
         <param-name>xForwardedPrefixStrategy</param-name>
         <param-value>REPLACE</param-value>
     </init-param>
-    <!--
+    <!-- 
     <init-param>
         <param-name>enableRelativeRedirects</param-name>
         <param-value>false</param-value>
@@ -162,7 +202,7 @@ public class MyFilterConfig{
     <filter-name>ForwardedHeaderFilter</filter-name>
     <url-pattern>/*</url-pattern>
 </filter-mapping>
-
+```
 ### Disable other (x-)forwarded* header processing in various products
 #### Websphere liberty
 Disable [trustedHeaderOrigin](https://www.ibm.com/support/knowledgecenter/beta/SSEQTJ_8.5.5/com.ibm.websphere.wlp.nd.doc/ae/rwlp_config_httpDispatcher.html#rwlp_config_httpDispatcher__trustedHeaderOrigin) inside server.xml 
