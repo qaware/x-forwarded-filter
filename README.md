@@ -2,16 +2,13 @@
 
 
 
+# Standalone (x-)forwarded*  Filter
 
-# (x-)forwarded*  Filter
+The (x-)forwarded* Http-Headers family are a pseudo standard with varying and mostly lacking support in most proxies, frameworks and webservers.
 
-Standalone (x-)forwarded* Filter.
-
-The (x-)forwarded*  Http Headers are a pseudo standard with varying and mostly lacking support in most products.
-
-Supported Http Headers:
+This filter supports the following Http Headers:
 -  `Forwarded` [as of RFC 7239](http://tools.ietf.org/html/rfc7239)
-- or if `Forwarded` header is NOT found:
+- or if a `Forwarded` header is NOT found:
   - `X-Forwarded-Host`
   - `X-Forwarded-Port`
   - `X-Forwarded-Proto`
@@ -56,37 +53,40 @@ Features:
 
 ## Why do I need (x-)forwarded
 
-1. Imagine your applications sits behind a proxy or a chain of proxies
+1. Imagine your applications sits behind a proxy or another serivce or a chain of proxies/services
 2. Imagine your application is reachable over different DNS names 
- 
-Now you require, for whatever reason, the exact URL - as the client calling you sees it - your where called with.
-For example because you want to redirect you client to another URL/Service (e.g. a login service), lets call this service 'FOO' and you require 'FOO' to send the user back to you after he's done - hence requiring your service to tell 'FOO' the exact URL as the clients browser used to contact you in order to send him back to you.
-  
-Therefore you require the protocol, host, port and maybe the prefix form `HttpServletRequest` to reconstruct the original URL.
+3. You never want to hardcode external URL in the backend service -  ever!
 
-Without a mechanism aware of "forwarded" headers your `HttpServletRequest` does only contain the protocol, host and port with which the proxyserver calling you connected to your service - probably  some internal dns address and port.
-Furthermore the proxy may strips some prefix form your request path - for example because it maps maps multiple services behind a single domain
+Now you need, for whatever reason, the exact external URL as the client calling you sees it. 
+For example, you use an generic Login Proxy 'login.corp.com' in front of you business services e.g. 'biz.corp.com'. And you require 'login.corp.com' to send your user back to your service, after he's done authenticating. For this your business backend service  lets call it 'biz.int.corp' (note: internal service URL), needs to tell login.corp.com the exact external URL 'biz.corp.com' your user came from. You do NOT want to hardcode the external URL in your internal service - ever! - it Kills a/b testing and you cannot expose the same service via different URLS. Its just a knightmare. But lets continue. To forward a user back to you, your backend service now needs to dyamically know the protocol, host, port and maybe the prefix form `HttpServletRequest` to reconstruct the original URL - as your client connecting via the internet sees it.
 
-To support this usecase many proxies support adding (x-)forwarded* header.
+Without a mechanism aware of "forwarded" headers your `HttpServletRequest` does only contain the protocol, host and port of the service/proxy __infront__ of your service - which probably is some company internal DNS address and port.
+Furthermore the service/proxy in front of you may strips some prefix form your request path, for example because it aggregates & maps multiple bakcend services behind a single domain
 
-Unfortunately many frameworks and webservers have very bad support for these (pseudo-)standard forwarded headers, implement them poorly or lack the support completely.
 
-Add this filter and it will transparently take care of these concerns for you by wrapping the `HttpServletRequest` which will overwrite various methods to return the correct information.
+To support this usecase of forwarding the external URL information to backend services, many proxies and webservers stated supporing various (x-)forwarded* headers.
+Unfortunately almost all have very bad support for these (pseudo-)standard forwarded headers, implement only parts, implement them poorly or lack the support completely.
+See:  [(x-)forwarded* support in various products](#x-forwarded-support-in-various-products)
+
+
+This filter will transparently take care of these concerns for you, by wrapping the `HttpServletRequest` which will overwrite various methods to return the correct information.
  
 ## Why do I use THIS filter
  
-Because most libraries and webservers have very varying and mostly lacking support.
-The best Filter we could find was the [Spring ForwardedHeaderFilter](https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/main/java/org/springframework/web/filter/ForwardedHeaderFilter.java)
-But
-  - it requires the complete spring-web as dendency (fine if your are allready using spring - not so fine for a single filter)
-  - it lacks support for PREPEND the value in X-Forwarded-Prefix instead of REPLACE (which is crucial for us)
+Because most libraries and webservers have very bad or lacking support for these headers.
+The best Filter i could find was the [Spring ForwardedHeaderFilter](https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/main/java/org/springframework/web/filter/ForwardedHeaderFilter.java) - this implementation is based on the filter from Spring.
+But it had shortcomings:
+  - it requires the complete spring-web as dendency  - fine if your are allready using spring, but not so fine for a single filter
+  - it lacks support to PREPEND the value in 'X-Forwarded-Prefix' instead of REPLACE it - which is crucial for us, as we use this filter in a proxy and need to pass the values downstream
   
 ## What this filter is not
 - no support for "client identification" with x-forwarded-for
  
 ## Dependencies
+- No Spring required
+- Only  slf4j, commons-lang3 and commons-collections4
 
-The JARs are available via Maven Central and JCenter. 
+The JARs are available via Maven Central and JCenter.
 
 If you are using Maven to build your project, add the following to the `pom.xml` file.
 
