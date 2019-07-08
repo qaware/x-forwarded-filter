@@ -75,9 +75,10 @@ This filter will transparently take care of these concerns for you, by wrapping 
  
 Because most libraries and webservers have very bad or lacking support for these headers.
 The best Filter i could find was the [Spring ForwardedHeaderFilter](https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/main/java/org/springframework/web/filter/ForwardedHeaderFilter.java) - this implementation is based on the filter from Spring.
-But it had shortcomings:
-  - it requires the complete spring-web as dendency  - fine if your are allready using spring, but not so fine for a single filter
-  - it lacks support to PREPEND the value in 'X-Forwarded-Prefix' instead of REPLACE it - which is crucial for us, as we use this filter in a proxy and need to pass the values downstream
+
+Why not use the Filter from Spring?:
+  - it requires the complete spring-web as dendency  - fine if your are allready using spring, but not fine for a small microservice just requiring this filter
+  - it lacks support to PREPEND the value in 'X-Forwarded-Prefix' instead of REPLACE it -  is crucial for us, as we use this filter in a proxy and need to pass the values downstream
   
 ## What this filter is not
 - no support for "client identification" with x-forwarded-for
