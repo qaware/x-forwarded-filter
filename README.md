@@ -77,7 +77,7 @@ Because most libraries and webservers have very bad or lacking support for these
 The best Filter i could find was the [Spring ForwardedHeaderFilter](https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/main/java/org/springframework/web/filter/ForwardedHeaderFilter.java) - this implementation is based on the filter from Spring.
 
 Why not use the Filter from Spring?:
-  - it requires the complete spring-web as dendency  - fine if your are allready using spring, but not fine for a small microservice just requiring this filter
+  - it requires the complete spring-web as dependency  - fine if your are already using Spring, but not fine for a small microservice just requiring this filter
   - it lacks support to PREPEND the value in 'X-Forwarded-Prefix' instead of REPLACE it -  is crucial for us, as we use this filter in a proxy and need to pass the values downstream
   
 ## What this filter is not
@@ -85,7 +85,7 @@ Why not use the Filter from Spring?:
  
 ## Dependencies
 - No Spring required
-- Only  slf4j, commons-lang3 and commons-collections4
+- Only slf4j, commons-lang3 and commons-collections4
 
 The JARs are available via Maven Central and JCenter.
 
