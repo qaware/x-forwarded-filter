@@ -35,66 +35,42 @@ This filter supports the following Http Headers:
    
   
 # Table of contents
-- [Standalone (x-)forwarded*  Filter](#standalone-x-forwarded--filter)
-  - [Why do I need (x-)forwarded](#why-do-i-need-x-forwarded)
-  - [Why do I use THIS filter](#why-do-i-use-this-filter)
-  - [What this filter is not](#what-this-filter-is-not)
+- [Standalone (x-)forwarded* Filter](#standalone-x-forwarded-filter)
+- [Usage](#usage)
   - [Dependencies](#dependencies)
-  - [Usage](#usage)
-    - [SpringBoot](#springboot)
-    - [web.xml (e.g. websphere liberty or Spring)](#webxml-eg-websphere-liberty-or-spring)
-    - [Disable other (x-)forwarded* header processing in various products](#disable-other-x-forwarded-header-processing-in-various-products)
-      - [Websphere liberty](#websphere-liberty)
-      - [Spring](#spring)
-      - [Tomcat](#tomcat)
-  - [Implementation Details](#implementation-details)
-  - [How to build](#how-to-build)
+    - [Maven](#maven)
+    - [Gradle](#gradle)
+  - [SpringBoot](#springboot)
+    - [web.xml (e.g. Websphere Liberty or Spring)](#webxml-eg-websphere-liberty-or-spring)
+  - [Disable other (x-)forwarded* header processing in various products](#disable-other-x-forwarded-header-processing-in-various-products)
+    - [Websphere liberty](#websphere-liberty)
+    - [Spring](#spring)
+    - [Tomcat](#tomcat)
+- [What? Why? X-forwarded?](#what-why-x-forwarded)
+  - [Why do I need (x-)forwarded](#why-do-i-need-x-forwarded)
+  - [Why should i use THIS filter](#why-should-i-use-this-filter)
+  - [What this filter is not](#what-this-filter-is-not)
   - [(x-)forwarded* support in various products](#x-forwarded-support-in-various-products)
   - [X-Forwarded headers overview and explanation](#x-forwarded-headers-overview-and-explanation)
-- [Maintainer](#maintainer), [Credits](#credits), [License](#license)
-  
-  
+  - [Developer Info](#developer-info)
+    - [Implementation Details](#implementation-details)
+    - [How to build](#how-to-build)
+- [Appendix](#appendix)
+  - [Maintainer](#maintainer)
+  - [Credits](#credits)
+  - [License](#license)
 
-## Why do I need (x-)forwarded
+# Usage
+You probably should disable all other x-forwarded processing code - like done by your underlying webserver. See: [Disable other (x-)forwarded* header processing in various products](#disable-other-x-forwarded-header-processing-in-various-products)
 
-1. Imagine your applications sits behind a proxy or another serivce or a chain of proxies/services
-2. Imagine your application is reachable over different DNS names 
-3. You never want to hardcode external URL in the backend service -  ever!
-
-Now you need, for whatever reason, the exact external URL as the client calling you sees it. 
-For example, you use an generic Login Proxy 'login.corp.com' in front of you business services e.g. 'biz.corp.com'. And you require 'login.corp.com' to send your user back to your service, after he's done authenticating. For this your business backend service  lets call it 'biz.int.corp' (note: internal service URL), needs to tell login.corp.com the exact external URL 'biz.corp.com' your user came from. You do NOT want to hardcode the external URL in your internal service - ever! - it Kills a/b testing and you cannot expose the same service via different URLS. Its just a knightmare. But lets continue. To forward a user back to you, your backend service now needs to dyamically know the protocol, host, port and maybe the prefix form `HttpServletRequest` to reconstruct the original URL - as your client connecting via the internet sees it.
-
-Without a mechanism aware of "forwarded" headers your `HttpServletRequest` does only contain the protocol, host and port of the service/proxy __infront__ of your service - which probably is some company internal DNS address and port.
-Furthermore the service/proxy in front of you may strips some prefix form your request path, for example because it aggregates & maps multiple bakcend services behind a single domain
-
-
-To support this usecase of forwarding the external URL information to backend services, many proxies and webservers stated supporing various (x-)forwarded* headers.
-Unfortunately almost all have very bad support for these (pseudo-)standard forwarded headers, implement only parts, implement them poorly or lack the support completely.
-See:  [(x-)forwarded* support in various products](#x-forwarded-support-in-various-products)
-
-
-This filter will transparently take care of these concerns for you, by wrapping the `HttpServletRequest` which will overwrite various methods to return the correct information.
- 
-## Why do I use THIS filter
- 
-Because most libraries and webservers have very bad or lacking support for these headers.
-The best Filter i could find was the [Spring ForwardedHeaderFilter](https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/main/java/org/springframework/web/filter/ForwardedHeaderFilter.java) - this implementation is based on the filter from Spring.
-
-Why not use the Filter from Spring?:
-  - it requires the complete spring-web as dependency  - fine if your are already using Spring, but not fine for a small microservice just requiring this filter
-  - it lacks support to PREPEND the value in 'X-Forwarded-Prefix' instead of REPLACE it -  is crucial for us, as we use this filter in a proxy and need to pass the values downstream
-  
-## What this filter is not
-- no support for "client identification" with x-forwarded-for
- 
 ## Dependencies
-- No Spring required
 - Only slf4j, commons-lang3 and commons-collections4
+- No Spring required
 
 The JARs are available via Maven Central and JCenter.
 
+### Maven
 If you are using Maven to build your project, add the following to the `pom.xml` file.
-
 ```XML
 <!-- https://mvnrepository.com/artifact/de.qaware.xff/x-forwarded-filter -->
 <dependency>
@@ -104,8 +80,8 @@ If you are using Maven to build your project, add the following to the `pom.xml`
 </dependency>
 ```
 
+### Gradle
 In case you are using Gradle to build your project, add the following to the `build.gradle` file:
-
 ```groovy
 repositories {
     jcenter()
@@ -117,11 +93,8 @@ dependencies {
     compile group: 'de.qaware.xff', name: 'x-forwarded-filter', version: '1.0'
 }
 ```
- 
-## Usage
-You probably should disable all other x-forwarded processing code - like done by your underlying webserver.
 
-### SpringBoot
+## SpringBoot
 Simple:
 ```java
     @Bean
@@ -182,7 +155,7 @@ de:
       #headerProcessingStrategy: EVAL_AND_KEEP  # EVAL_AND_KEEP, EVAL_AND_REMOVE, DONT_EVAL_AND_REMOVE , or disable the filter with enabled: false
       #xForwardedPrefixStrategy: PREPEND # one of: PREPEND, REPLACE
 ```
-### web.xml (e.g. websphere liberty or Spring)
+### web.xml (e.g. Websphere Liberty or Spring)
 ```xml
 <!--ForwardedHeaderFilter MUST be first filter in chain -->
 <filter>
@@ -208,16 +181,17 @@ de:
     <url-pattern>/*</url-pattern>
 </filter-mapping>
 ```
-### Disable other (x-)forwarded* header processing in various products
-#### Websphere liberty
+
+## Disable other (x-)forwarded* header processing in various products
+### Websphere liberty
 Disable [trustedHeaderOrigin](https://www.ibm.com/support/knowledgecenter/beta/SSEQTJ_8.5.5/com.ibm.websphere.wlp.nd.doc/ae/rwlp_config_httpDispatcher.html#rwlp_config_httpDispatcher__trustedHeaderOrigin) inside server.xml 
 `<httpDispatcher trustedHeaderOrigin="none" />`
 
-#### Spring
+### Spring
  1. Don't register the org.springframework.web.filter.ForwardedHeaderFilter
  2. Set `server.use-forward-headers=false` - generically turns off the forward header handling in the underlying webserver! (e.g. tomcat's RemoteIpValve) see: ["howto-use-tomcat-behind-a-proxy-server"](https://docs.spring.io/spring-boot/docs/current/reference/html/howto-embedded-servlet-containers.html#howto-use-tomcat-behind-a-proxy-server")
 
-#### Tomcat
+### Tomcat
 Don't register RemoteIpValve in TomcatEmbeddedServletContainerFactory
 ```java
 void configureTomcatXForwardedHandling(TomcatEmbeddedServletContainerFactory factory){
@@ -228,21 +202,43 @@ void configureTomcatXForwardedHandling(TomcatEmbeddedServletContainerFactory fac
 }	 
 ```  
 
-## Implementation Details
-Based on [Springs ForwardedHeaderFilter](https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/main/java/org/springframework/web/filter/ForwardedHeaderFilter.java) but
- - without Spring dependency -> easily integrable into many projects
- - has toogle to NOT remove the evaluated headers from the request 
-   - allows using this filter inside a Proxy to forward/append to these headers to downstream services (e.g. Zuul)
- - Selectable processing strategy for `X-Forwarded-Prefix`  
-   - `PREPEND` the Context-Path of the Application with the (first) value from `X-forwarded-Prefix`
-     -  example:
-   - `REPLACE` the Context-Path of the Application with the (first) value from `X-forwarded-Prefix`
-     -  example:
+# What? Why? X-forwarded?
+
+## Why do I need (x-)forwarded
+
+1. Imagine your applications sits behind a proxy or another serivce or a chain of proxies/services
+2. Imagine your application is reachable over different DNS names 
+3. You never want to hardcode external URL in the backend service -  ever!
+
+Now you need, for whatever reason, the exact external URL as the client calling you sees it. 
+For example, you use an generic Login Proxy 'login.corp.com' in front of you business services e.g. 'biz.corp.com'. And you require 'login.corp.com' to send your user back to your service, after he's done authenticating. For this your business backend service  lets call it 'biz.int.corp' (note: internal service URL), needs to tell login.corp.com the exact external URL 'biz.corp.com' your user came from. You do NOT want to hardcode the external URL in your internal service - ever! - it Kills a/b testing and you cannot expose the same service via different URLS. Its just a knightmare. But lets continue. To forward a user back to you, your backend service now needs to dyamically know the protocol, host, port and maybe the prefix form `HttpServletRequest` to reconstruct the original URL - as your client connecting via the internet sees it.
+
+Without a mechanism aware of "forwarded" headers your `HttpServletRequest` does only contain the protocol, host and port of the service/proxy __infront__ of your service - which probably is some company internal DNS address and port.
+Furthermore the service/proxy in front of you may strips some prefix form your request path, for example because it aggregates & maps multiple bakcend services behind a single domain
+
+
+To support this usecase of forwarding the external URL information to backend services, many proxies and webservers stated supporing various (x-)forwarded* headers.
+Unfortunately almost all have very bad support for these (pseudo-)standard forwarded headers, implement only parts, implement them poorly or lack the support completely.
+See:  [(x-)forwarded* support in various products](#x-forwarded-support-in-various-products)
+
+This filter will transparently take care of these concerns for you, by wrapping the `HttpServletRequest` which will overwrite various methods to return the correct information.
  
-## How to build 
-Based on Gradle. First trigger of build will take longer and download the buildtool.
-execute:
-`gradlew build`
+ 
+## Why should i use THIS filter
+ 
+Because most libraries and webservers have no, very bad or lacking support for these headers.
+The best filter i could find was the [Spring-Web ForwardedHeaderFilter](https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/main/java/org/springframework/web/filter/ForwardedHeaderFilter.java).
+This implementation is based on the filter from Spring.
+
+Then why not use the Spring filter? 
+  - because it requires the the full blown spring-web  dependency  - fine if your are already using Spring, but overkill in a small microservice just requiring this filter
+  - it lacks support to PREPEND the value in 'X-Forwarded-Prefix' instead of REPLACE it -  is crucial for us, as we use this filter in a proxy and need to pass the values downstream
+  - more differences: [Implementation details](#implementation-details)
+  
+  
+## What this filter is not
+- no support for "client identification" with x-forwarded-for
+
 
 
 ## (x-)forwarded* support in various products
@@ -285,15 +281,34 @@ execute:
 | X-Forwarded-SSL        | ? |
 
 
-# Maintainer
+## Developer Info
 
+### Implementation Details
+Based on [Springs ForwardedHeaderFilter](https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/main/java/org/springframework/web/filter/ForwardedHeaderFilter.java) but
+ - without Spring dependency -> easily integrable into many projects
+ - has toogle to NOT remove the evaluated headers from the request 
+   - allows using this filter inside a Proxy to forward/append to these headers to downstream services (e.g. Zuul)
+ - Selectable processing strategy for `X-Forwarded-Prefix`  
+   - `PREPEND` the Context-Path of the Application with the (first) value from `X-forwarded-Prefix`
+     -  example:
+   - `REPLACE` the Context-Path of the Application with the (first) value from `X-forwarded-Prefix`
+     -  example:
+ 
+### How to build 
+Based on Gradle. First trigger of build will take longer and download the buildtool.
+
+```bash
+gradlew build
+```
+
+# Appendix
+
+## Maintainer
 Michael Frank, <michael.frank@qaware.de>
 
-# Credits
-
+## Credits
 Code was taken from Spring 5.0.4 
 Thanks to all Contributors who made that possible.
 
-# License
-
+## License
 This software is provided under the Apache2.0 open source license, read the `LICENSE` file for details.
