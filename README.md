@@ -1,8 +1,7 @@
 [![Build Status](https://travis-ci.org/qaware/x-forwarded-filter.svg?branch=master)](https://travis-ci.org/qaware/x-forwarded-filter) [![sonarcloud](https://sonarcloud.io/api/project_badges/measure?project=de.qaware.xff%3Ax-forwarded-filter&metric=alert_status)](https://sonarcloud.io/dashboard?id=de.qaware.xff%3Ax-forwarded-filter) [![Coverage Status](https://coveralls.io/repos/github/qaware/x-forwarded-filter/badge.svg?branch=master)](https://coveralls.io/github/qaware/x-forwarded-filter?branch=master) [![License](https://img.shields.io/badge/license-APACHE2.0-green.svg?style=flat)]() [![Download](https://api.bintray.com/packages/qaware-oss/maven/x-forwarded-filter/images/download.svg)](https://bintray.com/qaware-oss/maven/x-forwarded-filter/_latestVersion)
 
 
-
-# Standalone (x-)forwarded*  Filter
+# Standalone (x-)forwarded* Filter
 
 The (x-)forwarded* Http-Headers family are a pseudo standard with varying and mostly lacking support in most proxies, frameworks and webservers.
 
@@ -12,11 +11,11 @@ This filter supports the following Http Headers:
   - `X-Forwarded-Host`
   - `X-Forwarded-Port`
   - `X-Forwarded-Proto`
-- Additionally for both cases: `X-Forwarded-Prefix` to adapt the `getContextPath` result is supported.
+- Additionally for both cases: `X-Forwarded-Prefix` is supported to adapt the `getContextPath` result.
 
-Features:
-- Supports adapting the scheme, host, port and prefix(contextPath) of `HttpServletRequest`'s by replacing them transparently using the information from the (x-)forwarded* header(s).
-- Supports `HttpServletResponse.sendRedirect(location)` by rewriting them accordingly
+**Features:**
+- Supports adapting  `HttpServletRequest`'s  scheme, host, port and prefix(contextPath)by replacing them transparently using the information from (x-)forwarded* http header(s).
+- Supports `HttpServletResponse.sendRedirect(location)` by rewriting it accordingly
 - Processing of headers and extracting parts (e.g. form `Forwarded` ) is case insensitive
   - valid: X-Forwarded-Host, x-forwarded-host, X-forwarded-HOST,..
 - Supports multiple headers of same name in request -> use Find-First-Strategy
@@ -34,22 +33,27 @@ Features:
   - DONT_EVAL_AND_REMOVE - don't process the headers, just remove them.
   - ~~DONT_EVAL_AND_DONT_REMOVE~~ => just don't activate this filter - same effect
    
-
-# TOC
+  
+# Table of contents
+- [Standalone (x-)forwarded*  Filter](#standalone-x-forwarded--filter)
   - [Why do I need (x-)forwarded](#why-do-i-need-x-forwarded)
-  - [Why would I use this filter?](#why-do-i-use-this-filter)
+  - [Why do I use THIS filter](#why-do-i-use-this-filter)
   - [What this filter is not](#what-this-filter-is-not)
-  - [Dependencies Maven](#dependencies)
+  - [Dependencies](#dependencies)
   - [Usage](#usage)
     - [SpringBoot](#springboot)
-    - [Websphere liberty]()
+    - [web.xml (e.g. websphere liberty or Spring)](#webxml-eg-websphere-liberty-or-spring)
     - [Disable other (x-)forwarded* header processing in various products](#disable-other-x-forwarded-header-processing-in-various-products)
       - [Websphere liberty](#websphere-liberty)
       - [Spring](#spring)
       - [Tomcat](#tomcat)
   - [Implementation Details](#implementation-details)
-  - [How to Build](#how-to-build)
+  - [How to build](#how-to-build)
   - [(x-)forwarded* support in various products](#x-forwarded-support-in-various-products)
+  - [X-Forwarded headers overview and explanation](#x-forwarded-headers-overview-and-explanation)
+- [Maintainer](#maintainer), [Credits](#credits), [License](#license)
+  
+  
 
 ## Why do I need (x-)forwarded
 
@@ -243,11 +247,11 @@ execute:
 
 ## (x-)forwarded* support in various products
 
-|                                           | this filter | Spring 4.3.9 | Tomcat | IBM Websphere Liberty | Jetty | Apache mod_proxy                  | nginx | 
+|                                           | this filter | Spring 5.0.4 | Tomcat | IBM Websphere Liberty | Jetty | Apache mod_proxy                  | nginx | 
 | ----------------------------------------- |------------ | ------------ | ------ | --------------------- | ----- | --------------------------------- | ------| 
 | Forwarded                                 | YES         | YES          | ?      | NO                    | YES   | NO(manually with rewrite engine?) | manually with custom proxy_set_header  | 
 | X-Forwarded-Proto                         | YES         | YES          | YES    | YES                   | YES   | NO(manually with rewrite engine?) | manually with custom proxy_set_header  | 
-| X-Forwarded-Host                          | YES         | YES          | NO     | NO                    | YES   | YES                               | manually with custom proxy_set_header  | 
+| X-Forwarded-Host                          | YES         | YES          | YES*1) | NO                    | YES   | YES                               | manually with custom proxy_set_header  | 
 | X-Forwarded-Port                          | YES         | YES          | YES    | NO                    | NO    | NO(manually with rewrite engine?) | manually with custom proxy_set_header  | 
 | X-Forwarded-Prefix                        | YES         | YES          | NO     | NO                    | NO    | NO(manually with rewrite engine?) | manually with custom proxy_set_header  | 
 | X-Forwarded-By                            | NO          | NO           | YES    | NO                    | NO    | NO(manually with rewrite engine?) | manually with custom proxy_set_header  | 
@@ -260,8 +264,11 @@ execute:
 | Supports multiple Headers with same name  | YES         | YES          | YES    | NO                    | NO    | ?                                 | ? | 
 | Strip forwarded header from `Request`     | YES(toggle) | YES(always)  | ?      | ?                     | ?     | ?                                 | ? | 
 | Supports relative redirects in `Response` | YES         | YES          | NO     | NO                    | NO    | ?                                 | ? |
-| `X-Forwarded-Prefix` processing strategy    | PREPEND or REPLACE | REPLACE | ?    | ?                     | ?     | ?                                 | ? | 
+| `X-Forwarded-Prefix` processing strategy  | PREPEND or REPLACE | REPLACE | ?    | ?                     | ?     | ?                                 | ? | 
+*1) [x-forwarded-host is supported since 9.0.23,8.5.44,7.0.97](https://bz.apache.org/bugzilla/show_bug.cgi?id=57665)
 
+
+## X-Forwarded headers overview and explanation
 
 | Header                 | Description |
 | ---------------------- | ----------- |
@@ -276,7 +283,6 @@ execute:
 | X-Real-IP              | nginx synonym for x-forwarded-for |
 | X-Proxied-Https        | ? |
 | X-Forwarded-SSL        | ? |
-
 
 
 # Maintainer
