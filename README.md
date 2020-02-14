@@ -41,7 +41,7 @@ This filter supports the following Http Headers:
     - [Maven](#maven)
     - [Gradle](#gradle)
   - [SpringBoot](#springboot)
-    - [web.xml (e.g. Websphere Liberty or Spring)](#webxml-eg-websphere-liberty-or-spring)
+  - [web.xml (e.g. Websphere Liberty or Spring)](#webxml-eg-websphere-liberty-or-spring)
   - [Disable other (x-)forwarded* header processing in various products](#disable-other-x-forwarded-header-processing-in-various-products)
     - [Websphere liberty](#websphere-liberty)
     - [Spring](#spring)
@@ -155,7 +155,7 @@ de:
       #headerProcessingStrategy: EVAL_AND_KEEP  # EVAL_AND_KEEP, EVAL_AND_REMOVE, DONT_EVAL_AND_REMOVE , or disable the filter with enabled: false
       #xForwardedPrefixStrategy: PREPEND # one of: PREPEND, REPLACE
 ```
-### web.xml (e.g. Websphere Liberty or Spring)
+## web.xml (e.g. Websphere Liberty or Spring)
 ```xml
 <!--ForwardedHeaderFilter MUST be first filter in chain -->
 <filter>
