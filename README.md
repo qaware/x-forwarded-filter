@@ -261,6 +261,7 @@ Then why not use the Spring filter?
 | Strip forwarded header from `Request`     | YES(toggle) | YES(always)  | ?      | ?                     | ?     | ?                                 | ? | 
 | Supports relative redirects in `Response` | YES         | YES          | NO     | NO                    | NO    | ?                                 | ? |
 | `X-Forwarded-Prefix` processing strategy  | PREPEND or REPLACE | REPLACE | ?    | ?                     | ?     | ?                                 | ? | 
+
 *1) [x-forwarded-host is supported since 9.0.23,8.5.44,7.0.97](https://bz.apache.org/bugzilla/show_bug.cgi?id=57665)
 
 
